@@ -1,13 +1,7 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    amq-client (0.8.0)
-      amq-protocol (>= 0.8.0)
-      eventmachine
-    amq-protocol (0.8.0)
-    amqp (0.8.0.rc14)
-      amq-client (>= 0.8.0)
-      amq-protocol (>= 0.8.0)
+    amqp (0.7.4)
       eventmachine
     eventmachine (0.12.10)
 
@@ -15,4 +9,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  amqp (~> 0.8.0.RC13)
+  amqp
