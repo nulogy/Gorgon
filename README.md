@@ -9,19 +9,19 @@ Gorgon provides a method for distributing the workload of running a ruby test su
 Usage
 ---------------------
 
-To queue the current test suite, simply run _gorgon test_, or simply _gorgon_. _gorgon_ will read the application configuration out of _gorgon.yml_, connect to the AMQP server, and publish the job.
+To queue the current test suite, simply run _gorgon test_, or simply _gorgon_. _gorgon_ will read the application configuration out of _gorgon.json_, connect to the AMQP server, and publish the job.
 
-In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run _gorgon listen_. This command will read the listener configuration out of _gorgon\_listener.yml_, then start the listener process in the background.
+In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run _gorgon listen_. This command will read the listener configuration out of _gorgon\_listener.json_, then start the listener process in the background.
 
 Configuration
 ---------------------
 
-### gorgon.yml
+### gorgon.json
 This file contains project-specific settings for gorgon, such as:
 
 * A glob for generating the list of test files
 
-### gorgon_listener.yml
+### gorgon_listener.json
 This file contains the listener-specific settings, such as:
 
 * How many worker slots are provided by this listener
