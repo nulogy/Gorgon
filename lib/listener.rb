@@ -35,8 +35,8 @@ class Listener
       payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
       @job_definition = JobDefinition.new(payload)
       @reply_exchange = @channel.direct(@job_definition.reply_exchange_name)
-      tempdir = Dir.mktmpdir("gorgon")
-      Dir.chdir(tempdir)
+      @tempdir = Dir.mktmpdir("gorgon")
+      Dir.chdir(@tempdir)
       system("rsync -r --rsh=ssh #{@job_definition.source_tree_path}/* .")
       fork_workers
     end
@@ -70,9 +70,16 @@ class Listener
 
   def on_worker_complete
     @available_worker_slots += 1
-    if @available_worker_slots == connection_information[:worker_slots]
-      handle_jobs
-    end
+    on_current_job_complete if current_job_complete?
+  end
+
+  def current_job_complete?
+    @available_worker_slots == configuration[:worker_slots]
+  end
+
+  def on_current_job_complete
+    FileUtils::remove_entry_secure(@tempdir)
+    handle_jobs
   end
 
   def connection_information
