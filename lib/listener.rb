@@ -12,7 +12,7 @@ class Listener
   include Configuration
 
   def initialize
-    @config_filename = Dir.pwd + "gorgon_listener.json"
+    @config_filename = Dir.pwd + "/gorgon_listener.json"
     @available_worker_slots = configuration[:worker_slots]
   end
 
@@ -20,7 +20,7 @@ class Listener
     AMQP.start(connection_information) do |connection|
       AMQP::Channel.new(connection) do |channel|
         @channel = channel
-        channel.queue("", :auto_delete => true, :exclusive => true) do |job_queue, reply|
+        channel.queue("", :exclusive => true) do |job_queue, reply|
           @job_queue = job_queue
           exchange = channel.fanout("gorgon.jobs")
           @job_queue.bind(exchange)

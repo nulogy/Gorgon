@@ -60,6 +60,6 @@ class Worker
   end
 
   def configuration
-    @configuration ||= load_configuration_from_file("gorgon_listener.json")
+    @configuration ||= load_configuration_from_file(@config_filename)
   end
 end
