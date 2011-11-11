@@ -1,0 +1,13 @@
+{
+  "connection": {
+    "host": "localhost"
+  },
+
+  "job": {
+    "source_tree_path": "marysue.local:src/gorgon"
+  },
+
+  "files": [
+    "test/**"
+  ]
+}

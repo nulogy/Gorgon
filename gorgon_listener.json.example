@@ -1,0 +1,7 @@
+{
+  "connection": {
+    "host": "localhost"
+  },
+
+  "worker_slots": 1
+}

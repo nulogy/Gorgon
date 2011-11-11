@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+$:.push("/home/justinfitzsimmons/src/gorgon/lib/")
+
+require "rubygems"
+require "bundler/setup"
+Bundler.setup(:default)
+
+def originate
+  require "originator"
+  o = Originator.new
+  o.originate
+  exit
+end
+
+def listen
+  require "listener"
+  l = Listener.new
+  l.listen
+end
+
+def work(file_queue_name, reply_exchange_name, config_filename)
+  require "worker"
+  require "job_definition"
+  jd = JobDefinition.new(:file_queue_name => file_queue_name, :reply_exchange_name => reply_exchange_name)
+  w = Worker.new(jd, config_filename)
+  w.work
+end
+
+if ARGV.length == 0 || ARGV[0] == "test"
+  originate
+end
+
+if ARGV[0] == "listen"
+  listen
+end
+
+if ARGV[0] == "work"
+  work *ARGV[1..-1]
+end

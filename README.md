@@ -20,26 +20,28 @@ Configuration
 This file contains project-specific settings for gorgon, such as:
 
 * A glob for generating the list of test files
+* The connection information for AMQP
+* Information about how clients can rsync the working directory
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:
 
 * How many worker slots are provided by this listener
+* The connection information for AMQP
 
 Architecture
 ---------------------
 
-By running _gorgon test_, the originating computer will publish a *job definition* to the AMQP server. This object contains all of the information required to run the tests:
+By running _gorgon_, the originating computer will publish a *job definition* to the AMQP server. This object contains all of the information required to run the tests:
 
-* The rsync command with which to fetch the source tree
+* The rsync information with which to fetch the source tree
 * The name of a AMQP queue that contains the list of files that require testing
-* The name of a AMQP queue to send replies to
+* The name of a AMQP exchange to send replies to
 * Application-specific setup/teardown, either per-job or per-worker [scheduled for post-alpha]
 
 The job listener subscribes to the job publish event, and maintains its own queue of jobs. When a job has available *worker slots*, it will prepare the workspace:
 
 * Create a unique temporary workspace directory for the job
-* Create a listener-specific queue that workers will publish to when they are complete.
 * Rsync the source tree to the temporary workspace
 * Run per-job application-specific setup [scheduled for post-alpha]
 * Invoke *n* workers, where *n* is the number of available *worker slots*.
