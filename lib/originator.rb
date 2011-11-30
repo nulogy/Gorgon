@@ -13,7 +13,31 @@ class Originator
   end
 
   def originate
-    publish
+    begin
+      Signal.trap("INT") { ctrl_c }
+      Signal.trap("TERM") { ctrl_c }
+
+      publish
+    rescue Exception
+      puts "Unhandled exception in originator:"
+      puts $!.message
+      puts $!.backtrace.join("\n")
+      puts "----------------------------------"
+      puts "Now attempting to cancel the job."
+      cancel_job
+    end
+  end
+
+  def ctrl_c
+    puts "Ctrl-C received! Just wait a moment while I clean up..."
+    cancel_job
+  end
+
+  def cancel_job
+    @file_queue.purge
+
+    @file_count_remaining = 0
+    cleanup_if_job_complete
   end
 
   def publish
@@ -33,16 +57,18 @@ class Originator
     end
   end
 
-  def handle_reply(payload)
-    payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload) 
-    ap payload
-
-    @file_queue.status do |num_files, subscribers|
-      if num_files == 0
-        cleanup_queues
-        @connection.disconnect { EventMachine.stop }
-      end
+  def cleanup_if_job_complete
+    if @file_count_remaining == 0
+      cleanup_queues
+      @connection.disconnect { EventMachine.stop }
     end
+  end
+
+  def handle_reply(payload)
+    @file_count_remaining -= 1
+    payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload)
+    ap payload
+    cleanup_if_job_complete
   end
   
   def cleanup_queues
@@ -54,6 +80,7 @@ class Originator
     files.each do |file|
       @channel.default_exchange.publish(file, :routing_key => @file_queue.name)
     end
+    @file_count_remaining = files.count
   end
 
   def publish_job

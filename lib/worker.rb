@@ -21,34 +21,50 @@ class Worker
         setup_reply_exchange(channel)
 
         @file_queue = channel.queue(@job_definition.file_queue_name)
-        @file_queue.subscribe do |payload|
-          handle_file(payload)
-        end
+        handle_next_file
       end
     end
   end
 
-  def handle_file(payload)
-    run_file(payload)
-    @file_queue.status do |num_messages, num_consumers| 
-      if num_messages == 0
-        #TODO: notify parent listener that we're complete
-        @connection.close { EventMachine.stop }
+  def shutdown
+    @connection.close { EventMachine.stop }
+  end
+
+  def handle_next_file
+    @file_queue.pop do |payload|
+      shutdown if payload.nil?
+
+      operation = proc do
+        reply = run_file(payload)
       end
+
+      callback = proc do |reply|
+        send_reply reply
+        handle_next_file
+      end
+
+      EventMachine.defer(operation, callback)
     end
+  end
+
+  def send_reply reply
+    @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 
   def run_file(file)
     results = run_test_unit_file(file) 
-    reply = {:type => :fail, :hostname => Socket.gethostname, :workerid => @workerid, :failures => results}
+    reply = {:type => :pass, :hostname => Socket.gethostname, :workerid => @workerid}
+
     start_t = Time.now
+
     if !results.empty?
       reply[:failures] = results 
+      reply[:type] = :fail
     end
 
     length = Time.now - start_t
     reply[:time] = length
-    @reply_exchange.publish(Yajl::Encoder.encode(reply))
+    reply
   end
 
   def setup_reply_exchange(channel)
