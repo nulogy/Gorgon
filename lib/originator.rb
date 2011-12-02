@@ -65,8 +65,12 @@ class Originator
   end
 
   def handle_reply(payload)
-    @file_count_remaining -= 1
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload)
+
+    # at some point this will probably need to be fancy polymorphic type based responses, or at least a nice switch statement
+    if payload[:action] == "complete"
+      @file_count_remaining -= 1
+    end
     ap payload
     cleanup_if_job_complete
   end

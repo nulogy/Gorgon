@@ -30,10 +30,16 @@ class Worker
     @connection.close { EventMachine.stop }
   end
 
+  def notify_start filename
+    reply = {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+    send_reply reply
+  end
+
   def handle_next_file
     @file_queue.pop do |payload|
       shutdown if payload.nil?
 
+      notify_start payload
       operation = proc do
         reply = run_file(payload)
       end
@@ -51,9 +57,9 @@ class Worker
     @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 
-  def run_file(file)
-    results = run_test_unit_file(file) 
-    reply = {:type => :pass, :hostname => Socket.gethostname, :workerid => @workerid}
+  def run_file(filename)
+    results = run_test_unit_file(filename)
+    reply = {:action => :finish, :type => :pass, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
 
     start_t = Time.now
 
