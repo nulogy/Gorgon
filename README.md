@@ -4,14 +4,14 @@ Gorgon
 About
 ---------------------
 
-Gorgon provides a method for distributing the workload of running a ruby test suites. It relies on amqp for message passing, and rsync for the synchronization of source.
+Gorgon provides a method for distributing the workload of running a ruby test suites. It relies on amqp for message passing, and rsync for the synchronization of source code.
 
 Usage
 ---------------------
 
-To queue the current test suite, simply run _gorgon test_, or simply _gorgon_. _gorgon_ will read the application configuration out of _gorgon.json_, connect to the AMQP server, and publish the job.
+To queue the current test suite, run _rake gorgon:start_, or _rake gorgon_. _gorgon_ will read the application configuration out of _gorgon.json_, connect to the AMQP server, and publish the job.
 
-In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run _gorgon listen_. This command will read the listener configuration out of _gorgon\_listener.json_, then start the listener process in the background.
+In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run _rake gorgon:listen_. This command will read the listener configuration out of _gorgon\_listener.json_, then start the listener process in the background.
 
 Configuration
 ---------------------
@@ -32,7 +32,7 @@ This file contains the listener-specific settings, such as:
 Architecture
 ---------------------
 
-By running _gorgon_, the originating computer will publish a *job definition* to the AMQP server. This object contains all of the information required to run the tests:
+By running _rake gorgon:start_, the originating computer will publish a *job definition* to the AMQP server. This object contains all of the information required to run the tests:
 
 * The rsync information with which to fetch the source tree
 * The name of a AMQP queue that contains the list of files that require testing

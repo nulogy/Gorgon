@@ -6,6 +6,8 @@ $:.push(".")
 
 require "lib/gorgon"
 
+task :gorgon => ["gorgon:start"]
+
 desc "Starts a gorgon job"
 task "gorgon:start" do
   o = Originator.new
