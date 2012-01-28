@@ -1,9 +1,10 @@
-require "configuration"
+require "gorgon/configuration"
+require "gorgon/testunit_runner"
+
 require "uuidtools"
 require "amqp"
 require "awesome_print"
 require "socket"
-require "testunit_runner"
 
 class Worker
   include Configuration

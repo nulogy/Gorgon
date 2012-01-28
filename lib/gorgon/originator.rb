@@ -1,7 +1,8 @@
-require 'job_definition'
+require 'gorgon/job_definition'
+require 'gorgon/configuration'
+
 require 'amqp'
 require 'awesome_print'
-require 'configuration'
 require 'uuidtools'
 
 class Originator

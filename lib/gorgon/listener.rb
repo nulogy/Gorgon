@@ -1,9 +1,10 @@
-require "configuration"
+require "gorgon/job_definition"
+require "gorgon/configuration"
+require "gorgon/worker"
+
 require "yajl"
 require "amqp"
 require "awesome_print"
-require "job_definition"
-require "worker"
 require "open4"
 require "tmpdir"
 require "socket"
@@ -45,7 +46,9 @@ class Listener
   def fork_workers
     configuration[:worker_slots].times do
       @available_worker_slots -= 1
-      pid, stdin, stdout, stderr = Open4::popen4 "gorgon work #{@job_definition.file_queue_name} #{@job_definition.reply_exchange_name} '#{@config_filename}'"
+      ENV["GORGON_FILE_QUEUE_NAME"] = @job_definition.file_queue_name
+      ENV["GORGON_REPLY_EXCHANGE_NAME"] = @job_definition.reply_exchange_name
+      pid, stdin, stdout, stderr = Open4::popen4 "rake gorgon:work"
 
       watcher = proc do
         ignore, status = Process.waitpid2 pid
