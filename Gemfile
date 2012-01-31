@@ -1,8 +1,4 @@
-source :rubygems
-gem "amqp"
-gem "awesome_print"
-gem "yajl-ruby"
-gem "rspec"
-gem "uuidtools"
-gem "open4"
-gem "rake"
+source "http://rubygems.org"
+
+# Specify your gem's dependencies in gorgon.gemspec
+gemspec
