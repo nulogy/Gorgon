@@ -1,4 +1,4 @@
-require 'job_definition'
+require 'gorgon/job_definition'
 require 'yajl'
 
 describe JobDefinition do
