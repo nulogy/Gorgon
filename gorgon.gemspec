@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake"
 
   s.add_runtime_dependency "amqp"
-  s.add_runtime_dependency "awesome-print"
+  s.add_runtime_dependency "awesome_print"
   s.add_runtime_dependency "open4"
   s.add_runtime_dependency "yajl-ruby"
   s.add_runtime_dependency "uuidtools"
