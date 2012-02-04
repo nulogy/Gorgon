@@ -6,14 +6,28 @@ require "uuidtools"
 require "awesome_print"
 require "socket"
 
+module WorkUnit
+  def self.run_file filename
+    start_t = Time.now
+    results = TestRunner.run_file(filename)
+    length = Time.now - start_t
+
+    if results.empty?
+      {:failures => [], :type => :pass, :time => length}
+    else
+      {:failures => results, :type => :fail, :time => length}
+    end
+  end
+end
+
 class Worker
   def self.build(job_definition, config_filename)
     config = Configuration.load_configuration_from_file(config_filename)[:connection]
     amqp = AmqpService.new config
 
-    workerid = UUIDTools::UUID.timestamp_create.to_s
+    worker_id = UUIDTools::UUID.timestamp_create.to_s
 
-    new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, TestRunner)
+    new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, WorkUnit)
   end
 
   def initialize(amqp, file_queue_name, reply_exchange_name, test_runner)
@@ -26,28 +40,22 @@ class Worker
   def work
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
-        reply = {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
-        exchange.publish reply
-
-        reply = run_file(filename)
-        exchange.publish reply
+        exchange.publish make_start_message(filename)
+        test_results = run_file(filename)
+        exchange.publish make_finish_message(filename, test_results)
       end
     end
   end
 
   def run_file(filename)
-    start_t = Time.now
+    @test_runner.run_file(filename)
+  end
 
-    results = @test_runner.run_file(filename)
-    reply = {:action => :finish, :type => :pass, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+  def make_start_message(filename)
+    {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+  end
 
-    if !results.empty?
-      reply[:failures] = results 
-      reply[:type] = :fail
-    end
-
-    length = Time.now - start_t
-    reply[:time] = length
-    reply
+  def make_finish_message(filename, results)
+    {:action => :finish, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}.merge(results)
   end
 end
