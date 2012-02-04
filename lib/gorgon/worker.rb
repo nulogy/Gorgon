@@ -30,10 +30,11 @@ class Worker
     new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, WorkUnit)
   end
 
-  def initialize(amqp, file_queue_name, reply_exchange_name, test_runner)
+  def initialize(amqp, file_queue_name, reply_exchange_name, worker_id, test_runner)
     @amqp = amqp
     @file_queue_name = file_queue_name
     @reply_exchange_name = reply_exchange_name
+    @worker_id = worker_id
     @test_runner = test_runner
   end
 
@@ -52,10 +53,10 @@ class Worker
   end
 
   def make_start_message(filename)
-    {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+    {:action => :start, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}
   end
 
   def make_finish_message(filename, results)
-    {:action => :finish, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}.merge(results)
+    {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
   end
 end

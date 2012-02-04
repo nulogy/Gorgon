@@ -19,7 +19,7 @@ def work
   config_path = ENV["GORGON_CONFIG_PATH"]
   jd = JobDefinition.new(:file_queue_name => file_queue_name, :reply_exchange_name => reply_exchange_name)
 
-  w = Worker.new(jd, config_path)
+  w = Worker.build(jd, config_path)
   w.work
 end
 

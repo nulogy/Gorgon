@@ -12,11 +12,13 @@ class FakeAmqp
 end
 
 describe Worker do
+  WORKER_ID = 1
+
   describe '#work' do
     it 'should do nothing if the file queue is empty' do
       file_queue = stub(:pop => nil)
       fake_amqp = FakeAmqp.new file_queue, double
-      worker = Worker.new fake_amqp, 'queue', 'exchange', double
+      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, double
       
       worker.work
     end
@@ -35,7 +37,7 @@ describe Worker do
       test_runner = stub(:run_file => {:type => :pass, :time => 0})
 
       fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', test_runner
+      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
 
       worker.work
     end
@@ -48,7 +50,7 @@ describe Worker do
       test_runner.should_receive(:run_file).with('testfile1').and_return({:type => :pass, :time => 0})
 
       fake_amqp = FakeAmqp.new file_queue, stub(:publish => nil)
-      worker = Worker.new fake_amqp, 'queue', 'exchange', test_runner
+      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
 
       worker.work
     end
@@ -68,7 +70,7 @@ describe Worker do
       test_runner = stub(:run_file => {:type => :pass, :time => 0})
 
       fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', test_runner
+      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
 
       worker.work
     end
@@ -91,7 +93,7 @@ describe Worker do
       test_runner = stub(:run_file => {:type => :fail, :time => 0, :failures => failures})
 
       fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', test_runner
+      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
 
       worker.work
     end
