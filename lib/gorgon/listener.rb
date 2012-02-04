@@ -48,7 +48,8 @@ class Listener
       @available_worker_slots -= 1
       ENV["GORGON_FILE_QUEUE_NAME"] = @job_definition.file_queue_name
       ENV["GORGON_REPLY_EXCHANGE_NAME"] = @job_definition.reply_exchange_name
-      pid, stdin, stdout, stderr = Open4::popen4 "rake gorgon:work --trace"
+      ENV["GORGON_CONFIG_PATH"] = @config_filename
+      pid, stdin, stdout, stderr = Open4::popen4 "gorgon work"
 
       watcher = proc do
         ignore, status = Process.waitpid2 pid

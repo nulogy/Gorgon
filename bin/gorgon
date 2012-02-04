@@ -1,0 +1,41 @@
+require "rubygems"
+require 'gorgon/originator'
+require 'gorgon/listener'
+require 'gorgon/worker'
+
+def start
+  o = Originator.new
+  o.originate
+end
+
+def listen
+  l = Listener.new
+  l.listen
+end
+
+def work
+  file_queue_name = ENV["GORGON_FILE_QUEUE_NAME"]
+  reply_exchange_name = ENV["GORGON_REPLY_EXCHANGE_NAME"]
+  config_path = ENV["GORGON_CONFIG_PATH"]
+  jd = JobDefinition.new(:file_queue_name => file_queue_name, :reply_exchange_name => reply_exchange_name)
+
+  w = Worker.new(jd, config_path)
+  w.work
+end
+
+def usage
+  #print instructions on how to use gorgon
+end
+
+case ARGV[0]
+when nil
+  start
+when "start"
+  start
+when "listen"
+  listen
+when "work"
+  work
+else
+  usage
+end
