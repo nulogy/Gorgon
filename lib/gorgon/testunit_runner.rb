@@ -18,19 +18,21 @@ class Test::Unit::TestCase
   end
 end
 
-def run_test_unit_file(filename)
-  Test::Unit::TestCase.clear_suites!
-  load filename
+class TestRunner
+  def self.run_file(filename)
+    Test::Unit::TestCase.clear_suites!
+    load filename
 
-  result = Test::Unit::TestResult.new
-  output = []
-  result.add_listener(Test::Unit::TestResult::FAULT) do |value|
-    output << value
+    result = Test::Unit::TestResult.new
+    output = []
+    result.add_listener(Test::Unit::TestResult::FAULT) do |value|
+      output << value
+    end
+
+    Test::Unit::TestCase.suites.each do |klass|
+      klass.suite.run(result) {|s,n|;}
+    end
+
+    output
   end
-
-  Test::Unit::TestCase.suites.each do |klass|
-    klass.suite.run(result) {|s,n|;}
-  end
-
-  output
 end

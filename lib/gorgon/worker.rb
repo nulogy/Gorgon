@@ -6,45 +6,57 @@ require "uuidtools"
 require "awesome_print"
 require "socket"
 
-class Worker
-  include Configuration
+module WorkUnit
+  def self.run_file filename
+    start_t = Time.now
+    results = TestRunner.run_file(filename)
+    length = Time.now - start_t
 
-  def initialize(job_definition, config_filename)
-    @job_definition = job_definition
-    @config_filename = config_filename
-    @workerid = UUIDTools::UUID.timestamp_create.to_s
+    if results.empty?
+      {:failures => [], :type => :pass, :time => length}
+    else
+      {:failures => results, :type => :fail, :time => length}
+    end
+  end
+end
+
+class Worker
+  def self.build(job_definition, config_filename)
+    config = Configuration.load_configuration_from_file(config_filename)[:connection]
+    amqp = AmqpService.new config
+
+    worker_id = UUIDTools::UUID.timestamp_create.to_s
+
+    new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, WorkUnit)
+  end
+
+  def initialize(amqp, file_queue_name, reply_exchange_name, worker_id, test_runner)
+    @amqp = amqp
+    @file_queue_name = file_queue_name
+    @reply_exchange_name = reply_exchange_name
+    @worker_id = worker_id
+    @test_runner = test_runner
   end
 
   def work
-    config = load_configuration_from_file(@config_filename)[:connection]
-    amqp = AmqpService.new config
-    reply_exchange_name = @job_definition.reply_exchange_name
-    file_queue_name = @job_definition.file_queue_name
-
-    amqp.start_worker file_queue_name, reply_exchange_name do |queue, exchange|
+    @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
-        reply = {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
-        exchange.publish reply
-
-        reply = run_file(filename)
-        exchange.publish reply
+        exchange.publish make_start_message(filename)
+        test_results = run_file(filename)
+        exchange.publish make_finish_message(filename, test_results)
       end
     end
   end
 
   def run_file(filename)
-    results = run_test_unit_file(filename)
-    reply = {:action => :finish, :type => :pass, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+    @test_runner.run_file(filename)
+  end
 
-    start_t = Time.now
+  def make_start_message(filename)
+    {:action => :start, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}
+  end
 
-    if !results.empty?
-      reply[:failures] = results 
-      reply[:type] = :fail
-    end
-
-    length = Time.now - start_t
-    reply[:time] = length
-    reply
+  def make_finish_message(filename, results)
+    {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
   end
 end
