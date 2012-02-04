@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "open4"
   s.add_runtime_dependency "yajl-ruby"
   s.add_runtime_dependency "uuidtools"
+  s.add_runtime_dependency "test-unit"
 end
