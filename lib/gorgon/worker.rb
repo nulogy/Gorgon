@@ -1,8 +1,8 @@
 require "gorgon/configuration"
 require "gorgon/testunit_runner"
+require "gorgon/amqp_service"
 
 require "uuidtools"
-require "amqp"
 require "awesome_print"
 require "socket"
 
@@ -16,46 +16,20 @@ class Worker
   end
 
   def work
-    AMQP.start(connection_information) do |connection|
-      @connection = connection
-      AMQP::Channel.new(connection) do |channel|
-        setup_reply_exchange(channel)
+    config = load_configuration_from_file(@config_filename)[:connection]
+    amqp = AmqpService.new config
+    reply_exchange_name = @job_definition.reply_exchange_name
+    file_queue_name = @job_definition.file_queue_name
 
-        @file_queue = channel.queue(@job_definition.file_queue_name)
-        handle_next_file
+    amqp.start_worker file_queue_name, reply_exchange_name do |queue, exchange|
+      while filename = queue.pop
+        reply = {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
+        exchange.publish reply
+
+        reply = run_file(filename)
+        exchange.publish reply
       end
     end
-  end
-
-  def shutdown
-    @connection.close { EventMachine.stop }
-  end
-
-  def notify_start filename
-    reply = {:action => :start, :hostname => Socket.gethostname, :workerid => @workerid, :filename => filename}
-    send_reply reply
-  end
-
-  def handle_next_file
-    @file_queue.pop do |payload|
-      shutdown if payload.nil?
-
-      notify_start payload
-      operation = proc do
-        reply = run_file(payload)
-      end
-
-      callback = proc do |reply|
-        send_reply reply
-        handle_next_file
-      end
-
-      EventMachine.defer(operation, callback)
-    end
-  end
-
-  def send_reply reply
-    @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 
   def run_file(filename)
@@ -72,17 +46,5 @@ class Worker
     length = Time.now - start_t
     reply[:time] = length
     reply
-  end
-
-  def setup_reply_exchange(channel)
-    @reply_exchange = channel.direct(@job_definition.reply_exchange_name)
-  end
-
-  def connection_information
-    configuration[:connection]
-  end
-
-  def configuration
-    @configuration ||= load_configuration_from_file(@config_filename)
   end
 end
