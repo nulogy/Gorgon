@@ -8,6 +8,7 @@ require "awesome_print"
 require "open4"
 require "tmpdir"
 require "socket"
+require "logger"
 
 class Listener
   include Configuration
@@ -15,6 +16,9 @@ class Listener
   def initialize
     @config_filename = Dir.pwd + "/gorgon_listener.json"
     @available_worker_slots = configuration[:worker_slots]
+    @logger = Logger.new(configuration[:log_file]) if configuration[:log_file]
+
+    log "Listener initialized"
   end
 
   def listen
@@ -92,5 +96,11 @@ class Listener
 
   def configuration
     @configuration ||= load_configuration_from_file("gorgon_listener.json")
+  end
+
+private
+
+  def log text
+    @logger.info(text) if @logger
   end
 end
