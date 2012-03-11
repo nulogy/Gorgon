@@ -125,7 +125,7 @@ private
 
   def initialize_logger file_path
     return unless file_path
-    @logger = Logger.new(configuration[:log_file], 'daily')
+    @logger = Logger.new(configuration[:log_file], 'monthly')
     @logger.datetime_format = "%Y-%m-%d %H:%M:%S "
   end
 
