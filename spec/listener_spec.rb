@@ -3,7 +3,7 @@ require 'gorgon/listener'
 describe Listener do
   describe "logging to a file" do
     before do
-      @stub_logger = stub :info => true
+      @stub_logger = stub :info => true, :datetime_format= => ""
       Logger.stub(:new).and_return(@stub_logger)
     end
 
@@ -13,7 +13,7 @@ describe Listener do
       end
 
       it "should use 'log_file' from the configuration as the log file" do
-        Logger.should_receive(:new).with('listener.log')
+        Logger.should_receive(:new).with('listener.log', 'daily')
         Listener.new
       end
 

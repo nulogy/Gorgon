@@ -16,7 +16,7 @@ class Listener
   def initialize
     @config_filename = Dir.pwd + "/gorgon_listener.json"
     @available_worker_slots = configuration[:worker_slots]
-    @logger = Logger.new(configuration[:log_file]) if configuration[:log_file]
+    initialize_logger configuration[:log_file]
 
     log "Listener initialized"
   end
@@ -99,6 +99,12 @@ class Listener
   end
 
 private
+
+  def initialize_logger file_path
+    return unless file_path
+    @logger = Logger.new(configuration[:log_file], 'daily')
+    @logger.datetime_format = "%Y-%m-%d %H:%M:%S "
+  end
 
   def log text
     @logger.info(text) if @logger
