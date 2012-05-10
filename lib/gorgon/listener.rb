@@ -3,7 +3,7 @@ require "gorgon/configuration"
 require "gorgon/worker"
 
 require "yajl"
-require "amqp"
+require "bunny"
 require "awesome_print"
 require "open4"
 require "tmpdir"
@@ -19,6 +19,19 @@ class Listener
     initialize_logger configuration[:log_file]
 
     log "Listener initialized"
+    connect
+    initialize_personal_job_queue
+  end
+
+  def connect
+    @bunny = Bunny.new(connection_information)
+    @bunny.start
+  end
+
+  def initialize_personal_job_queue
+    @job_queue = @bunny.queue("", :exclusive => true)
+    exchange = @bunny.exchange("gorgon.jobs", :type => :fanout)
+    @job_queue.bind(exchange)
   end
 
   def listen
