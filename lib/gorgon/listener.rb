@@ -24,8 +24,9 @@ class Listener
   end
 
   def listen
+    log "Waiting for jobs..."
     while true
-      sleep 1 unless poll
+      sleep 10 unless poll
     end
   end
 
@@ -48,56 +49,47 @@ class Listener
     return true
   end
 
-  def start_job
+  def start_job(json_payload)
+    log "Job received: #{json_payload}"
+    payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
+    @job_definition = JobDefinition.new(payload)
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
-  end
-
-
-  def handle_jobs
-    log "Waiting for jobs..."
-    @job_queue.subscribe do |json_payload|
-      log "Job received: #{json_payload}"
-      payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
-      @job_definition = JobDefinition.new(payload)
-      @reply_exchange = @channel.direct(@job_definition.reply_exchange_name)
-
-      copy_source_tree @job_definition.source_tree_path
-
-      fork_workers
-    end
+    copy_source_tree(@job_definition.source_tree_path)
+    fork_workers
   end
 
   def fork_workers
     log "Forking #{configuration[:worker_slots]} worker(s)"
 
-    configuration[:worker_slots].times do
-      @available_worker_slots -= 1
-      ENV["GORGON_FILE_QUEUE_NAME"] = @job_definition.file_queue_name
-      ENV["GORGON_REPLY_EXCHANGE_NAME"] = @job_definition.reply_exchange_name
-      ENV["GORGON_CONFIG_PATH"] = @config_filename
-      pid, stdin, stdout, stderr = Open4::popen4 "gorgon work"
+    EventMachine.run do
+      configuration[:worker_slots].times do
+        @available_worker_slots -= 1
+        ENV["GORGON_FILE_QUEUE_NAME"] = @job_definition.file_queue_name
+        ENV["GORGON_REPLY_EXCHANGE_NAME"] = @job_definition.reply_exchange_name
+        ENV["GORGON_CONFIG_PATH"] = @config_filename
+        pid, stdin, stdout, stderr = Open4::popen4 "gorgon work"
 
-      watcher = proc do
-        ignore, status = Process.waitpid2 pid
-        log "Worker #{pid} finished"
-        status
-      end
-
-      worker_complete = proc do |status|
-        if status.exitstatus != 0
-          log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-          reply = {:type => :crash,
-                   :hostname => Socket.gethostname,
-                   :stdout => stdout.read,
-                   :stderr => stderr.read}
-          @reply_exchange.publish(Yajl::Encoder.encode(reply))
+        watcher = proc do
+          ignore, status = Process.waitpid2 pid
+          log "Worker #{pid} finished"
+          status
         end
-        on_worker_complete
-      end
 
-      EventMachine.defer(watcher, worker_complete)
+        worker_complete = proc do |status|
+          if status.exitstatus != 0
+            log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
+            reply = {:type => :crash,
+                     :hostname => Socket.gethostname,
+                     :stdout => stdout.read,
+                     :stderr => stderr.read}
+            @reply_exchange.publish(Yajl::Encoder.encode(reply))
+          end
+          on_worker_complete
+        end
+        EventMachine.defer(watcher, worker_complete)
+      end
     end
-    @job_queue.unsubscribe
   end
 
   def on_worker_complete
@@ -112,7 +104,7 @@ class Listener
   def on_current_job_complete
     log "Job '#{@job_definition.inspect}' completed"
     FileUtils::remove_entry_secure(@tempdir)
-    handle_jobs
+    EventMachine.stop_event_loop
   end
 
   def connection_information
