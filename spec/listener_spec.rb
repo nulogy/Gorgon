@@ -89,7 +89,43 @@ describe Listener do
     end
 
     describe "#poll" do
-      it ""
+
+      let(:empty_queue) { {:payload => :queue_empty} }
+      let(:job_payload) { {:payload => "Job"} }
+      before do
+        listener.stub(:start_job)
+      end
+
+      context "empty queue" do
+        before do
+          queue.stub(:pop => empty_queue)
+        end
+
+        it "checks the job queue" do
+          queue.should_receive(:pop).and_return(empty_queue)
+          listener.poll
+        end
+
+        it "returns false" do
+          listener.poll.should be_false
+        end
+      end
+
+      context "job pending on queue" do
+        before do
+          queue.stub(:pop => job_payload)
+        end
+
+        it "starts a new job when there is a job payload" do
+          queue.should_receive(:pop).and_return(job_payload)
+          listener.should_receive(:start_job).with(job_payload[:payload])
+          listener.poll
+        end
+
+        it "returns true" do
+          listener.poll.should be_true
+        end
+      end
     end
   end
 end

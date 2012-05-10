@@ -23,6 +23,12 @@ class Listener
     initialize_personal_job_queue
   end
 
+  def listen
+    while true
+      sleep 1 unless poll
+    end
+  end
+
   def connect
     @bunny = Bunny.new(connection_information)
     @bunny.start
@@ -34,19 +40,18 @@ class Listener
     @job_queue.bind(exchange)
   end
 
-  def listen
-    AMQP.start(connection_information) do |connection|
-      AMQP::Channel.new(connection) do |channel|
-        @channel = channel
-        channel.queue("", :exclusive => true) do |job_queue, reply|
-          @job_queue = job_queue
-          exchange = channel.fanout("gorgon.jobs")
-          @job_queue.bind(exchange)
-          handle_jobs
-        end
-      end
-    end
+  def poll
+    message = @job_queue.pop
+    return false if message[:payload] == :queue_empty
+
+    start_job(message[:payload])
+    return true
   end
+
+  def start_job
+
+  end
+
 
   def handle_jobs
     log "Waiting for jobs..."
