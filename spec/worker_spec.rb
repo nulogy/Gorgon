@@ -17,6 +17,7 @@ describe Worker do
   let(:reply_exchange) { double("Exchange") }
   let(:fake_amqp) { fake_amqp = FakeAmqp.new file_queue, reply_exchange }
   let(:test_runner) { double("Test Runner") }
+  let(:callback_handler) { stub("Callback Handler", :before_start => nil, :after_complete => nil) }
 
   let(:params) {
     {
@@ -24,7 +25,8 @@ describe Worker do
       :file_queue_name => "queue",
       :reply_exchange_name => "exchange",
       :worker_id => WORKER_ID,
-      :test_runner => test_runner
+      :test_runner => test_runner,
+      :callback_handler => callback_handler
     }
   }
 
@@ -89,8 +91,23 @@ describe Worker do
       worker.work
     end
 
-    it "should notify the callback framework that it has started"
-    it "should notify the callback framework when it finishes"
+    it "should notify the callback framework that it has started" do
+      file_queue.stub(:pop => nil)
+      callback_handler.should_receive(:before_start)
+
+      worker = Worker.new params
+
+      worker.work
+    end
+
+    it "should notify the callback framework when it finishes" do
+      file_queue.stub(:pop => nil)
+      callback_handler.should_receive(:after_complete)
+
+      worker = Worker.new params
+
+      worker.work
+    end
 
   end
 

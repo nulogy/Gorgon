@@ -39,9 +39,11 @@ class Worker
     @reply_exchange_name = params[:reply_exchange_name]
     @worker_id = params[:worker_id]
     @test_runner = params[:test_runner]
+    @callback_handler = params[:callback_handler]
   end
 
   def work
+    @callback_handler.before_start
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
         exchange.publish make_start_message(filename)
@@ -49,6 +51,8 @@ class Worker
         exchange.publish make_finish_message(filename, test_results)
       end
     end
+    ensure
+      @callback_handler.after_complete
   end
 
   def run_file(filename)
