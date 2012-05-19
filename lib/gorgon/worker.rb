@@ -1,5 +1,4 @@
 require "gorgon/configuration"
-require "gorgon/testunit_runner"
 require "gorgon/amqp_service"
 
 require "uuidtools"
@@ -8,6 +7,7 @@ require "socket"
 
 module WorkUnit
   def self.run_file filename
+    require "gorgon/testunit_runner"
     start_t = Time.now
     results = TestRunner.run_file(filename)
     length = Time.now - start_t
