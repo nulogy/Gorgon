@@ -26,7 +26,7 @@ class Worker
     connection_config = config[:connection]
     amqp = AmqpService.new connection_config
 
-    callback_framework = CallbackFramework.new(config)
+    callback_framework = CallbackFramework.new(config[:callbacks])
 
     worker_id = UUIDTools::UUID.timestamp_create.to_s
 
