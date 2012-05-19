@@ -22,12 +22,16 @@ module WorkUnit
 end
 
 class Worker
-  def self.build(job_definition, config_filename)
+  def self.build(config_filename)
+
+    payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
+    job_definition = JobDefinition.new(payload)
+
     config = Configuration.load_configuration_from_file(config_filename)
     connection_config = config[:connection]
     amqp = AmqpService.new connection_config
 
-    callback_handler = CallbackHandler.new(config[:callbacks])
+    callback_handler = CallbackHandler.new(job_definition.callbacks)
 
     worker_id = UUIDTools::UUID.timestamp_create.to_s
 
