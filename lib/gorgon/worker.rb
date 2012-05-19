@@ -22,20 +22,23 @@ end
 
 class Worker
   def self.build(job_definition, config_filename)
-    config = Configuration.load_configuration_from_file(config_filename)[:connection]
-    amqp = AmqpService.new config
+    config = Configuration.load_configuration_from_file(config_filename)
+    connection_config = config[:connection]
+    amqp = AmqpService.new connection_config
+
+    callback_framework = CallbackFramework.new(config)
 
     worker_id = UUIDTools::UUID.timestamp_create.to_s
 
     new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, WorkUnit)
   end
 
-  def initialize(amqp, file_queue_name, reply_exchange_name, worker_id, test_runner)
-    @amqp = amqp
-    @file_queue_name = file_queue_name
-    @reply_exchange_name = reply_exchange_name
-    @worker_id = worker_id
-    @test_runner = test_runner
+  def initialize(params)
+    @amqp = params[:amqp]
+    @file_queue_name = params[:file_queue_name]
+    @reply_exchange_name = params[:reply_exchange_name]
+    @worker_id = params[:worker_id]
+    @test_runner = params[:test_runner]
   end
 
   def work

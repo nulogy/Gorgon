@@ -13,64 +13,58 @@ end
 
 describe Worker do
   WORKER_ID = 1
+  let(:file_queue) { double("Queue") }
+  let(:reply_exchange) { double("Exchange") }
+  let(:fake_amqp) { fake_amqp = FakeAmqp.new file_queue, reply_exchange }
+  let(:test_runner) { double("Test Runner") }
+
+  let(:params) {
+    {
+      :amqp => fake_amqp,
+      :file_queue_name => "queue",
+      :reply_exchange_name => "exchange",
+      :worker_id => WORKER_ID,
+      :test_runner => test_runner
+    }
+  }
 
   describe '#work' do
     it 'should do nothing if the file queue is empty' do
-      file_queue = stub(:pop => nil)
-      fake_amqp = FakeAmqp.new file_queue, double
-      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, double
-      
+      file_queue.should_receive(:pop).and_return(nil)
+
+      worker = Worker.new params
       worker.work
     end
 
     it "should send start message when file queue is not empty" do
-      file_queue = double
       file_queue.should_receive(:pop).and_return("testfile1", nil)
 
-      exchange = double
-      exchange.should_receive(:publish) do |msg|
+      reply_exchange.should_receive(:publish) do |msg|
         msg[:action].should == :start
         msg[:filename].should == 'testfile1'
       end
-      exchange.should_receive(:publish).with(any_args())
+      reply_exchange.should_receive(:publish).with(any_args())
 
-      test_runner = stub(:run_file => {:type => :pass, :time => 0})
+      test_runner.should_receive(:run_file).with("testfile1").and_return({:type => :pass, :time => 0})
 
-      fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
-
-      worker.work
-    end
-
-    it "should run the given file" do
-      file_queue = double
-      file_queue.should_receive(:pop).and_return("testfile1", nil)
-
-      test_runner = double
-      test_runner.should_receive(:run_file).with('testfile1').and_return({:type => :pass, :time => 0})
-
-      fake_amqp = FakeAmqp.new file_queue, stub(:publish => nil)
-      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
+      worker = Worker.new params
 
       worker.work
     end
 
     it "should send finish message when test run is successful" do
-      file_queue = double
       file_queue.should_receive(:pop).and_return("testfile1", nil)
 
-      exchange = double
-      exchange.should_receive(:publish).once
-      exchange.should_receive(:publish) do |msg|
+      reply_exchange.should_receive(:publish).once
+      reply_exchange.should_receive(:publish) do |msg|
         msg[:action].should == :finish
         msg[:type].should == :pass
         msg[:filename].should == 'testfile1'
       end
 
-      test_runner = stub(:run_file => {:type => :pass, :time => 0})
+      test_runner.should_receive(:run_file).with('testfile1').and_return({:type => :pass, :time => 0})
 
-      fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
+      worker = Worker.new params
 
       worker.work
     end
@@ -78,26 +72,26 @@ describe Worker do
     it "should send finish message when test run has failures" do
       failures = stub
 
-      file_queue = double
       file_queue.should_receive(:pop).and_return("testfile1", nil)
 
-      exchange = double
-      exchange.should_receive(:publish).once
-      exchange.should_receive(:publish) do |msg|
+      reply_exchange.should_receive(:publish).once
+      reply_exchange.should_receive(:publish) do |msg|
         msg[:action].should == :finish
         msg[:type].should == :fail
         msg[:filename].should == 'testfile1'
         msg[:failures].should == failures
       end
 
-      test_runner = stub(:run_file => {:type => :fail, :time => 0, :failures => failures})
+      test_runner.should_receive(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
 
-      fake_amqp = FakeAmqp.new file_queue, exchange
-      worker = Worker.new fake_amqp, 'queue', 'exchange', WORKER_ID, test_runner
+      worker = Worker.new params
 
       worker.work
     end
 
+    it "should notify the callback framework that it has started"
+    it "should notify the callback framework when it finishes"
+
   end
-  
+
 end
