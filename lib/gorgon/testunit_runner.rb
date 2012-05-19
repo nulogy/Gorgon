@@ -3,24 +3,34 @@ require 'test/unit/testresult'
 
 Test::Unit.run = true # This stops testunit from running the file as soon as it is included. Yep. That's correct. True.
 
+module GorgonTestCases
+  def self.cases
+    @gorgon_cases ||= []
+  end
+
+  def self.clear_cases!
+    @gorgon_cases = []
+  end
+end
+
+
+if defined? ActiveSupport::TestCase
+  class ActiveSupport::TestCase
+    def self.inherited(klass)
+      GorgonTestCases.cases << klass
+    end
+  end
+end
+
 class Test::Unit::TestCase
-
-  def self.suites
-    @suites ||= []
-  end
-
-  def self.clear_suites!
-    @suites = []
-  end
-
   def self.inherited(klass)
-    self.suites << klass
+    GorgonTestCases.cases << klass
   end
 end
 
 class TestRunner
   def self.run_file(filename)
-    Test::Unit::TestCase.clear_suites!
+    GorgonTestCases.clear_cases!
     load filename
 
     result = Test::Unit::TestResult.new
@@ -29,7 +39,9 @@ class TestRunner
       output << value
     end
 
-    Test::Unit::TestCase.suites.each do |klass|
+    GorgonTestCases.cases.each do |klass|
+      # Not all descendants of TestCase are actually runnable, but they do all implement #suite
+      # Calling suite.run will give us only runnable tests
       klass.suite.run(result) {|s,n|;}
     end
 
