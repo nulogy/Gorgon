@@ -1,5 +1,6 @@
 require "gorgon/configuration"
 require "gorgon/amqp_service"
+require 'gorgon/callback_handler'
 
 require "uuidtools"
 require "awesome_print"
@@ -26,11 +27,20 @@ class Worker
     connection_config = config[:connection]
     amqp = AmqpService.new connection_config
 
-    callback_framework = CallbackFramework.new(config[:callbacks])
+    callback_handler = CallbackHandler.new(config[:callbacks])
 
     worker_id = UUIDTools::UUID.timestamp_create.to_s
 
-    new(amqp, job_definition.file_queue_name, job_definition.reply_exchange_name, worker_id, WorkUnit)
+    params = {
+      :amqp => amqp,
+      :file_queue_name => job_definition.file_queue_name,
+      :reply_exchange_name => job_definition.reply_exchange_name,
+      :worker_id => worker_id,
+      :test_runner => WorkUnit,
+      :callback_handler => callback_handler
+    }
+
+    new(params)
   end
 
   def initialize(params)
