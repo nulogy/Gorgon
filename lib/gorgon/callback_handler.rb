@@ -4,10 +4,10 @@ class CallbackHandler
   end
 
   def before_start
-    system(@config[:before_start]) if @config[:before_start]
+    load(@config[:before_start]) if @config[:before_start]
   end
 
   def after_complete
-    system(@config[:after_complete]) if @config[:after_complete]
+    load(@config[:after_complete]) if @config[:after_complete]
   end
 end
