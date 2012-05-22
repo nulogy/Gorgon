@@ -34,6 +34,7 @@ class Worker
     callback_handler = CallbackHandler.new(job_definition.callbacks)
 
     worker_id = UUIDTools::UUID.timestamp_create.to_s
+    ENV["GORGON_WORKER_ID"] = worker_id
 
     params = {
       :amqp => amqp,
