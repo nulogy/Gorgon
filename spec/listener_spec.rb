@@ -50,7 +50,17 @@ describe Listener do
 
         Listener.new
       end
+    end
 
+    context "passing a literal '-'' as the path in the configuration" do
+      before do
+        Listener.any_instance.stub(:configuration).and_return({:log_file => "-"})
+      end
+
+      it "logs to stdout" do
+        Logger.should_receive(:new).with($stdout)
+        Listener.new
+      end
     end
 
     context "without specifying a log file path" do
