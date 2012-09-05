@@ -2,13 +2,13 @@ class WorkerSpawner
   include Configuration
 
   def self.build(config_filename)
-    config = load_configuration_from_file(config_filename)
+    config = Configuration.load_configuration_from_file(config_filename)
     new config
   end
 
   def initialize config
     @config = config
-    @callback_handler = config[:callback_handler]
+    @callback_handler = CallbackHandler.new(config[:callback_handler])
   end
 
   def spawn n_workers

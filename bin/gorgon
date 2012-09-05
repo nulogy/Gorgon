@@ -1,7 +1,7 @@
 require "rubygems"
 require 'gorgon/originator'
 require 'gorgon/listener'
-require 'gorgon/worker'
+require 'gorgon/worker_spawner'
 
 def start
   o = Originator.new
@@ -32,8 +32,8 @@ when "start"
   start
 when "listen"
   listen
-when "work"
-  work
+when "spawn_workers"
+  spawn_workers
 else
   usage
 end
