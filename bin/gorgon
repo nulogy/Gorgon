@@ -13,11 +13,12 @@ def listen
   l.listen
 end
 
-def work
+def spawn_workers
   config_path = ENV["GORGON_CONFIG_PATH"]
+  worker_slots = ENV["GORGON_WORKER_SLOTS"].to_i
 
-  w = Worker.build(config_path)
-  w.work
+  spawner = WorkerSpawner.build(config_path)
+  spawner.spawn worker_slots
 end
 
 def usage

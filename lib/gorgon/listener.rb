@@ -66,7 +66,8 @@ class Listener
       configuration[:worker_slots].times do
         @available_worker_slots -= 1
         ENV["GORGON_CONFIG_PATH"] = @config_filename
-        pid, stdin, stdout, stderr = Open4::popen4 "gorgon work"
+        ENV["GORGON_WORKER_SLOTS"] = configuration[:worker_slots].to_s
+        pid, stdin, stdout, stderr = Open4::popen4 "gorgon spawn_workers"
         stdin.write(@job_definition.to_json)
         stdin.close
 

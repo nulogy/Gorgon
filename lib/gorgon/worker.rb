@@ -22,12 +22,11 @@ module WorkUnit
 end
 
 class Worker
-  def self.build(config_filename)
+  def self.build(config)
 
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     job_definition = JobDefinition.new(payload)
 
-    config = Configuration.load_configuration_from_file(config_filename)
     connection_config = config[:connection]
     amqp = AmqpService.new connection_config
 
