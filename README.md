@@ -22,6 +22,7 @@ This file contains project-specific settings for gorgon, such as:
 * A glob for generating the list of test files
 * The connection information for AMQP
 * Information about how clients can rsync the working directory
+* Files containing Ruby code to be used as callbacks
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:
