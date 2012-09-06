@@ -24,6 +24,10 @@ class WorkerManager
 
     @callback_handler = CallbackHandler.new(config[:callback_handler])
     @available_worker_slots = config[:worker_slots]
+
+    bunny = Bunny.new(config[:connection])
+    bunny.start
+    @reply_exchange = bunny.exchange(@job_definition.reply_exchange_name)
   end
 
   def manage
@@ -78,8 +82,15 @@ class WorkerManager
     worker_complete = proc do |status|
       if status.exitstatus != 0
         log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-        log_error "ERROR MSG: #{stderr.read}"
-        # TODO: We probably want to abort and crash WorkerManager if the worker crash rate is too high
+        error_msg = stderr.read
+        log_error "ERROR MSG: #{error_msg}"
+
+        reply = {:type => :crash,
+          :hostname => Socket.gethostname,
+          :stdout => stdout.read,
+          :stderr => error_msg}
+        @reply_exchange.publish(Yajl::Encoder.encode(reply))
+        # TODO: find a way to stop the whole system when a worker crashes or do something more clever
       end
       on_worker_complete
     end
