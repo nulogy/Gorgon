@@ -1,3 +1,4 @@
+require "gorgon/worker"
 require "gorgon/g_logger"
 require 'gorgon/callback_handler'
 
@@ -72,11 +73,8 @@ class WorkerManager
     worker_complete = proc do |status|
       if status.exitstatus != 0
         log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-        reply = {:type => :crash,
-          :hostname => Socket.gethostname,
-          :stdout => stdout.read,
-          :stderr => stderr.read}
-        @reply_exchange.publish(Yajl::Encoder.encode(reply))
+        log_error "ERROR MSG: #{stderr.read}"
+        # TODO: We probably want to abort and crash WorkerManager if the worker crash rate is too high
       end
       on_worker_complete
     end
@@ -101,21 +99,21 @@ class WorkerManager
   def pipe_fork
     pid = fork do
       bind_to_fifos
-
+      worker = Worker.build(@config)
+      worker.work
       exit
     end
 
-    fifo_in = pipe_file pid, "in"
-    fifo_out = pipe_file pid, "out"
-    fifo_err = pipe_file pid, "err"
+    fifo_in, fifo_out, fifo_err = wait_for_fifos pid
 
-    return pid, File.open(fifo_in, "w"), File.open(fifo_out, "w"), File.open(fifo_err, "w")
+    pipe_in = File.open(fifo_in, "w")
+    pipe_out = File.open(fifo_out)
+    pipe_err = File.open(fifo_err)
+
+    return pid, pipe_in, pipe_out, pipe_err
   end
 
-  def pipe_file pid, stream
-    "#{pid}_#{stream}.pipe"
-  end
-
+  # this method will run in the worker process
   def bind_to_fifos
     fifo_in = pipe_file $$, "in"
     fifo_out = pipe_file $$, "out"
@@ -129,9 +127,25 @@ class WorkerManager
     $stdin = File.open(fifo_in)
 
     @@old_out = $stdout
-    $stdout = File.open(fifo_out)
+    $stdout = File.open(fifo_out, "w")
 
     @@old_err = $stderr
-    $stderr = File.open(fifo_err)
+    $stderr = File.open(fifo_err, "w")
+  end
+
+  def pipe_file pid, stream
+    "#{pid}_#{stream}.pipe"
+  end
+
+  def wait_for_fifos pid
+    fifo_in = pipe_file pid, "in"
+    fifo_out = pipe_file pid, "out"
+    fifo_err = pipe_file pid, "err"
+
+    while !File.exist?(fifo_in) || !File.exist?(fifo_out) || !File.exist?(fifo_err)  do
+      sleep 0.01
+    end
+
+    return fifo_in, fifo_out, fifo_err
   end
 end
