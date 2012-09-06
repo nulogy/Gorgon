@@ -22,7 +22,7 @@ class WorkerManager
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     @job_definition = JobDefinition.new(payload)
 
-    @callback_handler = CallbackHandler.new(config[:callback_handler])
+    @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     @available_worker_slots = config[:worker_slots]
 
     bunny = Bunny.new(config[:connection])
