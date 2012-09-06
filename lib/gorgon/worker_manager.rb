@@ -50,8 +50,10 @@ class WorkerManager
   end
 
   def fork_workers n_workers
-    log "Forking #{n_workers} worker(s)"
+    log "Running before_creating_workers callback"
+    @callback_handler.before_creating_workers
 
+    log "Forking #{n_workers} worker(s)"
     EventMachine.run do
       n_workers.times do
         fork_a_worker
