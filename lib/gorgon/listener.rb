@@ -25,7 +25,7 @@ class Listener
   def listen
     log "Waiting for jobs..."
     while true
-      sleep 10 unless poll
+      sleep 1 unless poll
     end
   end
 
