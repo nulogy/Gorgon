@@ -1,6 +1,7 @@
 require "gorgon/job_definition"
 require "gorgon/configuration"
 require "gorgon/worker"
+require "gorgon/g_logger"
 
 require "yajl"
 require "bunny"
@@ -8,15 +9,14 @@ require "awesome_print"
 require "open4"
 require "tmpdir"
 require "socket"
-require "logger"
 
 class Listener
   include Configuration
+  include GLogger
 
   def initialize
     @listener_config_filename = Dir.pwd + "/gorgon_listener.json"
-    @available_worker_slots = configuration[:worker_slots]
-    initialize_logger
+    initialize_logger configuration[:log_file]
 
     log "Listener initialized"
     connect
@@ -119,24 +119,5 @@ private
       # - Wait for the next job
       log_error "Command 'rsync -r --rsh=ssh #{@job_definition.source_tree_path}/* .' failed!"
     end
-  end
-
-  def initialize_logger
-    return unless configuration[:log_file]
-    @logger =
-      if configuration[:log_file] == "-"
-        Logger.new($stdout)
-      else
-        Logger.new(configuration[:log_file])
-      end
-    @logger.datetime_format = "%Y-%m-%d %H:%M:%S "
-  end
-
-  def log text
-    @logger.info(text) if @logger
-  end
-
-  def log_error text
-    @logger.error(text) if @logger
   end
 end
