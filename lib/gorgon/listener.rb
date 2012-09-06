@@ -64,7 +64,7 @@ class Listener
 
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
     pid, stdin, stdout, stderr = Open4::popen4 "gorgon manage_workers"
-    stdin.write(@job_definition)
+    stdin.write(@job_definition.to_json)
     stdin.close
 
     ignore, status = Process.waitpid2 pid
