@@ -1,8 +1,10 @@
 require "gorgon/worker"
 require "gorgon/g_logger"
 require 'gorgon/callback_handler'
+require 'gorgon/pipe_manager'
 
 class WorkerManager
+  include PipeManager
   include GLogger
 
   def self.build listener_config_file
@@ -60,7 +62,8 @@ class WorkerManager
   def fork_a_worker
     @available_worker_slots -= 1
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
-    pid, stdin, stdout, stderr = pipe_fork
+
+    pid, stdin, stdout, stderr = pipe_fork_worker
     stdin.write(@job_definition.to_json)
     stdin.close
 
@@ -94,58 +97,5 @@ class WorkerManager
     log "Job '#{@job_definition.inspect}' completed"
     FileUtils::remove_entry_secure(@tempdir)
     EventMachine.stop_event_loop
-  end
-
-  def pipe_fork
-    pid = fork do
-      bind_to_fifos
-      worker = Worker.build(@config)
-      worker.work
-      exit
-    end
-
-    fifo_in, fifo_out, fifo_err = wait_for_fifos pid
-
-    pipe_in = File.open(fifo_in, "w")
-    pipe_out = File.open(fifo_out)
-    pipe_err = File.open(fifo_err)
-
-    return pid, pipe_in, pipe_out, pipe_err
-  end
-
-  # this method will run in the worker process
-  def bind_to_fifos
-    fifo_in = pipe_file $$, "in"
-    fifo_out = pipe_file $$, "out"
-    fifo_err = pipe_file $$, "err"
-
-    system("mkfifo '#{fifo_in}'")
-    system("mkfifo '#{fifo_out}'")
-    system("mkfifo '#{fifo_err}'")
-
-    @@old_in = $stdin
-    $stdin = File.open(fifo_in)
-
-    @@old_out = $stdout
-    $stdout = File.open(fifo_out, "w")
-
-    @@old_err = $stderr
-    $stderr = File.open(fifo_err, "w")
-  end
-
-  def pipe_file pid, stream
-    "#{pid}_#{stream}.pipe"
-  end
-
-  def wait_for_fifos pid
-    fifo_in = pipe_file pid, "in"
-    fifo_out = pipe_file pid, "out"
-    fifo_err = pipe_file pid, "err"
-
-    while !File.exist?(fifo_in) || !File.exist?(fifo_out) || !File.exist?(fifo_err)  do
-      sleep 0.01
-    end
-
-    return fifo_in, fifo_out, fifo_err
   end
 end
