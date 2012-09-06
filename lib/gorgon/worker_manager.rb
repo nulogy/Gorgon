@@ -3,6 +3,8 @@ require "gorgon/g_logger"
 require 'gorgon/callback_handler'
 require 'gorgon/pipe_manager'
 
+require 'eventmachine'
+
 class WorkerManager
   include PipeManager
   include GLogger
