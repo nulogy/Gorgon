@@ -1,4 +1,5 @@
 require "gorgon/g_logger"
+require 'gorgon/callback_handler'
 
 class WorkerManager
   include GLogger
@@ -12,7 +13,6 @@ class WorkerManager
 
   def initialize config
     initialize_logger config[:log_file]
-    log "Initializing Worker Manager"
 
     @config = config
 
@@ -24,10 +24,27 @@ class WorkerManager
   end
 
   def manage
+    copy_source_tree(@job_definition.source_tree_path)
     fork_workers @available_worker_slots
   end
 
   private
+
+  def copy_source_tree source_tree_path
+    @tempdir = Dir.mktmpdir("gorgon")
+    Dir.chdir(@tempdir)
+    system("rsync -r --rsh=ssh #{source_tree_path}/* .")
+
+    if ($?.exitstatus == 0)
+      log "Syncing completed successfully."
+    else
+      #TODO handle error:
+      # - Discard job
+      # - Let the originator know about the error
+      # - Wait for the next job
+      log_error "Command 'rsync -r --rsh=ssh #{@job_definition.source_tree_path}/* .' failed!"
+    end
+  end
 
   def fork_workers n_workers
     log "Forking #{n_workers} worker(s)"
@@ -61,8 +78,24 @@ class WorkerManager
           :stderr => stderr.read}
         @reply_exchange.publish(Yajl::Encoder.encode(reply))
       end
+      on_worker_complete
     end
     EventMachine.defer(watcher, worker_complete)
+  end
+
+  def on_worker_complete
+    @available_worker_slots += 1
+    on_current_job_complete if current_job_complete?
+  end
+
+  def current_job_complete?
+    @available_worker_slots == @config[:worker_slots]
+  end
+
+  def on_current_job_complete
+    log "Job '#{@job_definition.inspect}' completed"
+    FileUtils::remove_entry_secure(@tempdir)
+    EventMachine.stop_event_loop
   end
 
   def pipe_fork
