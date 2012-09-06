@@ -1,7 +1,7 @@
 require "rubygems"
 require 'gorgon/originator'
 require 'gorgon/listener'
-require 'gorgon/worker_spawner'
+require 'gorgon/worker_manager'
 
 def start
   o = Originator.new
@@ -13,12 +13,11 @@ def listen
   l.listen
 end
 
-def spawn_workers
+def manage_workers
   config_path = ENV["GORGON_CONFIG_PATH"]
-  worker_slots = ENV["GORGON_WORKER_SLOTS"].to_i
 
-  spawner = WorkerSpawner.build(config_path)
-  spawner.spawn worker_slots
+  manager = WorkerManager.build config_path
+  manager.manage
 end
 
 def usage
@@ -32,8 +31,8 @@ when "start"
   start
 when "listen"
   listen
-when "spawn_workers"
-  spawn_workers
+when "manage_workers"
+  manage_workers
 else
   usage
 end

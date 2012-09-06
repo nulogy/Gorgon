@@ -14,7 +14,7 @@ class Listener
   include Configuration
 
   def initialize
-    @config_filename = Dir.pwd + "/gorgon_listener.json"
+    @listener_config_filename = Dir.pwd + "/gorgon_listener.json"
     @available_worker_slots = configuration[:worker_slots]
     initialize_logger
 
@@ -56,40 +56,27 @@ class Listener
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
     copy_source_tree(@job_definition.source_tree_path)
-    fork_workers
+    fork_worker_manager
   end
 
-  def fork_workers
-    log "Forking #{configuration[:worker_slots]} worker(s)"
+  def fork_worker_manager
+    log "Forking Worker Manager"
 
-    EventMachine.run do
-      configuration[:worker_slots].times do
-        @available_worker_slots -= 1
-        ENV["GORGON_CONFIG_PATH"] = @config_filename
-        ENV["GORGON_WORKER_SLOTS"] = configuration[:worker_slots].to_s
-        pid, stdin, stdout, stderr = Open4::popen4 "gorgon spawn_workers"
-        stdin.write(@job_definition.to_json)
-        stdin.close
+    ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
+    pid, stdin, stdout, stderr = Open4::popen4 "gorgon manage_workers"
+    stdin.write(@job_definition)
+    stdin.close
 
-        watcher = proc do
-          ignore, status = Process.waitpid2 pid
-          log "Worker #{pid} finished"
-          status
-        end
+    ignore, status = Process.waitpid2 pid
+    log "Worker Manager #{pid} finished"
 
-        worker_complete = proc do |status|
-          if status.exitstatus != 0
-            log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-            reply = {:type => :crash,
-                     :hostname => Socket.gethostname,
-                     :stdout => stdout.read,
-                     :stderr => stderr.read}
-            @reply_exchange.publish(Yajl::Encoder.encode(reply))
-          end
-          on_worker_complete
-        end
-        EventMachine.defer(watcher, worker_complete)
-      end
+    if status.exitstatus != 0
+      log_error "Worker Manager #{pid} crashed with exit status #{status.exitstatus}!"
+      reply = {:type => :crash,
+        :hostname => Socket.gethostname,
+        :stdout => stdout.read,
+        :stderr => stderr.read}
+      @reply_exchange.publish(Yajl::Encoder.encode(reply))
     end
   end
 
