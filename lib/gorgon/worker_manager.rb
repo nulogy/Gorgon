@@ -41,6 +41,7 @@ class WorkerManager
 
   def copy_source_tree source_tree_path
     @tempdir = Dir.mktmpdir("gorgon")
+    @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}"
     Dir.chdir(@tempdir)
     system("rsync -r --rsh=ssh #{source_tree_path}/* .")
 
