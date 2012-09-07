@@ -18,6 +18,9 @@ def manage_workers
 
   manager = WorkerManager.build config_path
   manager.manage
+
+  # For some reason I have to 'exit' here, otherwise WorkerManager process crashes
+  exit
 end
 
 def usage
