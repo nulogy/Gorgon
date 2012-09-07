@@ -70,10 +70,13 @@ class Listener
 
     if status.exitstatus != 0
       log_error "Worker Manager #{pid} crashed with exit status #{status.exitstatus}!"
+      error_msg = stderr.read
+      log_error "ERROR MSG: #{error_msg}"
+
       reply = {:type => :crash,
         :hostname => Socket.gethostname,
         :stdout => stdout.read,
-        :stderr => stderr.read}
+        :stderr => error_msg}
       @reply_exchange.publish(Yajl::Encoder.encode(reply))
     end
   end
