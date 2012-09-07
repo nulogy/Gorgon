@@ -8,7 +8,7 @@ describe JobDefinition do
 
   describe "#to_json" do
     it "should serialize itself to json" do
-            expected_hash = {:file_queue_name => "string 1", :reply_exchange_name => "string 2", :rsync_command => "string 3", :callbacks => {}}
+      expected_hash = {:file_queue_name => "string 1", :reply_exchange_name => "string 2", :source_tree_path => "string 3", :callbacks => {}}
 
       jd = JobDefinition.new(expected_hash)
 
