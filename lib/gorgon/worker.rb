@@ -1,6 +1,7 @@
 require "gorgon/configuration"
 require "gorgon/amqp_service"
 require 'gorgon/callback_handler'
+require "gorgon/g_logger"
 
 require "uuidtools"
 require "awesome_print"
@@ -22,6 +23,8 @@ module WorkUnit
 end
 
 class Worker
+  include GLogger
+
   def self.build(config)
 
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
@@ -41,13 +44,16 @@ class Worker
       :reply_exchange_name => job_definition.reply_exchange_name,
       :worker_id => worker_id,
       :test_runner => WorkUnit,
-      :callback_handler => callback_handler
+      :callback_handler => callback_handler,
+      :log_file => config[:log_file]
     }
 
     new(params)
   end
 
   def initialize(params)
+    initialize_logger params[:log_file]
+
     @amqp = params[:amqp]
     @file_queue_name = params[:file_queue_name]
     @reply_exchange_name = params[:reply_exchange_name]
@@ -57,6 +63,7 @@ class Worker
   end
 
   def work
+    log "Running before_start callback"
     @callback_handler.before_start
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
@@ -66,6 +73,7 @@ class Worker
       end
     end
     ensure
+      log "Running after_complete callback"
       @callback_handler.after_complete
   end
 
