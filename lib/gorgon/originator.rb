@@ -112,7 +112,7 @@ class Originator
   end
 
   def files
-    configuration[:files].reduce([]) do |memo, obj|
+    @files ||= configuration[:files].reduce([]) do |memo, obj|
       memo.concat(Dir[obj])
     end.uniq
   end
