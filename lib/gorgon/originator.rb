@@ -1,5 +1,6 @@
 require 'gorgon/job_definition'
 require 'gorgon/configuration'
+require 'gorgon/message_outputter'
 
 require 'amqp'
 require 'awesome_print'
@@ -73,6 +74,10 @@ class Originator
       @file_count_remaining -= 1
     end
     ap payload
+
+    # TODO: MessageOutputter should probably output to a log file
+    # MessageOutputter.new.output_message(payload)
+
     cleanup_if_job_complete
   end
   

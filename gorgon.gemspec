@@ -28,4 +28,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "uuidtools"
   s.add_runtime_dependency "test-unit"
   s.add_runtime_dependency "bunny"
+  s.add_runtime_dependency "ruby-progressbar"
+  s.add_runtime_dependency "colorize"
 end
