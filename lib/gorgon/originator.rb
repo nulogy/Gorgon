@@ -76,7 +76,9 @@ class Originator
 
     # at some point this will probably need to be fancy polymorphic type based responses, or at least a nice switch statement
     if payload[:action] == "finish"
-      @file_count_remaining -= 1
+      @job_state.file_finished payload
+    elsif payload[:action] == "start"
+      @job_state.file_started payload
     end
     ap payload
 

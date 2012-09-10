@@ -9,7 +9,7 @@ describe Originator do
                        :default_exchange => exchange) }
 
   let(:configuration){ {:files => ["some/file"]}}
-  let(:job_state){ stub("JobState")}
+  let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil)}
 
   before do
     @originator = Originator.new
@@ -68,6 +68,31 @@ describe Originator do
     end
   end
 
+  describe "#handle_reply" do
+    before do
+      stub_connection_methods
+      JobState.stub!(:new).and_return job_state
+      @originator.publish
+    end
+
+    it "calls cleanup_if_job_complete" do
+      @originator.should_receive(:cleanup_if_job_complete)
+      @originator.handle_reply finish_payload
+    end
+
+    it "calls JobState#file_started if payload[:action] is 'start'" do
+      payload = Yajl::Parser.new(:symbolize_keys => true).parse(start_payload)
+      job_state.should_receive(:file_started).with(payload)
+      @originator.handle_reply(start_payload)
+    end
+
+    it "calls JobState#file_finished if payload[:action] is 'finish'" do
+      payload = Yajl::Parser.new(:symbolize_keys => true).parse(finish_payload)
+      job_state.should_receive(:file_finished).with(payload)
+      @originator.handle_reply(finish_payload)
+    end
+  end
+
   private
 
   def stub_connection_methods
@@ -77,6 +102,26 @@ describe Originator do
     @originator.stub!(:configuration).and_return configuration
     @originator.stub!(:connection_information).and_return 'host'
     @originator.stub!(:job_definition).and_return JobDefinition.new
-    @originator.stub!(:handle_reply).with({}).and_return nil
+  end
+
+  def start_payload
+    '{
+      "action": "start",
+      "hostname": "host",
+      "worker_id": "1",
+      "filename": "test/file_test.rb"
+    }'
+  end
+
+  def finish_payload
+    '{
+      "action": "finish",
+      "hostname": "host",
+      "worker_id": "1",
+      "filename": "test/file_test.rb",
+      "failures": [],
+      "type": "pass",
+      "time": 3
+    }'
   end
 end
