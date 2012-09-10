@@ -78,7 +78,7 @@ class Originator
     if payload[:action] == "finish"
       @job_state.file_finished payload
     elsif payload[:action] == "start"
-      @job_state.file_started payload
+      @job_state.file_started
     end
     ap payload
 

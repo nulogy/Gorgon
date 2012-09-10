@@ -82,7 +82,7 @@ describe Originator do
 
     it "calls JobState#file_started if payload[:action] is 'start'" do
       payload = Yajl::Parser.new(:symbolize_keys => true).parse(start_payload)
-      job_state.should_receive(:file_started).with(payload)
+      job_state.should_receive(:file_started)
       @originator.handle_reply(start_payload)
     end
 
