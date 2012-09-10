@@ -1,6 +1,7 @@
 require 'gorgon/job_definition'
 require 'gorgon/configuration'
 require 'gorgon/message_outputter'
+require 'gorgon/job_state'
 
 require 'amqp'
 require 'awesome_print'
@@ -38,8 +39,8 @@ class Originator
   def cancel_job
     @file_queue.purge
 
-    @file_count_remaining = 0
-    cleanup_if_job_complete
+    @job_state.cancel
+    cleanup
   end
 
   def publish
@@ -60,10 +61,14 @@ class Originator
   end
 
   def cleanup_if_job_complete
-    if @file_count_remaining == 0
-      cleanup_queues
-      @connection.disconnect { EventMachine.stop }
+    if @job_state.is_job_complete?
+      cleanup
     end
+  end
+
+  def cleanup
+    cleanup_queues
+    @connection.disconnect {EventMachine.stop}
   end
 
   def handle_reply(payload)
@@ -90,10 +95,10 @@ class Originator
     files.each do |file|
       @channel.default_exchange.publish(file, :routing_key => @file_queue.name)
     end
-    @file_count_remaining = files.count
   end
 
   def publish_job
+    @job_state = JobState.new files.count
     @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 
