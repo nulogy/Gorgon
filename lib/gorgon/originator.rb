@@ -73,8 +73,11 @@ class Originator
     if payload[:action] == "finish"
       @file_count_remaining -= 1
     end
-    #ap payload
-    MessageOutputter.new.output_message(payload)
+    ap payload
+
+    # TODO: MessageOutputter should probably output to a log file
+    # MessageOutputter.new.output_message(payload)
+
     cleanup_if_job_complete
   end
   
