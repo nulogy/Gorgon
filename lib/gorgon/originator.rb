@@ -2,6 +2,7 @@ require 'gorgon/job_definition'
 require 'gorgon/configuration'
 require 'gorgon/message_outputter'
 require 'gorgon/job_state'
+require 'gorgon/progress_bar_view'
 
 require 'amqp'
 require 'awesome_print'
@@ -101,6 +102,8 @@ class Originator
 
   def publish_job
     @job_state = JobState.new files.count
+    @progress_bar_view = ProgressBarView.new @job_state
+    @progress_bar_view.show
     @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 

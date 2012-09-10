@@ -10,6 +10,7 @@ describe Originator do
 
   let(:configuration){ {:files => ["some/file"]}}
   let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil)}
+  let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
 
   before do
     @originator = Originator.new
@@ -17,7 +18,7 @@ describe Originator do
 
   describe "#publish_job" do
     before do
-      stub_connection_methods
+      stub_methods
     end
 
     it "creates a JobState instance and passes total files" do
@@ -26,11 +27,18 @@ describe Originator do
 
       @originator.publish
     end
+
+    it "creates a ProgressBarView and show" do
+      JobState.stub!(:new).and_return job_state
+      ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
+      progress_bar_view.should_receive(:show)
+      @originator.publish
+    end
   end
 
   describe "#cancel_job" do
     before do
-      stub_connection_methods
+      stub_methods
     end
 
     it "call JobState#cancel" do
@@ -50,7 +58,7 @@ describe Originator do
 
   describe "#cleanup_if_job_complete" do
     before do
-      stub_connection_methods
+      stub_methods
       JobState.stub!(:new).and_return job_state
       @originator.publish
     end
@@ -70,7 +78,7 @@ describe Originator do
 
   describe "#handle_reply" do
     before do
-      stub_connection_methods
+      stub_methods
       JobState.stub!(:new).and_return job_state
       @originator.publish
     end
@@ -95,10 +103,11 @@ describe Originator do
 
   private
 
-  def stub_connection_methods
+  def stub_methods
     AMQP.stub(:connect).and_return(connection)
     AMQP::Channel.stub!(:new).and_return channel
     EventMachine.stub!(:run).and_yield
+    ProgressBarView.stub!(:new).and_return progress_bar_view
     @originator.stub!(:configuration).and_return configuration
     @originator.stub!(:connection_information).and_return 'host'
     @originator.stub!(:job_definition).and_return JobDefinition.new
