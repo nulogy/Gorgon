@@ -1,6 +1,11 @@
 require 'gorgon/job_state'
 
 describe JobState do
+  let(:payload) {
+    {:hostname => "host-name", :worker_id => 1, :filename => "path/file.rb",
+      :type => "pass", :failures => []}
+  }
+
   before do
     @job_state = JobState.new 5
   end
@@ -17,6 +22,10 @@ describe JobState do
     it "sets failed_files_count to 0" do
       @job_state.failed_files_count.should be 0
     end
+
+    it "set state to starting" do
+      @job_state.state.should be :starting
+    end
   end
 
   describe "#finished_files_count" do
@@ -25,12 +34,14 @@ describe JobState do
     end
   end
 
-  describe "#file_finished" do
-    let(:payload) {
-      {:hostname => "host-name", :worker_id => 1, :filename => "path/file.rb",
-      :type => "pass", :failures => []}
-    }
+  describe "#file_started" do
+    it "change state to running after first start_file_message is received" do
+      @job_state.file_started
+      @job_state.state.should be :running
+    end
+  end
 
+  describe "#file_finished" do
     it "decreases remaining_files_count" do
       lambda do
         @job_state.file_finished payload
@@ -56,7 +67,44 @@ describe JobState do
       @job_state.should_receive :notify_observers
       @job_state.file_finished payload
     end
+
+    it "raises if job already complete" do
+      finish_job
+      lambda do
+        @job_state.file_finished payload
+      end.should raise_error
+    end
+
+    it "raises if job was cancelled" do
+      @job_state.cancel
+      lambda do
+        @job_state.file_finished payload
+      end.should raise_error
+    end
   end
 
-  describe "#file_started"
+  describe "#is_job_complete?" do
+    it "returns false if remaining_files_count != 0" do
+      @job_state.is_job_complete?.should be_false
+    end
+
+    it "returns true if remaining_files_count == 0" do
+      finish_job
+      @job_state.is_job_complete?.should be_true
+    end
+  end
+
+  describe "#cancel and is_job_cancelled?" do
+    it "cancels job" do
+      @job_state.is_job_cancelled?.should be_false
+      @job_state.cancel
+      @job_state.is_job_cancelled?.should be_true
+    end
+  end
+
+  private
+
+  def finish_job
+    5.times {@job_state.file_finished payload }
+  end
 end
