@@ -20,7 +20,7 @@ class JobState
     total_files - remaining_files_count
   end
 
-  def file_started
+  def file_started payload
     raise_if_completed_or_cancelled
     @state = :running if @state == :starting
   end
