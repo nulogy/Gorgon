@@ -21,13 +21,13 @@ class ProgressBarView
     return if @progress_bar.nil? || @finished
 
     failed_files_count = @job_state.failed_files_count
+
     @progress_bar.title="F: #{failed_files_count}"
-
-    @progress_bar.progress = @job_state.finished_files_count
-
     if failed_files_count > 0
       @progress_bar.format(format(bar: :red, title: :red))
     end
+
+    @progress_bar.progress = @job_state.finished_files_count
 
     if @job_state.is_job_complete?
       @finished = true
@@ -60,6 +60,8 @@ private
 
   def print_summary
     print_failed_tests
+
+    #TODO: print other stats: time, total file, total failures, etc
   end
 
   def print_failed_tests
