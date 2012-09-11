@@ -22,7 +22,10 @@ class Originator
       Signal.trap("TERM") { ctrl_c }
 
       publish
+      @logger.log "Originator finished successfully"
     rescue Exception
+      @logger.log_error "Unhandled Exception!"
+
       puts "Unhandled exception in originator:"
       puts $!.message
       puts $!.backtrace.join("\n")
@@ -67,6 +70,7 @@ class Originator
 
   def cleanup_if_job_complete
     if @job_state.is_job_complete?
+      @logger.log "Job is done"
       cleanup
     end
   end
