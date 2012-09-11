@@ -3,17 +3,21 @@ require 'observer'
 class JobState
   include Observable
 
-  attr_reader :total_files, :remaining_files_count, :failed_files_count, :state
+  attr_reader :total_files, :remaining_files_count, :state
 
   def initialize total_files
     @total_files = total_files
     @remaining_files_count = total_files
-    @failed_files_count = 0
+    @failed_tests = []
     if @remaining_files_count > 0
       @state = :starting
     else
       @state = :complete
     end
+  end
+
+  def failed_files_count
+    @failed_tests.count
   end
 
   def finished_files_count
@@ -37,7 +41,8 @@ class JobState
     @remaining_files_count -= 1
     @state = :complete if @remaining_files_count == 0
 
-    @failed_files_count += 1 if failed_test?(payload)
+    handle_failed_test payload if failed_test?(payload)
+
     changed
     notify_observers payload
   end
@@ -46,6 +51,12 @@ class JobState
     @remaining_files_count = 0
     @state = :cancelled
     notify_observers({})
+  end
+
+  def each_failed_test
+    @failed_tests.each do |test|
+      yield test
+    end
   end
 
   def is_job_complete?
@@ -57,6 +68,10 @@ class JobState
   end
 
   private
+
+  def handle_failed_test payload
+    @failed_tests << payload
+  end
 
   def raise_if_completed_or_cancelled
     raise "JobState#file_finished called when job was already complete" if is_job_complete?

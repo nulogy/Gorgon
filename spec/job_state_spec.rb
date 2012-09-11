@@ -65,7 +65,7 @@ describe JobState do
 
     it "increments failed_files_count if type is failed" do
       lambda do
-        @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failures message"]})
+        @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failure messages"]})
       end.should change(@job_state, :failed_files_count).by(1)
     end
 
@@ -111,6 +111,15 @@ describe JobState do
     it "notify observers when cancelling" do
       @job_state.should_receive :notify_observers
       @job_state.cancel
+    end
+  end
+
+  describe "#each_failed_test" do
+    it "returns failed tests info" do
+      @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failure messages"]})
+      @job_state.each_failed_test do |test|
+        test[:failures].should == ["Failure messages"]
+      end
     end
   end
 

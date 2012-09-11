@@ -16,21 +16,31 @@ class ProgressBarView
   end
 
   def update payload={}
+    create_progress_bar_if_started_job_running
+
+    return if @progress_bar.nil? || @finished
+
+    failed_files_count = @job_state.failed_files_count
+
+    @progress_bar.title="F: #{failed_files_count}"
+    if failed_files_count > 0
+      @progress_bar.format(format(bar: :red, title: :red))
+    end
+
+    @progress_bar.progress = @job_state.finished_files_count
+
+    if @job_state.is_job_complete?
+      @finished = true
+      print_summary
+    end
+  end
+
+  def create_progress_bar_if_started_job_running
     if @progress_bar.nil? && @job_state.state == :running
       puts "\r#{RUNNING_MSG}#{' ' * (LOADING_MSG.length - RUNNING_MSG.length)}"
       @progress_bar = ProgressBar.create(:total => @job_state.total_files,
                                          :length => [terminal_size[0], MAX_LENGTH].min,
                                          :format => format(bar: :green, title: :white));
-    end
-    return unless @progress_bar
-
-    failed_files_count = @job_state.failed_files_count
-    @progress_bar.title="F: #{failed_files_count}"
-
-    @progress_bar.progress = @job_state.finished_files_count
-
-    if failed_files_count > 0
-      @progress_bar.format(format(bar: :red, title: :red))
     end
   end
 
@@ -46,5 +56,30 @@ private
 
   def terminal_size
     `stty size`.split.map { |x| x.to_i }.reverse
+  end
+
+  def print_summary
+    print_failed_tests
+
+    #TODO: print other stats: time, total file, total failures, etc
+  end
+
+  def print_failed_tests
+    @job_state.each_failed_test do |test|
+      msg = build_fail_message test[:failures]
+      puts "#{msg}\n"
+    end
+  end
+
+  def build_fail_message failures
+    msg = [('=' * 80).light_red]
+    failures.each do |failure|
+      msg << failure
+    end
+    msg << ''
+    result = msg.join("\n")
+    result.gsub!(/^Error:/, "Error:".yellow)
+    result.gsub!(/^Failure:/, "Failure:".red)
+    result
   end
 end
