@@ -81,14 +81,15 @@ class Originator
     elsif payload[:action] == "start"
       @job_state.file_started
     end
-    ap payload
+    # Uncomment this to see each message received by originator
+    # ap payload
 
     # TODO: MessageOutputter should probably output to a log file
     # MessageOutputter.new.output_message(payload)
 
     cleanup_if_job_complete
   end
-  
+
   def cleanup_queues
     @reply_queue.delete
     @file_queue.delete
