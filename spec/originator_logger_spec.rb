@@ -12,7 +12,7 @@ describe OriginatorLogger do
       payload = {:action => "start",
                  :hostname => "host",
                  :filename => "filename"}
-      originator_logger.should_receive(:log).with("Started running 'filename' at 'host'\n")
+      originator_logger.should_receive(:log).with("Started running 'filename' at 'host'")
       originator_logger.log_message(payload)
     end
 
@@ -20,7 +20,7 @@ describe OriginatorLogger do
       payload = {:action => "finish",
                  :hostname => "host",
                  :filename => "filename"}
-      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'\n")
+      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'")
       originator_logger.log_message(payload)
     end
 
@@ -33,7 +33,7 @@ describe OriginatorLogger do
                    "failure"
                  ]}
 
-      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'\nFailure:\nfailure\n")
+      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'failure\n")
       originator_logger.log_message(payload)
     end
   end
