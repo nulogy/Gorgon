@@ -42,6 +42,7 @@ describe JobState do
 
     it "notify observers" do
       @job_state.should_receive :notify_observers
+      @job_state.should_receive :changed
       @job_state.file_started
     end
   end
@@ -70,6 +71,7 @@ describe JobState do
 
     it "notify observers" do
       @job_state.should_receive :notify_observers
+      @job_state.should_receive :changed
       @job_state.file_finished payload
     end
 
