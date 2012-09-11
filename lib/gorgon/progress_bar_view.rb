@@ -2,6 +2,8 @@ require 'ruby-progressbar'
 require 'colorize'
 
 MAX_LENGTH = 200
+LOADING_MSG = "Loading environment and workers..."
+RUNNING_MSG = "Running files:"
 
 class ProgressBarView
   def initialize job_state
@@ -10,12 +12,18 @@ class ProgressBarView
   end
 
   def show
-    @progress_bar = ProgressBar.create(:total => @job_state.total_files,
-                                       :length => [terminal_size[0], MAX_LENGTH].min,
-                                       :format => format(bar: :green, title: :white));
+    print LOADING_MSG
   end
 
   def update
+    if @progress_bar.nil? && @job_state.state == :running
+      puts "\r#{RUNNING_MSG}#{' ' * (LOADING_MSG.length - RUNNING_MSG.length)}"
+      @progress_bar = ProgressBar.create(:total => @job_state.total_files,
+                                         :length => [terminal_size[0], MAX_LENGTH].min,
+                                         :format => format(bar: :green, title: :white));
+    end
+    return unless @progress_bar
+
     failed_files_count = @job_state.failed_files_count
     @progress_bar.title="F: #{failed_files_count}"
 
