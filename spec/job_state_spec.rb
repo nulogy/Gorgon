@@ -39,6 +39,12 @@ describe JobState do
       @job_state.file_started
       @job_state.state.should be :running
     end
+
+    it "notify observers" do
+      @job_state.should_receive :notify_observers
+      @job_state.should_receive :changed
+      @job_state.file_started
+    end
   end
 
   describe "#file_finished" do
@@ -65,6 +71,7 @@ describe JobState do
 
     it "notify observers" do
       @job_state.should_receive :notify_observers
+      @job_state.should_receive :changed
       @job_state.file_finished payload
     end
 
@@ -99,6 +106,11 @@ describe JobState do
       @job_state.is_job_cancelled?.should be_false
       @job_state.cancel
       @job_state.is_job_cancelled?.should be_true
+    end
+
+    it "notify observers when cancelling" do
+      @job_state.should_receive :notify_observers
+      @job_state.cancel
     end
   end
 
