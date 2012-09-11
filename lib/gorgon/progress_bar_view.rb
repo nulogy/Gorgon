@@ -15,7 +15,7 @@ class ProgressBarView
     print LOADING_MSG
   end
 
-  def update
+  def update payload={}
     if @progress_bar.nil? && @job_state.state == :running
       puts "\r#{RUNNING_MSG}#{' ' * (LOADING_MSG.length - RUNNING_MSG.length)}"
       @progress_bar = ProgressBar.create(:total => @job_state.total_files,

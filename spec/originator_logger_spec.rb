@@ -1,22 +1,27 @@
-require File.expand_path('../../lib/gorgon/message_outputter', __FILE__)
+require 'gorgon/originator_logger'
 
-describe MessageOutputter do
-  let (:message_outputter) { MessageOutputter.new }
-  describe "#output_message" do
+describe OriginatorLogger do
+  before do
+    OriginatorLogger.any_instance.stub(:initialize_logger)
+  end
+
+  let (:originator_logger) { OriginatorLogger.new "" }
+
+  describe "#log_message" do
     it "prints start messages" do
       payload = {:action => "start",
                  :hostname => "host",
                  :filename => "filename"}
-      $stdout.should_receive(:write).with("Started running 'filename' at 'host'\n")
-      message_outputter.output_message(payload)
+      originator_logger.should_receive(:log).with("Started running 'filename' at 'host'")
+      originator_logger.log_message(payload)
     end
 
     it "prints finish messages" do
       payload = {:action => "finish",
                  :hostname => "host",
                  :filename => "filename"}
-      $stdout.should_receive(:write).with("Finished running 'filename' at 'host'\n")
-      message_outputter.output_message(payload)
+      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'")
+      originator_logger.log_message(payload)
     end
 
     it "prints failure messages when a test finishes with failures" do
@@ -28,8 +33,8 @@ describe MessageOutputter do
                    "failure"
                  ]}
 
-      $stdout.should_receive(:write).with("Finished running 'filename' at 'host'\nFailure:\nfailure\n")
-      message_outputter.output_message(payload)
+      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host'failure\n")
+      originator_logger.log_message(payload)
     end
   end
 end

@@ -1,8 +1,8 @@
 require 'gorgon/job_definition'
 require 'gorgon/configuration'
-require 'gorgon/message_outputter'
 require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
+require 'gorgon/originator_logger'
 
 require 'amqp'
 require 'awesome_print'
@@ -22,7 +22,10 @@ class Originator
       Signal.trap("TERM") { ctrl_c }
 
       publish
+      @logger.log "Originator finished successfully"
     rescue Exception
+      @logger.log_error "Unhandled Exception!"
+
       puts "Unhandled exception in originator:"
       puts $!.message
       puts $!.backtrace.join("\n")
@@ -45,13 +48,17 @@ class Originator
   end
 
   def publish
+    @logger = OriginatorLogger.new configuration[:originator_log_file]
+
     EventMachine.run do
+      @logger.log "Connecting..."
       connect
       @reply_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
       @reply_exchange = @channel.direct(UUIDTools::UUID.timestamp_create.to_s)
       @reply_queue.bind(@reply_exchange)
       @file_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
 
+      @logger.log "Publishing files and job..."
       publish_files
       publish_job
 
@@ -63,6 +70,7 @@ class Originator
 
   def cleanup_if_job_complete
     if @job_state.is_job_complete?
+      @logger.log "Job is done"
       cleanup
     end
   end
@@ -79,13 +87,11 @@ class Originator
     if payload[:action] == "finish"
       @job_state.file_finished payload
     elsif payload[:action] == "start"
-      @job_state.file_started
+      @job_state.file_started payload
     end
+    @logger.log_message payload
     # Uncomment this to see each message received by originator
     # ap payload
-
-    # TODO: MessageOutputter should probably output to a log file
-    # MessageOutputter.new.output_message(payload)
 
     cleanup_if_job_complete
   end
@@ -102,10 +108,14 @@ class Originator
   end
 
   def publish_job
+    create_job_state_and_observers
+    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
+  end
+
+  def create_job_state_and_observers
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
-    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 
   def connect

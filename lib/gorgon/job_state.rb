@@ -20,7 +20,7 @@ class JobState
     total_files - remaining_files_count
   end
 
-  def file_started
+  def file_started payload
     raise_if_completed_or_cancelled
 
     if @state == :starting
@@ -28,7 +28,7 @@ class JobState
       changed
     end
 
-    notify_observers
+    notify_observers payload
   end
 
   def file_finished payload
@@ -39,13 +39,13 @@ class JobState
 
     @failed_files_count += 1 if failed_test?(payload)
     changed
-    notify_observers
+    notify_observers payload
   end
 
   def cancel
     @remaining_files_count = 0
     @state = :cancelled
-    notify_observers
+    notify_observers({})
   end
 
   def is_job_complete?
