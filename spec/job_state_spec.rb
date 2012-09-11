@@ -36,14 +36,14 @@ describe JobState do
 
   describe "#file_started" do
     it "change state to running after first start_file_message is received" do
-      @job_state.file_started
+      @job_state.file_started({})
       @job_state.state.should be :running
     end
 
     it "notify observers" do
       @job_state.should_receive :notify_observers
       @job_state.should_receive :changed
-      @job_state.file_started
+      @job_state.file_started({})
     end
   end
 

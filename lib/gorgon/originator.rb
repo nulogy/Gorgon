@@ -79,7 +79,7 @@ class Originator
     if payload[:action] == "finish"
       @job_state.file_finished payload
     elsif payload[:action] == "start"
-      @job_state.file_started
+      @job_state.file_started payload
     end
     # Uncomment this to see each message received by originator
     # ap payload
