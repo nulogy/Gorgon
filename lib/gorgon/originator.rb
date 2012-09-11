@@ -1,6 +1,5 @@
 require 'gorgon/job_definition'
 require 'gorgon/configuration'
-require 'gorgon/message_outputter'
 require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
