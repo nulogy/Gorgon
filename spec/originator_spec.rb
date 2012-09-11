@@ -9,10 +9,13 @@ describe Originator do
                        :default_exchange => exchange) }
 
   let(:configuration){ {:files => ["some/file"]}}
-  let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil)}
+  let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil,
+                        :add_observer => nil)}
   let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
+  let(:originator_logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
 
   before do
+    OriginatorLogger.stub(:new).and_return originator_logger
     @originator = Originator.new
   end
 
