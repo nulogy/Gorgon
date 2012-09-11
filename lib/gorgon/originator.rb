@@ -102,10 +102,14 @@ class Originator
   end
 
   def publish_job
+    create_job_state_and_observers
+    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
+  end
+
+  def create_job_state_and_observers
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
-    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 
   def connect
