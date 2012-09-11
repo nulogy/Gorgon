@@ -53,6 +53,12 @@ class JobState
     notify_observers({})
   end
 
+  def each_failed_test
+    @failed_tests.each do |test|
+      yield test
+    end
+  end
+
   def is_job_complete?
     @state == :complete
   end
