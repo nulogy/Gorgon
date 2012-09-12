@@ -77,7 +77,7 @@ class Originator
 
   def cleanup
     cleanup_queues
-    @connection.disconnect {EventMachine.stop}
+    @connection.disconnect
   end
 
   def handle_reply(payload)
@@ -125,7 +125,7 @@ class Originator
   end
 
   def on_disconnect
-
+    EventMachine.stop
   end
 
   def connection_information
