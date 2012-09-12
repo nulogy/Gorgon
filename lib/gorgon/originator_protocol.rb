@@ -7,8 +7,7 @@ class OriginatorProtocol
   def connect connection_information, options={}
     @connection = AMQP.connect(connection_information)
     @channel = AMQP::Channel.new(@connection)
-    @connection.on_closed { options[:on_closed] } if options[:on_closed]
-
+    @connection.on_closed { options[:on_closed].call } if options[:on_closed]
     open_queues
   end
 
@@ -19,13 +18,20 @@ class OriginatorProtocol
   end
 
   def publish_job job_definition
+    job_definition.file_queue_name = @file_queue.name
+    job_definition.reply_exchange_name = @reply_exchange.name
+
     @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 
-  def receive_payload
+  def receive_payloads
     @reply_queue.subscribe do |payload|
       yield payload
     end
+  end
+
+  def cancel_job
+    @file_queue.purge
   end
 
   def disconnect

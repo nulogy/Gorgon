@@ -4,7 +4,7 @@ describe OriginatorProtocol do
   let(:connection) { stub("Connection", :disconnect => nil, :on_closed => nil)}
   let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
                      :delete => nil) }
-  let(:exchange) { stub("Exchange", :publish => nil) }
+  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange") }
   let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
                        :default_exchange => exchange) }
 
@@ -27,9 +27,13 @@ describe OriginatorProtocol do
     end
 
     it "sets Connection#on_close callbacks" do
-      on_disconnect = Proc.new {}
+      on_disconnect_called = false
+      on_disconnect = Proc.new { on_disconnect_called = true }
       connection.should_receive(:on_closed).and_yield
+
       @originator_p.connect @conn_information, :on_closed => on_disconnect
+      @originator_p.disconnect
+      on_disconnect_called.should be_true
     end
 
     it "opens a reply and exchange queue" do
@@ -65,15 +69,18 @@ describe OriginatorProtocol do
       @originator_p.connect @conn_information
     end
 
-    it "fanout job_definition using 'gorgon.jobs' exchange" do
+    it "add queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
       channel.should_receive(:fanout).with("gorgon.jobs")
-      job_definition = JobDefinition.new
-      exchange.should_receive(:publish).with(job_definition.to_json)
-      @originator_p.publish_job job_definition
+      exp_job_definition = JobDefinition.new
+      exp_job_definition.file_queue_name = "queue"
+      exp_job_definition.reply_exchange_name = "exchange"
+
+      exchange.should_receive(:publish).with(exp_job_definition.to_json)
+      @originator_p.publish_job JobDefinition.new
     end
   end
 
-  describe "#receive_payload" do
+  describe "#receive_payloads" do
     before do
       @originator_p.connect @conn_information
     end
@@ -82,11 +89,22 @@ describe OriginatorProtocol do
       payload = {:key => "info"}
       queue.should_receive(:subscribe).and_yield(payload)
       yielded = false
-      @originator_p.receive_payload do |p|
+      @originator_p.receive_payloads do |p|
         yielded = true
         p.should == payload
       end
       yielded.should be_true
+    end
+  end
+
+  describe "#cancel_job" do
+    before do
+      @originator_p.connect @conn_information
+    end
+
+    it "purges file_queue" do
+      queue.should_receive(:purge)
+      @originator_p.cancel_job
     end
   end
 
