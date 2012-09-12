@@ -1,19 +1,16 @@
-require 'gorgon/job_definition'
+require 'gorgon/originator_protocol'
 require 'gorgon/configuration'
 require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 
-require 'amqp'
 require 'awesome_print'
-require 'uuidtools'
 
 class Originator
   include Configuration
 
   def initialize
     @configuration = nil
-    @channel = nil
   end
 
   def originate
@@ -41,28 +38,26 @@ class Originator
   end
 
   def cancel_job
-    @file_queue.purge
-
+    @protocol.cancel_job
     @job_state.cancel
-    cleanup
+
+    @protocol.disconnect
   end
 
   def publish
     @logger = OriginatorLogger.new configuration[:originator_log_file]
+    @protocol = OriginatorProtocol.new
 
     EventMachine.run do
       @logger.log "Connecting..."
-      connect
-      @reply_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
-      @reply_exchange = @channel.direct(UUIDTools::UUID.timestamp_create.to_s)
-      @reply_queue.bind(@reply_exchange)
-      @file_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
+      @protocol.connect connection_information, :on_closed => method(:on_disconnect)
 
       @logger.log "Publishing files and job..."
-      publish_files
-      publish_job
+      @protocol.publish_files files
+      create_job_state_and_observers
+      @protocol.publish_job job_definition
 
-      @reply_queue.subscribe do |payload|
+      @protocol.receive_payloads do |payload|
         handle_reply(payload)
       end
     end
@@ -71,13 +66,8 @@ class Originator
   def cleanup_if_job_complete
     if @job_state.is_job_complete?
       @logger.log "Job is done"
-      cleanup
+      @protocol.disconnect
     end
-  end
-
-  def cleanup
-    cleanup_queues
-    @connection.disconnect {EventMachine.stop}
   end
 
   def handle_reply(payload)
@@ -96,36 +86,14 @@ class Originator
     cleanup_if_job_complete
   end
 
-  def cleanup_queues
-    @reply_queue.delete
-    @file_queue.delete
-  end
-
-  def publish_files
-    files.each do |file|
-      @channel.default_exchange.publish(file, :routing_key => @file_queue.name)
-    end
-  end
-
-  def publish_job
-    create_job_state_and_observers
-    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
-  end
-
   def create_job_state_and_observers
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
   end
 
-  def connect
-    @connection = AMQP.connect(connection_information)
-    @channel = AMQP::Channel.new(@connection)
-    @connection.on_closed { on_disconnect }
-  end
-
   def on_disconnect
-
+    EventMachine.stop
   end
 
   def connection_information
@@ -139,7 +107,7 @@ class Originator
   end
 
   def job_definition
-    JobDefinition.new(@configuration[:job].merge({:file_queue_name => @file_queue.name, :reply_exchange_name => @reply_exchange.name}))
+    JobDefinition.new(@configuration[:job])
   end
 
   def configuration
