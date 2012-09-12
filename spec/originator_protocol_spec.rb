@@ -107,6 +107,13 @@ describe OriginatorProtocol do
       queue.should_receive(:purge)
       @originator_p.cancel_job
     end
+
+    it "fanout 'cancel' message using 'gorgon.worker_managers' exchange" do
+      msg = Yajl::Encoder.encode({:action => "cancel_job"})
+      channel.should_receive(:fanout).with("gorgon.worker_managers")
+      exchange.should_receive(:publish).with(msg)
+      @originator_p.cancel_job
+    end
   end
 
   describe "#disconnect" do
