@@ -29,9 +29,7 @@ class WorkerManager
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     @available_worker_slots = config[:worker_slots]
 
-    bunny = Bunny.new(config[:connection])
-    bunny.start
-    @reply_exchange = bunny.exchange(@job_definition.reply_exchange_name)
+    connect
   end
 
   def manage
@@ -56,6 +54,16 @@ class WorkerManager
       # - Wait for the next job
       log_error "Command '#{@syncer.sys_command}' failed!"
     end
+  end
+
+  def connect
+    @bunny = Bunny.new(@config[:connection])
+    @bunny.start
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
+
+    @originator_queue = @bunny.queue("", :exclusive => true)
+    exchange = @bunny.exchange("gorgon.worker_managers", :type => :fanout)
+    @originator_queue.bind(exchange)
   end
 
   def fork_workers n_workers
