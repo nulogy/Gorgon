@@ -1,12 +1,9 @@
 require 'gorgon/originator'
 
 describe Originator do
-  let(:connection) { stub("Connection", :disconnect => nil, :on_closed => nil)}
-  let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
-                     :delete => nil) }
-  let(:exchange) { stub("Exchange", :publish => nil) }
-  let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
-                       :default_exchange => exchange) }
+  let(:protocol){ stub("Originator Protocol", :connect => nil, :publish_files => nil,
+                       :publish_job => nil, :receive_payloads => nil, :cancel_job => nil,
+                       :disconnect => nil)}
 
   let(:configuration){ {:files => ["some/file"]}}
   let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil,
@@ -51,9 +48,9 @@ describe Originator do
       @originator.cancel_job
     end
 
-    it "cleans queues and disconect" do
-      queue.should_receive(:delete).twice #one for reply_queue and other for file_queue
-      connection.should_receive(:disconnect)
+    it "tells @protocol to cancel job and disconnect" do
+      protocol.should_receive(:cancel_job)
+      protocol.should_receive(:disconnect)
       @originator.publish
       @originator.cancel_job
     end
@@ -71,10 +68,9 @@ describe Originator do
       @originator.cleanup_if_job_complete
     end
 
-    it "cleans queues and disconect if job is complete" do
+    it "disconnect if job is complete" do
       job_state.stub!(:is_job_complete?).and_return true
-      queue.should_receive(:delete).twice #one for reply_queue and other for file_queue
-      connection.should_receive(:disconnect)
+      protocol.should_receive(:disconnect)
       @originator.cleanup_if_job_complete
     end
   end
@@ -107,10 +103,9 @@ describe Originator do
   private
 
   def stub_methods
-    AMQP.stub(:connect).and_return(connection)
-    AMQP::Channel.stub!(:new).and_return channel
     EventMachine.stub!(:run).and_yield
     ProgressBarView.stub!(:new).and_return progress_bar_view
+    OriginatorProtocol.stub!(:new).and_return protocol
     @originator.stub!(:configuration).and_return configuration
     @originator.stub!(:connection_information).and_return 'host'
     @originator.stub!(:job_definition).and_return JobDefinition.new
