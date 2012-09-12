@@ -36,7 +36,7 @@ class Originator
   end
 
   def ctrl_c
-    puts "Ctrl-C received! Just wait a moment while I clean up..."
+    puts "\nCtrl-C received! Just wait a moment while I clean up..."
     cancel_job
   end
 
