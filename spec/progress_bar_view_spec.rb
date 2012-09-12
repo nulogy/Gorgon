@@ -26,6 +26,11 @@ describe ProgressBarView do
   describe "#update" do
     let(:progress_bar) { stub("Progress Bar", :title= => nil, :progress= => nil, :format => nil,
                               :finished? => false)}
+    let(:payload) {
+      { :filename => "path/file.rb",
+        :hostname => "host",
+        :failures => ["Failure messages"]}
+    }
 
     before do
       ProgressBar.stub!(:create).and_return progress_bar
@@ -65,7 +70,7 @@ describe ProgressBarView do
 
     it "prints failures and finish progress_bar when job is done" do
       @progress_bar_view.update
-      @job_state.stub!(:each_failed_test).and_yield({:failures => ["Failure messages"]})
+      @job_state.stub!(:each_failed_test).and_yield(payload)
       @job_state.stub!(:is_job_complete?).and_return :true
       $stdout.should_receive(:write).with(/Failure messages/)
       @progress_bar_view.update

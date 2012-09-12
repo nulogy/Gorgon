@@ -66,13 +66,15 @@ private
 
   def print_failed_tests
     @job_state.each_failed_test do |test|
+      puts "\n" + ('*' * 80).magenta #light_red
+      puts "File '#{test[:filename].cyan}' failed/crashed at '#{test[:hostname].blue}'\n"
       msg = build_fail_message test[:failures]
       puts "#{msg}\n"
     end
   end
 
   def build_fail_message failures
-    msg = [('=' * 80).light_red]
+    msg = []
     failures.each do |failure|
       msg << failure
     end
