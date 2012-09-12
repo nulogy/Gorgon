@@ -122,6 +122,9 @@ class WorkerManager
   def on_current_job_complete
     log "Job '#{@job_definition.inspect}' completed"
     @syncer.remove_temp_dir
+
+    @originator_queue.delete
+    @bunny.stop
     EventMachine.stop_event_loop
   end
 end
