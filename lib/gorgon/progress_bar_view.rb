@@ -74,14 +74,31 @@ private
   end
 
   def build_fail_message failures
-    msg = []
+    result = []
     failures.each do |failure|
-      msg << failure
+      if failure.is_a?(Hash)
+        result << build_fail_message_from_hash(failure)
+      else
+        result << build_fail_message_from_string(failure)
+      end
     end
-    msg << ''
-    result = msg.join("\n")
-    result.gsub!(/^Error:/, "Error:".yellow)
+
+    result.join("\n")
+  end
+
+  def build_fail_message_from_string failure
+    result = failure.gsub(/^Error:/, "Error:".yellow)
     result.gsub!(/^Failure:/, "Failure:".red)
+    result
+  end
+
+  def build_fail_message_from_hash failure
+    result = "#{'Test name'.yellow}: #{failure[:test_name]}"
+    result << "\n#{'Message:'.yellow} \n#{failure[:message]}" if failure[:message]
+    if failure[:location]
+      result << "\n#{'In:'.yellow} \n\t"
+      result << failure[:location].join("\n\t")
+    end
     result
   end
 end
