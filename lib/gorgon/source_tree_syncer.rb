@@ -7,12 +7,15 @@ class SourceTreeSyncer
 
   def initialize source_tree_path
     @source_tree_path = source_tree_path
+    @exclude = []
   end
 
   def sync
+    exclude_opt = "--exclude " + @exclude.join(" --exclude ") if @exclude and @exclude.any?
+
     @tempdir = Dir.mktmpdir("gorgon")
     Dir.chdir(@tempdir)
-    @sys_command = "#{SYS_COMMAND} #{OPTS} -r --rsh=ssh #{@source_tree_path}/* ."
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/* ."
     system(@sys_command)
 
     return $?.exitstatus == 0

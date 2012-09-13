@@ -48,7 +48,7 @@ class WorkerManager
     @syncer = SourceTreeSyncer.new source_tree_path
     @syncer.exclude = exclude
     if @syncer.sync
-      log "Syncing completed successfully."
+      log "Command '#{@syncer.sys_command}' completed successfully."
     else
       #TODO handle error:
       # - Discard job

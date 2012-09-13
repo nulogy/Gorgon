@@ -19,8 +19,14 @@ describe SourceTreeSyncer.new("") do
     end
 
     it "runs rsync system command with appropriate options" do
-      cmd = "rsync -az -r --rsh=ssh path/to/source/* ."
+      cmd = /rsync.*-az.*-r --rsh=ssh path\/to\/source\/\* \./
       @syncer.should_receive(:system).with(cmd)
+      @syncer.sync
+    end
+
+    it "exclude files when they are specified" do
+      @syncer.exclude = ["log", ".git"]
+      @syncer.should_receive(:system).with(/--exclude log --exclude .git/)
       @syncer.sync
     end
 
