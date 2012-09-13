@@ -5,7 +5,7 @@ require "gorgon/version"
 Gem::Specification.new do |s|
   s.name        = "gorgon"
   s.version     = Gorgon::VERSION
-  s.authors     = ["Justin Fitzsimmons", "Sean Kirby", "Victor Savkin", "Clemens Park"]
+  s.authors     = ["Justin Fitzsimmons", "Sean Kirby", "Victor Savkin", "Clemens Park", "Arturo Pie"]
   s.email       = ["justin@fitzsimmons.ca"]
   s.homepage    = ""
   s.summary     = %q{Distributed testing for ruby with centralized management}

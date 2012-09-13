@@ -2,6 +2,8 @@ require "gorgon/worker"
 require "gorgon/g_logger"
 require 'gorgon/callback_handler'
 require 'gorgon/pipe_manager'
+require 'gorgon/job_definition'
+require 'gorgon/source_tree_syncer'
 
 require 'eventmachine'
 
@@ -33,29 +35,16 @@ class WorkerManager
   end
 
   def manage
-    copy_source_tree(@job_definition.source_tree_path)
+    copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
     fork_workers @available_worker_slots
   end
 
   private
 
-  def copy_source_tree source_tree_path
-    @tempdir = Dir.mktmpdir("gorgon")
-    @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}"
-    Dir.chdir(@tempdir)
-    command = "rsync -r --rsh=ssh #{source_tree_path}/* ."
-    log "Running '#{command}'"
-    system(command)
-
-    if ($?.exitstatus == 0)
-      log "Syncing completed successfully."
-    else
-      #TODO handle error:
-      # - Discard job
-      # - Let the originator know about the error
-      # - Wait for the next job
-      log_error "Command '#{command}' failed!"
-    end
+  def copy_source_tree source_tree_path, exclude
+    syncer = SourceTreeSyncer.new source_tree_path
+    syncer.exclude = exclude
+    syncer.sync
   end
 
   def fork_workers n_workers
