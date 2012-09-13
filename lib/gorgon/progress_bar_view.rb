@@ -29,7 +29,7 @@ class ProgressBarView
 
     @progress_bar.progress = @job_state.finished_files_count
 
-    if @job_state.is_job_complete?
+    if @job_state.is_job_complete? || @job_state.is_job_cancelled?
       @finished = true
       print_summary
     end
