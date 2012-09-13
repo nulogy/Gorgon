@@ -3,7 +3,8 @@ require 'gorgon/worker_manager'
 describe WorkerManager do
   let(:exchange) { stub("Bunny Exchange", :publish => nil) }
   let(:bunny) { stub("Bunny", :start => nil, :exchange => exchange) }
-  let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil)}
+  let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :remove_temp_dir => nil,
+                      :sys_command => "rsync ...")}
 
   before do
     Bunny.stub(:new).and_return(bunny)
@@ -23,7 +24,6 @@ describe WorkerManager do
   describe "#manage" do
     before do
       Configuration.stub!(:load_configuration_from_file).and_return({:worker_slots => 3})
-      stub_utilities_methods
       @manager = WorkerManager.build "file.json"
     end
 
@@ -33,13 +33,15 @@ describe WorkerManager do
       syncer.should_receive(:sync)
       @manager.manage
     end
+
+    it "remove temp source directory when complet" do
+      SourceTreeSyncer.stub!(:new).and_return syncer
+      syncer.should_receive(:remove_temp_dir)
+      @manager.manage
+    end
   end
 
-  private
-
-  def stub_utilities_methods
-    Dir.stub!(:mktmpdir).and_return("temp-dir")
-    Dir.stub!(:chdir)
-    FileUtils.stub!(:remove_entry_secure)
+  after :all do
+    system("rm *.pipe")
   end
 end

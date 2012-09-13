@@ -42,9 +42,20 @@ class WorkerManager
   private
 
   def copy_source_tree source_tree_path, exclude
-    syncer = SourceTreeSyncer.new source_tree_path
-    syncer.exclude = exclude
-    syncer.sync
+    @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}" # change log_file to absolute path since @syncer will change current path
+
+    log "Downloading source tree to temp directory..."
+    @syncer = SourceTreeSyncer.new source_tree_path
+    @syncer.exclude = exclude
+    if @syncer.sync
+      log "Syncing completed successfully."
+    else
+      #TODO handle error:
+      # - Discard job
+      # - Let the originator know about the error
+      # - Wait for the next job
+      log_error "Command '#{@syncer.sys_command}' failed!"
+    end
   end
 
   def fork_workers n_workers
@@ -102,7 +113,7 @@ class WorkerManager
 
   def on_current_job_complete
     log "Job '#{@job_definition.inspect}' completed"
-    FileUtils::remove_entry_secure(@tempdir)
+    @syncer.remove_temp_dir
     EventMachine.stop_event_loop
   end
 end
