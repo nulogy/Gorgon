@@ -50,6 +50,7 @@ class JobState
   def cancel
     @remaining_files_count = 0
     @state = :cancelled
+    changed
     notify_observers({})
   end
 

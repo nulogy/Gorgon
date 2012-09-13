@@ -109,6 +109,7 @@ describe JobState do
     end
 
     it "notify observers when cancelling" do
+      @job_state.should_receive :changed
       @job_state.should_receive :notify_observers
       @job_state.cancel
     end
