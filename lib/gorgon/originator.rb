@@ -46,16 +46,19 @@ class Originator
 
   def publish
     @logger = OriginatorLogger.new configuration[:originator_log_file]
-    @protocol = OriginatorProtocol.new
+    @protocol = OriginatorProtocol.new @logger
 
     EventMachine.run do
       @logger.log "Connecting..."
       @protocol.connect connection_information, :on_closed => method(:on_disconnect)
 
-      @logger.log "Publishing files and job..."
+      @logger.log "Publishing files..."
       @protocol.publish_files files
       create_job_state_and_observers
+
+      @logger.log "Publishing Job..."
       @protocol.publish_job job_definition
+      @logger.log "Job Published"
 
       @protocol.receive_payloads do |payload|
         handle_reply(payload)

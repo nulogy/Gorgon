@@ -7,11 +7,12 @@ describe OriginatorProtocol do
   let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange") }
   let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
                        :default_exchange => exchange) }
+  let(:logger){ stub("Logger", :log => nil)}
 
   before do
     AMQP.stub!(:connect).and_return connection
     AMQP::Channel.stub!(:new).and_return channel
-    @originator_p = OriginatorProtocol.new
+    @originator_p = OriginatorProtocol.new logger
     @conn_information = {:host => "host"}
   end
 

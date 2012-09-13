@@ -4,6 +4,10 @@ require 'amqp'
 require 'uuidtools'
 
 class OriginatorProtocol
+  def initialize logger
+    @logger = logger
+  end
+
   def connect connection_information, options={}
     @connection = AMQP.connect(connection_information)
     @channel = AMQP::Channel.new(@connection)

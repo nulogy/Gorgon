@@ -43,7 +43,9 @@ class WorkerManager
     @tempdir = Dir.mktmpdir("gorgon")
     @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}"
     Dir.chdir(@tempdir)
-    system("rsync -r --rsh=ssh #{source_tree_path}/* .")
+    command = "rsync -r --rsh=ssh #{source_tree_path}/* ."
+    log "Running '#{command}'"
+    system(command)
 
     if ($?.exitstatus == 0)
       log "Syncing completed successfully."
@@ -52,7 +54,7 @@ class WorkerManager
       # - Discard job
       # - Let the originator know about the error
       # - Wait for the next job
-      log_error "Command 'rsync -r --rsh=ssh #{@job_definition.source_tree_path}/* .' failed!"
+      log_error "Command '#{command}' failed!"
     end
   end
 
