@@ -4,6 +4,7 @@ class SourceTreeSyncer
 
   SYS_COMMAND = 'rsync'
   OPTS = '-az'
+  EXCLUDE_OPT = "--exclude"
 
   def initialize source_tree_path
     @source_tree_path = source_tree_path
@@ -11,10 +12,10 @@ class SourceTreeSyncer
   end
 
   def sync
-    exclude_opt = "--exclude " + @exclude.join(" --exclude ") if @exclude and @exclude.any?
-
     @tempdir = Dir.mktmpdir("gorgon")
     Dir.chdir(@tempdir)
+
+    exclude_opt = build_exclude_opt
     @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/* ."
     system(@sys_command)
 
@@ -23,5 +24,14 @@ class SourceTreeSyncer
 
   def remove_temp_dir
     FileUtils::remove_entry_secure(@tempdir)
+  end
+
+  private
+
+  def build_exclude_opt
+    return "" if @exclude.nil? or @exclude.empty?
+
+    @exclude.unshift("")
+    @exclude.join(" #{EXCLUDE_OPT} ")
   end
 end
