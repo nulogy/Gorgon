@@ -75,5 +75,13 @@ describe ProgressBarView do
       $stdout.should_receive(:write).with(/Failure messages/)
       @progress_bar_view.update
     end
+
+    it "prints failures and finish progress_bar when job is cancelled" do
+      @progress_bar_view.update
+      @job_state.stub!(:each_failed_test).and_yield(payload)
+      @job_state.stub!(:is_job_cancelled?).and_return :true
+      $stdout.should_receive(:write).with(/Failure messages/)
+      @progress_bar_view.update
+    end
   end
 end
