@@ -26,6 +26,8 @@ class Worker
   include GLogger
 
   def self.build(config)
+    Signal.trap("INT") { interrupted }
+
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     job_definition = JobDefinition.new(payload)
 
@@ -62,8 +64,6 @@ class Worker
   end
 
   def work
-    Signal.trap("INT") { interrupted } # here, because we don't care trapping INT if before_start has not been called yet
-
     log "Running before_start callback"
     @callback_handler.before_start
 
@@ -74,7 +74,7 @@ class Worker
         exchange.publish make_finish_message(filename, test_results)
       end
     end
-    ensure
+    ensure # this 'ensure' that we run after_complete even after an 'INT' signal
       clean_up
   end
 
@@ -97,8 +97,7 @@ class Worker
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
   end
 
-  def interrupted
-    clean_up
-    exit
+  def self.interrupted
+    exit # to avoid raising "INT" exception
   end
 end
