@@ -61,7 +61,7 @@ class WorkerManager
     @bunny.start
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
-    @originator_queue = @bunny.queue("", :exclusive => true)
+    @originator_queue = @bunny.queue("", :exclusive => true, :auto_delete => true)
     exchange = @bunny.exchange("gorgon.worker_managers", :type => :fanout)
     @originator_queue.bind(exchange)
   end
@@ -75,6 +75,8 @@ class WorkerManager
       n_workers.times do
         fork_a_worker
       end
+
+      subscribe_to_originator_queue
     end
   end
 
@@ -123,8 +125,25 @@ class WorkerManager
     log "Job '#{@job_definition.inspect}' completed"
     @syncer.remove_temp_dir
 
-    @originator_queue.delete
-    @bunny.stop
     EventMachine.stop_event_loop
+    @bunny.stop
+  end
+
+  def subscribe_to_originator_queue
+    originator_watcher = proc do
+      @originator_queue.subscribe do |payload|
+        payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload[:payload])
+
+        if payload[:action] == "cancel_job"
+          log "Cancel job received!!!!!!"
+        end
+      end
+    end
+
+    handle_message = proc do |payload|
+
+    end
+
+    EventMachine.defer(originator_watcher, handle_message)
   end
 end

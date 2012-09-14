@@ -37,6 +37,7 @@ class OriginatorProtocol
   def cancel_job
     @file_queue.purge
     @channel.fanout("gorgon.worker_managers").publish(cancel_message)
+    @logger.log "Cancel Message sent"
   end
 
   def disconnect
