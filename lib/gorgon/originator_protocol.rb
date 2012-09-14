@@ -36,6 +36,8 @@ class OriginatorProtocol
 
   def cancel_job
     @file_queue.purge
+    @channel.fanout("gorgon.worker_managers").publish(cancel_message)
+    @logger.log "Cancel Message sent"
   end
 
   def disconnect
@@ -55,5 +57,9 @@ class OriginatorProtocol
   def cleanup_queues
     @reply_queue.delete
     @file_queue.delete
+  end
+
+  def cancel_message
+    Yajl::Encoder.encode({:action => "cancel_job"})
   end
 end

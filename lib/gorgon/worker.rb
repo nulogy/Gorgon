@@ -26,6 +26,7 @@ class Worker
   include GLogger
 
   def self.build(config)
+    Signal.trap("INT") { interrupted }
 
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     job_definition = JobDefinition.new(payload)
@@ -73,8 +74,14 @@ class Worker
       end
     end
     ensure
-      log "Running after_complete callback"
-      @callback_handler.after_complete
+      clean_up
+  end
+
+  private
+
+  def clean_up
+    log "Running after_complete callback"
+    @callback_handler.after_complete
   end
 
   def run_file(filename)
@@ -87,5 +94,10 @@ class Worker
 
   def make_finish_message(filename, results)
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
+  end
+
+  def interrupted
+    clean_up
+    exit
   end
 end

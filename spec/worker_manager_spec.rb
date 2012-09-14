@@ -2,7 +2,10 @@ require 'gorgon/worker_manager'
 
 describe WorkerManager do
   let(:exchange) { stub("Bunny Exchange", :publish => nil) }
-  let(:bunny) { stub("Bunny", :start => nil, :exchange => exchange) }
+  let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :delete => nil,
+                     :pop => {:payload => :queue_empty}) }
+  let(:bunny) { stub("Bunny", :start => nil, :exchange => exchange,
+                     :queue => queue, :stop => nil) }
   let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :remove_temp_dir => nil,
                       :sys_command => "rsync ...")}
 
