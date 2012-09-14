@@ -26,8 +26,6 @@ class Worker
   include GLogger
 
   def self.build(config)
-    Signal.trap("INT") { interrupted }
-
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     job_definition = JobDefinition.new(payload)
 
@@ -64,8 +62,11 @@ class Worker
   end
 
   def work
+    Signal.trap("INT") { interrupted } # here, because we don't care trapping INT if before_start has not been called yet
+
     log "Running before_start callback"
     @callback_handler.before_start
+
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
         exchange.publish make_start_message(filename)
