@@ -130,18 +130,24 @@ class WorkerManager
   end
 
   def subscribe_to_originator_queue
-    originator_watcher = proc do
-      @originator_queue.subscribe do |payload|
-        payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload[:payload])
 
-        if payload[:action] == "cancel_job"
-          log "Cancel job received!!!!!!"
+    originator_watcher = proc do
+      while true
+        if (payload = @originator_queue.pop[:payload]) != :queue_empty
+          break
         end
+        sleep 0.5
       end
+      Yajl::Parser.new(:symbolize_keys => true).parse(payload)
     end
 
     handle_message = proc do |payload|
-
+      if payload[:action] == "cancel_job"
+        log "Cancel job received!!!!!!"
+        @bunny.stop
+      else
+        EventMachine.defer(originator_watcher, handle_message)
+      end
     end
 
     EventMachine.defer(originator_watcher, handle_message)
