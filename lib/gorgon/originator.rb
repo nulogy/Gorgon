@@ -3,6 +3,7 @@ require 'gorgon/configuration'
 require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
+require 'gorgon/failures_printer'
 
 require 'awesome_print'
 
@@ -93,6 +94,7 @@ class Originator
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
+    failures_printer = FailuresPrinter.new @job_state
   end
 
   def on_disconnect
