@@ -20,6 +20,7 @@ class WorkerManager
 
   def initialize config
     initialize_logger config[:log_file]
+    @worker_pids = []
 
     @config = config
 
@@ -85,11 +86,13 @@ class WorkerManager
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
     pid, stdin, stdout, stderr = pipe_fork_worker
+    @worker_pids << pid
     stdin.write(@job_definition.to_json)
     stdin.close
 
     watcher = proc do
       ignore, status = Process.waitpid2 pid
+      @worker_pids.delete(pid)
       log "Worker #{pid} finished"
       status
     end
@@ -100,12 +103,19 @@ class WorkerManager
         error_msg = stderr.read
         log_error "ERROR MSG: #{error_msg}"
 
-        reply = {:type => :crash,
-          :hostname => Socket.gethostname,
-          :stdout => stdout.read,
-          :stderr => error_msg}
-        @reply_exchange.publish(Yajl::Encoder.encode(reply))
-        # TODO: find a way to stop the whole system when a worker crashes or do something more clever
+        # originator may have cancel job and exit, so only try to send message
+        begin
+          reply = {:type => :crash,
+            :hostname => Socket.gethostname,
+            :stdout => stdout.read,
+            :stderr => error_msg}
+          @reply_ecxhange.publish(Yajl::Encoder.encode(reply))
+          # TODO: find a way to stop the whole system when a worker crashes or do something more clever
+        rescue Exception => e
+          log_error "Exception raised when trying to report crash to originator:"
+          log_error e.message
+          log_error e.backtrace.join("\n")
+        end
       end
       on_worker_complete
     end
@@ -144,7 +154,10 @@ class WorkerManager
     handle_message = proc do |payload|
       if payload[:action] == "cancel_job"
         log "Cancel job received!!!!!!"
-        @bunny.stop
+
+        log "Sending 'INT' signal to #{@worker_pids}"
+        Process.kill("INT", *@worker_pids)
+        log "Signal sent"
       else
         EventMachine.defer(originator_watcher, handle_message)
       end
