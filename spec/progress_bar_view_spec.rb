@@ -76,12 +76,23 @@ describe ProgressBarView do
       @progress_bar_view.update
     end
 
-    it "prints failures and finish progress_bar when job is cancelled" do
-      @progress_bar_view.update
-      @job_state.stub!(:each_failed_test).and_yield(payload)
-      @job_state.stub!(:is_job_cancelled?).and_return :true
-      $stdout.should_receive(:write).with(/Failure messages/)
-      @progress_bar_view.update
+    context "when job is cancelled" do
+      before do
+        @progress_bar_view.update
+        @job_state.stub!(:is_job_cancelled?).and_return :true
+      end
+
+      it "prints failures and finish progress_bar when job is cancelled" do
+        @job_state.stub!(:each_failed_test).and_yield(payload)
+        $stdout.should_receive(:write).with(/Failure messages/)
+        @progress_bar_view.update
+      end
+
+      it "prints files that were running when the job was cancelled" do
+        @job_state.should_receive(:each_running_file).and_yield("hostname", "file1.rb")
+        $stdout.should_receive(:write).with(/file1\.rb.*hostname/)
+        @progress_bar_view.update
+      end
     end
   end
 end

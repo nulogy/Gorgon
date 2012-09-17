@@ -60,7 +60,7 @@ private
 
   def print_summary
     print_failed_tests
-
+    print_running_files
     #TODO: print other stats: time, total file, total failures, etc
   end
 
@@ -84,6 +84,14 @@ private
     end
 
     result.join("\n")
+  end
+
+  def print_running_files
+    puts "The following files were still running:" if @job_state.total_running_workers > 0
+
+    @job_state.each_running_file do |hostname, filename|
+      puts "\t#{filename} at '#{hostname}'"
+    end
   end
 
   def build_fail_message_from_string failure
