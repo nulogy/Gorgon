@@ -16,6 +16,7 @@ describe JobState do
   it { should respond_to :cancel }
   it { should respond_to :each_failed_test }
   it { should respond_to :each_running_file }
+  it { should respond_to :total_running_hosts }
   it { should respond_to :total_running_workers }
   it { should respond_to :is_job_complete? }
   it { should respond_to :is_job_cancelled? }
@@ -194,6 +195,17 @@ describe JobState do
       hosts_files.size.should == 2
       hosts_files["host-name"].should == "path/file.rb"
       hosts_files["host2"].should == "path/file2.rb"
+    end
+  end
+
+  describe "#total_running_hosts" do
+    it "returns total number of hosts that has workers running files" do
+      @job_state.file_started payload
+      @job_state.file_started payload.merge({:worker_id => "worker2"})
+      @job_state.file_started payload.merge({ :hostname => "host2",
+                                              :filename => "path/file2.rb",
+                                              :worker_id => "worker1"})
+      @job_state.total_running_hosts.should == 2
     end
   end
 
