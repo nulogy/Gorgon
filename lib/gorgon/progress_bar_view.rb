@@ -5,6 +5,9 @@ MAX_LENGTH = 200
 LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
 
+FILENAME_COLOR = :light_cyan
+HOST_COLOR = :light_blue
+
 class ProgressBarView
   def initialize job_state
     @job_state = job_state
@@ -60,14 +63,15 @@ private
 
   def print_summary
     print_failed_tests
-
+    print_running_files
     #TODO: print other stats: time, total file, total failures, etc
   end
 
   def print_failed_tests
     @job_state.each_failed_test do |test|
       puts "\n" + ('*' * 80).magenta #light_red
-      puts "File '#{test[:filename].cyan}' failed/crashed at '#{test[:hostname].blue}'\n"
+      puts("File '#{test[:filename].colorize(FILENAME_COLOR)}' failed/crashed at " \
+           + "'#{test[:hostname].colorize(HOST_COLOR)}'\n")
       msg = build_fail_message test[:failures]
       puts "#{msg}\n"
     end
@@ -84,6 +88,17 @@ private
     end
 
     result.join("\n")
+  end
+
+  def print_running_files
+    title = "Unfinished files".yellow
+    puts "\n#{title} - The following files were still running:" if @job_state.total_running_workers > 0
+
+    @job_state.each_running_file do |hostname, filename|
+      filename_str = filename.dup.colorize(FILENAME_COLOR)
+      hostname_str = hostname.dup.colorize(HOST_COLOR)
+      puts "\t#{filename_str} at '#{hostname_str}'"
+    end
   end
 
   def build_fail_message_from_string failure
