@@ -8,6 +8,16 @@ describe JobState do
 
   let (:host_state){ stub("Host State", :file_started => nil, :file_finished => nil)}
 
+  subject { JobState.new 5 }
+  it { should respond_to :failed_files_count }
+  it { should respond_to :finished_files_count }
+  it { should respond_to(:file_started).with(1).argument }
+  it { should respond_to(:file_finished).with(1).argument }
+  it { should respond_to :cancel }
+  it { should respond_to :each_failed_test }
+  it { should respond_to :is_job_complete? }
+  it { should respond_to :is_job_cancelled? }
+
   before do
     @job_state = JobState.new 5
   end
