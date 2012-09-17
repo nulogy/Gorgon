@@ -41,8 +41,6 @@ class WorkerManager
   private
 
   def copy_source_tree source_tree_path, exclude
-    @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}" # change log_file to absolute path since @syncer will change current path
-
     log "Downloading source tree to temp directory..."
     @syncer = SourceTreeSyncer.new source_tree_path
     @syncer.exclude = exclude
