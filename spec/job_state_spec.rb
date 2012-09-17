@@ -2,11 +2,11 @@ require 'gorgon/job_state'
 
 describe JobState do
   let(:payload) {
-    {:hostname => "host-name", :worker_id => 1, :filename => "path/file.rb",
+    {:hostname => "host-name", :worker_id => "worker1", :filename => "path/file.rb",
       :type => "pass", :failures => []}
   }
 
-  let (:host_state){ stub("Host State", :file_started => nil)}
+  let (:host_state){ stub("Host State", :file_started => nil, :file_finished => nil)}
 
   before do
     @job_state = JobState.new 5
@@ -44,13 +44,14 @@ describe JobState do
 
     it "creates a new HostState object if this is the first file started by 'hostname'" do
       HostState.should_receive(:new).and_return host_state
-      @job_state.file_started({:hostname => "hostname"})
+      @job_state.file_started(payload)
     end
 
     it "doesn't create a new HostState object if this is not the first file started by 'hostname'" do
-      @job_state.file_started({:hostname => "hostname"})
+      HostState.stub!(:new).and_return host_state
+      @job_state.file_started(payload)
       HostState.should_not_receive(:new)
-      @job_state.file_started({:hostname => "hostname"})
+      @job_state.file_started(payload)
     end
 
     it "calls #file_started on HostState object representing 'hostname'" do
@@ -70,6 +71,7 @@ describe JobState do
 
   describe "#file_finished" do
     before do
+      HostState.stub!(:new).and_return host_state
       @job_state.file_started payload
     end
 
