@@ -24,6 +24,8 @@ class HostState
   end
 
   def each_running_file
-
+    @running_workers.each_value do |filename|
+      yield filename
+    end
   end
 end

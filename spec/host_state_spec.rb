@@ -33,4 +33,33 @@ describe HostState do
       @host_state.total_running_workers.should == 1
     end
   end
+
+  describe "#each_running_file" do
+    before do
+      @host_state.file_started "worker1", "path/to/file1.rb"
+      @host_state.file_started "worker2", "path/to/file2.rb"
+    end
+
+    context "when no #file_finished has been called" do
+      it "yields each currently running file" do
+        files = []
+        @host_state.each_running_file do |file|
+          files << file
+        end
+        files.should == ["path/to/file1.rb", "path/to/file2.rb"]
+      end
+    end
+
+    context "when #file_finished has been called for one of the workers" do
+      it "yields each currently running file" do
+        @host_state.file_finished "worker2", "path/to/file2.rb"
+
+        files = []
+        @host_state.each_running_file do |file|
+          files << file
+        end
+        files.should == ["path/to/file1.rb"]
+      end
+    end
+  end
 end
