@@ -15,6 +15,8 @@ describe JobState do
   it { should respond_to(:file_finished).with(1).argument }
   it { should respond_to :cancel }
   it { should respond_to :each_failed_test }
+  it { should respond_to :each_running_file }
+  it { should respond_to :total_running_workers }
   it { should respond_to :is_job_complete? }
   it { should respond_to :is_job_cancelled? }
 
@@ -173,6 +175,36 @@ describe JobState do
       @job_state.each_failed_test do |test|
         test[:failures].should == ["Failure messages"]
       end
+    end
+  end
+
+  describe "#each_running_file" do
+    before do
+      @job_state.file_started payload
+      @job_state.file_started payload.merge({ :hostname => "host2",
+                                              :filename => "path/file2.rb",
+                                              :worker_id => "worker2"})
+    end
+
+    it "returns each running file" do
+      hosts_files = {}
+      @job_state.each_running_file do |hostname, filename|
+        hosts_files[hostname] = filename
+      end
+      hosts_files.size.should == 2
+      hosts_files["host-name"].should == "path/file.rb"
+      hosts_files["host2"].should == "path/file2.rb"
+    end
+  end
+
+  describe "#total_running_workers" do
+    it "returns total number of workers running accross all hosts" do
+      @job_state.file_started payload
+      @job_state.file_started payload.merge({:worker_id => "worker2"})
+      @job_state.file_started payload.merge({ :hostname => "host2",
+                                              :filename => "path/file2.rb",
+                                              :worker_id => "worker1"})
+      @job_state.total_running_workers.should == 3
     end
   end
 

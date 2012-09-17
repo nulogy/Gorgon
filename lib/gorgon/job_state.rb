@@ -1,4 +1,5 @@
 require 'gorgon/host_state'
+
 require 'observer'
 
 class JobState
@@ -65,6 +66,22 @@ class JobState
     @failed_tests.each do |test|
       yield test
     end
+  end
+
+  def each_running_file
+    @hosts.each do |hostname, host|
+      host.each_running_file do |filename|
+        yield hostname, filename
+      end
+    end
+  end
+
+  def total_running_workers
+    result = 0
+    @hosts.each do |hostname, host|
+      result += host.total_running_workers
+    end
+    result
   end
 
   def is_job_complete?
