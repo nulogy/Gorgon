@@ -2,6 +2,7 @@ require "gorgon/job_definition"
 require "gorgon/configuration"
 require 'gorgon/source_tree_syncer'
 require "gorgon/g_logger"
+require "gorgon/callback_handler"
 
 require "yajl"
 require "bunny"
@@ -54,7 +55,11 @@ class Listener
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
     @job_definition = JobDefinition.new(payload)
 
+    @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
+
+    log "Running after_sync callback"
+    @callback_handler.after_sync
 
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 

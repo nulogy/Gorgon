@@ -136,34 +136,54 @@ describe Listener do
     end
 
     describe "#start_job" do
-      let(:payload) {{:source_tree_path => "path/to/source",
-          :sync_exclude => ["log"]}}
+      let(:payload) {{
+          :source_tree_path => "path/to/source",
+          :sync_exclude => ["log"], :callbacks => {:a_callback => "path/to/callback"}
+        }}
 
-      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :remove_temp_dir => nil,
-                          :sys_command => "rsync ...")}
+      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil,
+                          :remove_temp_dir => nil, :sys_command => "rsync ...")}
 
       let(:io) { stub("IO object", :write => nil, :close => nil)}
       let(:process_status) { stub("Process Status", :exitstatus => 0)}
+      let(:callback_handler) { stub("Callback Handler", :after_sync => nil) }
 
       before do
         @listener = Listener.new
         @json_payload = Yajl::Encoder.encode(payload)
-        Open4.stub!(:popen4).and_return([1, io])
-        Process.stub!(:waitpid2).and_return([0, process_status])
+        stub_classes
       end
 
       it "copy source tree" do
-        SourceTreeSyncer.should_receive(:new).with("path/to/source").and_return syncer
+        SourceTreeSyncer.should_receive(:new).once.with("path/to/source").and_return syncer
         syncer.should_receive(:exclude=).with(["log"])
         syncer.should_receive(:sync)
         @listener.start_job(@json_payload)
       end
 
       it "remove temp source directory when complete" do
-        SourceTreeSyncer.stub!(:new).and_return syncer
         syncer.should_receive(:remove_temp_dir)
         @listener.start_job(@json_payload)
       end
+
+      it "creates a CallbackHandler object using callbacks passed in payload" do
+        CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
+        @listener.start_job(@json_payload)
+      end
+
+      it "calls after_sync callback" do
+        callback_handler.should_receive(:after_sync).once
+        @listener.start_job(@json_payload)
+      end
+    end
+
+    private
+
+    def stub_classes
+      SourceTreeSyncer.stub!(:new).and_return syncer
+      CallbackHandler.stub!(:new).and_return callback_handler
+      Open4.stub!(:popen4).and_return([1, io])
+      Process.stub!(:waitpid2).and_return([0, process_status])
     end
   end
 end
