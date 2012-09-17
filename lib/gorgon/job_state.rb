@@ -76,6 +76,10 @@ class JobState
     end
   end
 
+  def total_running_hosts
+    @hosts.size
+  end
+
   def total_running_workers
     result = 0
     @hosts.each do |hostname, host|

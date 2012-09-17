@@ -4,6 +4,7 @@ require 'colorize'
 MAX_LENGTH = 200
 LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
+LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts running files\nW - number of workers running files"
 
 FILENAME_COLOR = :light_cyan
 HOST_COLOR = :light_blue
@@ -25,9 +26,9 @@ class ProgressBarView
 
     failed_files_count = @job_state.failed_files_count
 
-    @progress_bar.title="F: #{failed_files_count}"
+    @progress_bar.title="F: #{failed_files_count} H: #{@job_state.total_running_hosts} W: #{@job_state.total_running_workers}"
     if failed_files_count > 0
-      @progress_bar.format(format(bar: :red, title: :red))
+      @progress_bar.format(format(bar: :red, title: :default))
     end
 
     @progress_bar.progress = @job_state.finished_files_count
@@ -40,7 +41,8 @@ class ProgressBarView
 
   def create_progress_bar_if_started_job_running
     if @progress_bar.nil? && @job_state.state == :running
-      puts "\r#{RUNNING_MSG}#{' ' * (LOADING_MSG.length - RUNNING_MSG.length)}"
+      print "\r#{' ' * (LOADING_MSG.length)}\r"
+      puts LEGEND_MSG
       @progress_bar = ProgressBar.create(:total => @job_state.total_files,
                                          :length => [terminal_size[0], MAX_LENGTH].min,
                                          :format => format(bar: :green, title: :white));
