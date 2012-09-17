@@ -1,5 +1,6 @@
 require "gorgon/job_definition"
 require "gorgon/configuration"
+require 'gorgon/source_tree_syncer'
 require "gorgon/g_logger"
 
 require "yajl"
@@ -52,9 +53,35 @@ class Listener
     log "Job received: #{json_payload}"
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
     @job_definition = JobDefinition.new(payload)
+
+    copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
+
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
     fork_worker_manager
+
+    clean_up
+  end
+
+  private
+
+  def copy_source_tree source_tree_path, exclude
+    log "Downloading source tree to temp directory..."
+    @syncer = SourceTreeSyncer.new source_tree_path
+    @syncer.exclude = exclude
+    if @syncer.sync
+      log "Command '#{@syncer.sys_command}' completed successfully."
+    else
+      #TODO handle error:
+      # - Discard job
+      # - Let the originator know about the error
+      # - Wait for the next job
+      log_error "Command '#{@syncer.sys_command}' failed!"
+    end
+  end
+
+  def clean_up
+    @syncer.remove_temp_dir
   end
 
   def fork_worker_manager

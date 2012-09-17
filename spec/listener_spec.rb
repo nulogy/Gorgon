@@ -10,6 +10,8 @@ describe Listener do
     Bunny.stub(:new).and_return(bunny)
     Listener.any_instance.stub(:configuration => {})
     Listener.any_instance.stub(:connection_information => connection_information)
+    @stub_logger = stub :info => true, :datetime_format= => ""
+    Logger.stub(:new).and_return(@stub_logger)
   end
 
   describe "initialization" do
@@ -30,11 +32,6 @@ describe Listener do
   end
 
   describe "logging to a file" do
-    before do
-      @stub_logger = stub :info => true, :datetime_format= => ""
-      Logger.stub(:new).and_return(@stub_logger)
-    end
-
     context "passing a log file path in the configuration" do
       before do
         Listener.any_instance.stub(:configuration).and_return({:log_file => 'listener.log'})
@@ -135,6 +132,37 @@ describe Listener do
         it "returns true" do
           listener.poll.should be_true
         end
+      end
+    end
+
+    describe "#start_job" do
+      let(:payload) {{:source_tree_path => "path/to/source",
+          :sync_exclude => ["log"]}}
+
+      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :remove_temp_dir => nil,
+                          :sys_command => "rsync ...")}
+
+      let(:io) { stub("IO object", :write => nil, :close => nil)}
+      let(:process_status) { stub("Process Status", :exitstatus => 0)}
+
+      before do
+        @listener = Listener.new
+        @json_payload = Yajl::Encoder.encode(payload)
+        Open4.stub!(:popen4).and_return([1, io])
+        Process.stub!(:waitpid2).and_return([0, process_status])
+      end
+
+      it "copy source tree" do
+        SourceTreeSyncer.should_receive(:new).with("path/to/source").and_return syncer
+        syncer.should_receive(:exclude=).with(["log"])
+        syncer.should_receive(:sync)
+        @listener.start_job(@json_payload)
+      end
+
+      it "remove temp source directory when complete" do
+        SourceTreeSyncer.stub!(:new).and_return syncer
+        syncer.should_receive(:remove_temp_dir)
+        @listener.start_job(@json_payload)
       end
     end
   end
