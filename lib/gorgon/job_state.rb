@@ -1,3 +1,4 @@
+require 'gorgon/host_state'
 require 'observer'
 
 class JobState
@@ -9,6 +10,8 @@ class JobState
     @total_files = total_files
     @remaining_files_count = total_files
     @failed_tests = []
+    @hosts = {}
+
     if @remaining_files_count > 0
       @state = :starting
     else
@@ -29,9 +32,11 @@ class JobState
 
     if @state == :starting
       @state = :running
-      changed
     end
 
+    file_started_update_host_state payload
+
+    changed
     notify_observers payload
   end
 
@@ -42,6 +47,8 @@ class JobState
     @state = :complete if @remaining_files_count == 0
 
     handle_failed_test payload if failed_test?(payload)
+
+    @hosts[payload[:hostname]].file_finished payload[:worker_id], payload[:filename]
 
     changed
     notify_observers payload
@@ -69,6 +76,12 @@ class JobState
   end
 
   private
+
+  def file_started_update_host_state payload
+    hostname = payload[:hostname]
+    @hosts[hostname] = HostState.new if @hosts[hostname].nil?
+    @hosts[hostname].file_started payload[:worker_id], payload[:filename]
+  end
 
   def handle_failed_test payload
     @failed_tests << payload

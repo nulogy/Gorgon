@@ -6,6 +6,8 @@ describe JobState do
       :type => "pass", :failures => []}
   }
 
+  let (:host_state){ stub("Host State", :file_started => nil)}
+
   before do
     @job_state = JobState.new 5
   end
@@ -40,6 +42,25 @@ describe JobState do
       @job_state.state.should be :running
     end
 
+    it "creates a new HostState object if this is the first file started by 'hostname'" do
+      HostState.should_receive(:new).and_return host_state
+      @job_state.file_started({:hostname => "hostname"})
+    end
+
+    it "doesn't create a new HostState object if this is not the first file started by 'hostname'" do
+      @job_state.file_started({:hostname => "hostname"})
+      HostState.should_not_receive(:new)
+      @job_state.file_started({:hostname => "hostname"})
+    end
+
+    it "calls #file_started on HostState object representing 'hostname'" do
+      HostState.stub!(:new).and_return host_state
+      host_state.should_receive(:file_started).with("worker_id", "file_name")
+      @job_state.file_started({:hostname => "hostname",
+                                :worker_id => "worker_id",
+                                :filename => "file_name"})
+    end
+
     it "notify observers" do
       @job_state.should_receive :notify_observers
       @job_state.should_receive :changed
@@ -48,6 +69,10 @@ describe JobState do
   end
 
   describe "#file_finished" do
+    before do
+      @job_state.file_started payload
+    end
+
     it "decreases remaining_files_count" do
       lambda do
         @job_state.file_finished payload
@@ -88,6 +113,17 @@ describe JobState do
         @job_state.file_finished payload
       end.should raise_error
     end
+
+    it "tells to the proper HostState object that a file finished in that host" do
+      HostState.stub!(:new).and_return host_state
+      @job_state.file_started({:hostname => "hostname",
+                                :worker_id => "worker_id",
+                                :filename => "file_name"})
+      host_state.should_receive(:file_finished).with("worker_id", "file_name")
+      @job_state.file_finished({:hostname => "hostname",
+                                 :worker_id => "worker_id",
+                                 :filename => "file_name"})
+    end
   end
 
   describe "#is_job_complete?" do
@@ -116,6 +152,10 @@ describe JobState do
   end
 
   describe "#each_failed_test" do
+    before do
+      @job_state.file_started payload
+    end
+
     it "returns failed tests info" do
       @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failure messages"]})
       @job_state.each_failed_test do |test|
@@ -127,6 +167,9 @@ describe JobState do
   private
 
   def finish_job
-    5.times {@job_state.file_finished payload }
+    5.times do
+      @job_state.file_started payload
+      @job_state.file_finished payload
+    end
   end
 end
