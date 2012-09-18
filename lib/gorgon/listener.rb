@@ -46,12 +46,13 @@ class Listener
     message = @job_queue.pop
     return false if message[:payload] == :queue_empty
 
-    start_job(message[:payload])
-    log "Waiting for jobs..."
+    run_job(message[:payload])
+
+    log "Waiting for more jobs..."
     return true
   end
 
-  def start_job(json_payload)
+  def run_job(json_payload)
     log "Job received: #{json_payload}"
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
     @job_definition = JobDefinition.new(payload)

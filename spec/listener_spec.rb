@@ -100,7 +100,7 @@ describe Listener do
       let(:empty_queue) { {:payload => :queue_empty} }
       let(:job_payload) { {:payload => "Job"} }
       before do
-        listener.stub(:start_job)
+        listener.stub(:run_job)
       end
 
       context "empty queue" do
@@ -125,7 +125,7 @@ describe Listener do
 
         it "starts a new job when there is a job payload" do
           queue.should_receive(:pop).and_return(job_payload)
-          listener.should_receive(:start_job).with(job_payload[:payload])
+          listener.should_receive(:run_job).with(job_payload[:payload])
           listener.poll
         end
 
@@ -135,7 +135,7 @@ describe Listener do
       end
     end
 
-    describe "#start_job" do
+    describe "#run_job" do
       let(:payload) {{
           :source_tree_path => "path/to/source",
           :sync_exclude => ["log"], :callbacks => {:a_callback => "path/to/callback"}
@@ -158,27 +158,27 @@ describe Listener do
         SourceTreeSyncer.should_receive(:new).once.with("path/to/source").and_return syncer
         syncer.should_receive(:exclude=).with(["log"])
         syncer.should_receive(:sync)
-        @listener.start_job(@json_payload)
+        @listener.run_job(@json_payload)
       end
 
       it "remove temp source directory when complete" do
         syncer.should_receive(:remove_temp_dir)
-        @listener.start_job(@json_payload)
+        @listener.run_job(@json_payload)
       end
 
       it "creates a CallbackHandler object using callbacks passed in payload" do
         CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
-        @listener.start_job(@json_payload)
+        @listener.run_job(@json_payload)
       end
 
       it "calls after_sync callback" do
         callback_handler.should_receive(:after_sync).once
-        @listener.start_job(@json_payload)
+        @listener.run_job(@json_payload)
       end
 
       it "uses Bundler#with_clean_env so the workers load new gems that could have been installed in after_sync" do
         Bundler.should_receive(:with_clean_env).and_yield
-        @listener.start_job(@json_payload)
+        @listener.run_job(@json_payload)
       end
     end
 
