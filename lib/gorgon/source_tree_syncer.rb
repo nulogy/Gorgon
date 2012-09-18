@@ -16,7 +16,7 @@ class SourceTreeSyncer
     Dir.chdir(@tempdir)
 
     exclude_opt = build_exclude_opt
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/* ."
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/ ."
     system(@sys_command)
 
     return $?.exitstatus == 0
