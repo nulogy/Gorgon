@@ -19,7 +19,7 @@ describe SourceTreeSyncer.new("") do
     end
 
     it "runs rsync system command with appropriate options" do
-      cmd = /rsync.*-az.*-r --rsh=ssh path\/to\/source\/\* \./
+      cmd = /rsync.*-az.*-r --rsh=ssh path\/to\/source\/\ \./
       @syncer.should_receive(:system).with(cmd)
       @syncer.sync
     end
