@@ -10,6 +10,8 @@ describe Listener do
     Bunny.stub(:new).and_return(bunny)
     Listener.any_instance.stub(:configuration => {})
     Listener.any_instance.stub(:connection_information => connection_information)
+    @stub_logger = stub :info => true, :datetime_format= => ""
+    Logger.stub(:new).and_return(@stub_logger)
   end
 
   describe "initialization" do
@@ -30,11 +32,6 @@ describe Listener do
   end
 
   describe "logging to a file" do
-    before do
-      @stub_logger = stub :info => true, :datetime_format= => ""
-      Logger.stub(:new).and_return(@stub_logger)
-    end
-
     context "passing a log file path in the configuration" do
       before do
         Listener.any_instance.stub(:configuration).and_return({:log_file => 'listener.log'})
@@ -103,7 +100,7 @@ describe Listener do
       let(:empty_queue) { {:payload => :queue_empty} }
       let(:job_payload) { {:payload => "Job"} }
       before do
-        listener.stub(:start_job)
+        listener.stub(:run_job)
       end
 
       context "empty queue" do
@@ -128,7 +125,7 @@ describe Listener do
 
         it "starts a new job when there is a job payload" do
           queue.should_receive(:pop).and_return(job_payload)
-          listener.should_receive(:start_job).with(job_payload[:payload])
+          listener.should_receive(:run_job).with(job_payload[:payload])
           listener.poll
         end
 
@@ -136,6 +133,62 @@ describe Listener do
           listener.poll.should be_true
         end
       end
+    end
+
+    describe "#run_job" do
+      let(:payload) {{
+          :source_tree_path => "path/to/source",
+          :sync_exclude => ["log"], :callbacks => {:a_callback => "path/to/callback"}
+        }}
+
+      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil,
+                          :remove_temp_dir => nil, :sys_command => "rsync ...")}
+
+      let(:io) { stub("IO object", :write => nil, :close => nil)}
+      let(:process_status) { stub("Process Status", :exitstatus => 0)}
+      let(:callback_handler) { stub("Callback Handler", :after_sync => nil) }
+
+      before do
+        @listener = Listener.new
+        @json_payload = Yajl::Encoder.encode(payload)
+        stub_classes
+      end
+
+      it "copy source tree" do
+        SourceTreeSyncer.should_receive(:new).once.with("path/to/source").and_return syncer
+        syncer.should_receive(:exclude=).with(["log"])
+        syncer.should_receive(:sync)
+        @listener.run_job(@json_payload)
+      end
+
+      it "remove temp source directory when complete" do
+        syncer.should_receive(:remove_temp_dir)
+        @listener.run_job(@json_payload)
+      end
+
+      it "creates a CallbackHandler object using callbacks passed in payload" do
+        CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
+        @listener.run_job(@json_payload)
+      end
+
+      it "calls after_sync callback" do
+        callback_handler.should_receive(:after_sync).once
+        @listener.run_job(@json_payload)
+      end
+
+      it "uses Bundler#with_clean_env so the workers load new gems that could have been installed in after_sync" do
+        Bundler.should_receive(:with_clean_env).and_yield
+        @listener.run_job(@json_payload)
+      end
+    end
+
+    private
+
+    def stub_classes
+      SourceTreeSyncer.stub!(:new).and_return syncer
+      CallbackHandler.stub!(:new).and_return callback_handler
+      Open4.stub!(:popen4).and_return([1, io])
+      Process.stub!(:waitpid2).and_return([0, process_status])
     end
   end
 end

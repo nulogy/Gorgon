@@ -3,7 +3,6 @@ require "gorgon/g_logger"
 require 'gorgon/callback_handler'
 require 'gorgon/pipe_manager'
 require 'gorgon/job_definition'
-require 'gorgon/source_tree_syncer'
 
 require 'eventmachine'
 
@@ -34,28 +33,10 @@ class WorkerManager
   end
 
   def manage
-    copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
     fork_workers @available_worker_slots
   end
 
   private
-
-  def copy_source_tree source_tree_path, exclude
-    @config[:log_file] = "#{Dir.pwd}/#{@config[:log_file]}" # change log_file to absolute path since @syncer will change current path
-
-    log "Downloading source tree to temp directory..."
-    @syncer = SourceTreeSyncer.new source_tree_path
-    @syncer.exclude = exclude
-    if @syncer.sync
-      log "Command '#{@syncer.sys_command}' completed successfully."
-    else
-      #TODO handle error:
-      # - Discard job
-      # - Let the originator know about the error
-      # - Wait for the next job
-      log_error "Command '#{@syncer.sys_command}' failed!"
-    end
-  end
 
   def connect
     @bunny = Bunny.new(@config[:connection])
@@ -133,7 +114,6 @@ class WorkerManager
 
   def on_current_job_complete
     log "Job '#{@job_definition.inspect}' completed"
-    @syncer.remove_temp_dir
 
     EventMachine.stop_event_loop
     @bunny.stop

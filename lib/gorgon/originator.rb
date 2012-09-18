@@ -22,13 +22,12 @@ class Originator
       publish
       @logger.log "Originator finished successfully"
     rescue Exception
-      @logger.log_error "Unhandled Exception!"
-
       puts "Unhandled exception in originator:"
       puts $!.message
       puts $!.backtrace.join("\n")
       puts "----------------------------------"
       puts "Now attempting to cancel the job."
+      @logger.log_error "Unhandled Exception!"
       cancel_job
     end
   end
