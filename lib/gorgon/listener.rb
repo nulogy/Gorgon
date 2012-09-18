@@ -56,14 +56,15 @@ class Listener
     log "Job received: #{json_payload}"
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
     @job_definition = JobDefinition.new(payload)
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
 
-    log "Running after_sync callback"
-    @callback_handler.after_sync
-
-    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
+    if !run_after_sync
+      clean_up
+      return
+    end
 
     Bundler.with_clean_env do
       fork_worker_manager
@@ -73,6 +74,25 @@ class Listener
   end
 
   private
+
+  def run_after_sync
+    log "Running after_sync callback"
+    begin
+      @callback_handler.after_sync
+    rescue Exception => e
+      log_error "Exception raised when running after_sync callback_handler. Please, check your script in #{@job_definition.callbacks[:after_sync]}:"
+      log_error e.message
+      log_error "\n" + e.backtrace.join("\n")
+
+      reply = {:type => :crash,
+        :hostname => Socket.gethostname,
+        :message => "after_sync callback failed. Please, check your script in #{@job_definition.callbacks[:after_sync]}. Message: #{e.message}",
+        :backtrace => e.backtrace.join("\n")
+      }
+      @reply_exchange.publish(Yajl::Encoder.encode(reply))
+      return false
+    end
+  end
 
   def copy_source_tree source_tree_path, exclude
     log "Downloading source tree to temp directory..."
