@@ -92,6 +92,7 @@ class Listener
       @reply_exchange.publish(Yajl::Encoder.encode(reply))
       return false
     end
+    true
   end
 
   def copy_source_tree source_tree_path, exclude
