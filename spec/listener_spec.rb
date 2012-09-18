@@ -175,6 +175,11 @@ describe Listener do
         callback_handler.should_receive(:after_sync).once
         @listener.start_job(@json_payload)
       end
+
+      it "uses Bundler#with_clean_env so the workers load new gems that could have been installed in after_sync" do
+        Bundler.should_receive(:with_clean_env).and_yield
+        @listener.start_job(@json_payload)
+      end
     end
 
     private

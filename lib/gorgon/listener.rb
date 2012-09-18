@@ -63,7 +63,9 @@ class Listener
 
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
-    fork_worker_manager
+    Bundler.with_clean_env do
+      fork_worker_manager
+    end
 
     clean_up
   end
@@ -91,9 +93,8 @@ class Listener
 
   def fork_worker_manager
     log "Forking Worker Manager"
-
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
-    pid, stdin, stdout, stderr = Open4::popen4 "gorgon manage_workers"
+    pid, stdin, stdout, stderr = Open4::popen4 "bundle exec gorgon manage_workers"
     stdin.write(@job_definition.to_json)
     stdin.close
 
