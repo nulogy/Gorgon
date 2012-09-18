@@ -4,7 +4,7 @@ require 'colorize'
 MAX_LENGTH = 200
 LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
-LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts running files\nW - number of workers running files"
+LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts that have run files\nW - number of workers running files"
 
 FILENAME_COLOR = :light_cyan
 HOST_COLOR = :light_blue
