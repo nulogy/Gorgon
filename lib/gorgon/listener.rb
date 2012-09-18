@@ -47,6 +47,7 @@ class Listener
     return false if message[:payload] == :queue_empty
 
     start_job(message[:payload])
+    log "Waiting for jobs..."
     return true
   end
 
