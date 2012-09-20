@@ -76,7 +76,7 @@ class Listener
   private
 
   def run_after_sync
-    log "Running after_sync callback"
+    log "Running after_sync callback..."
     begin
       @callback_handler.after_sync
     rescue Exception => e
@@ -115,7 +115,7 @@ class Listener
   end
 
   def fork_worker_manager
-    log "Forking Worker Manager"
+    log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
     pid, stdin, stdout, stderr = Open4::popen4 "bundle exec gorgon manage_workers"
     stdin.write(@job_definition.to_json)

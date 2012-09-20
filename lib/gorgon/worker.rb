@@ -64,9 +64,10 @@ class Worker
   end
 
   def work
-    log "Running before_start callback"
+    log "Running before_start callback..."
     @callback_handler.before_start
 
+    log "Running files ..."
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
         exchange.publish make_start_message(filename)
