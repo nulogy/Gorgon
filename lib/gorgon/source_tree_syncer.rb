@@ -1,9 +1,11 @@
+require 'open4'
+
 class SourceTreeSyncer
   attr_accessor :exclude
-  attr_reader :sys_command
+  attr_reader :sys_command, :output, :errors
 
   SYS_COMMAND = 'rsync'
-  OPTS = '-az'
+  OPTS = "-azr --timeout=5 --rsh='ssh -o NumberOfPasswordPrompts=0 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'"
   EXCLUDE_OPT = "--exclude"
 
   def initialize source_tree_path
@@ -16,10 +18,19 @@ class SourceTreeSyncer
     Dir.chdir(@tempdir)
 
     exclude_opt = build_exclude_opt
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/ ."
-    system(@sys_command)
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} #{@source_tree_path}/ ."
 
-    return $?.exitstatus == 0
+    pid, stdin, stdout, stderr = Open4::popen4 @sys_command
+    stdin.close
+
+    @output, @errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
+
+    ignore, status = Process.waitpid2 pid
+    @exitstatus = status.exitstatus
+  end
+
+  def success?
+    @exitstatus == 0
   end
 
   def remove_temp_dir
