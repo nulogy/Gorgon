@@ -5,13 +5,21 @@ describe SourceTreeSyncer.new("") do
   it { should respond_to :sync }
   it { should respond_to :sys_command }
   it { should respond_to :remove_temp_dir }
+  it { should respond_to :success? }
+  it { should respond_to :output }
+  it { should respond_to :errors }
+
+  let(:stdin) { stub("IO object", :close => nil)}
+  let(:stdout) { stub("IO object", :read => nil, :close => nil)}
+  let(:stderr) { stub("IO object", :read => nil, :close => nil)}
+  let(:status) { stub("Process Status", :exitstatus => 0)}
+
+  before do
+    @syncer = SourceTreeSyncer.new "path/to/source"
+    stub_utilities_methods
+  end
 
   describe "#sync" do
-    before do
-      @syncer = SourceTreeSyncer.new "path/to/source"
-      stub_utilities_methods
-    end
-
     it "makes tempdir and changes current dir to temdir" do
       Dir.should_receive(:mktmpdir).and_return("tmp/dir")
       Dir.should_receive(:chdir).with("tmp/dir")
@@ -21,49 +29,69 @@ describe SourceTreeSyncer.new("") do
     context "options" do
       it "runs rsync system command with appropriate options" do
         cmd = /rsync.*-azr .*path\/to\/source\/\ \./
-        @syncer.should_receive(:system).with(cmd)
+        Open4.should_receive(:popen4).with(cmd)
         @syncer.sync
       end
 
       it "exclude files when they are specified" do
         @syncer.exclude = ["log", ".git"]
-        @syncer.should_receive(:system).with(/--exclude log --exclude .git/)
+        Open4.should_receive(:popen4).with(/--exclude log --exclude .git/)
         @syncer.sync
       end
 
       it "use NumberOfPasswordPrompts 0 as ssh option to avoid password prompts that will hang the listener" do
         opt = /--rsh='ssh .*-o NumberOfPasswordPrompts=0.*'/
-        @syncer.should_receive(:system).with(opt)
+        Open4.should_receive(:popen4).with(opt)
         @syncer.sync
       end
 
       it "set UserKnownHostsFile to /dev/null so we avoid hosts id changes and eavesdropping warnings in futures connections" do
         opt = /ssh .*-o UserKnownHostsFile=\/dev\/null/
-        @syncer.should_receive(:system).with(opt)
+        Open4.should_receive(:popen4).with(opt)
         @syncer.sync
       end
 
       it "set StrictHostKeyChecking to 'no' to avoid confirmation prompt of connection to unkown host" do
         opt = /ssh .*-o StrictHostKeyChecking=no/
-        @syncer.should_receive(:system).with(opt)
+        Open4.should_receive(:popen4).with(opt)
         @syncer.sync
       end
 
       it "uses io timeout to avoid listener hanging forever in case rsync asks for any input" do
         opt = /--timeout=5/
-        @syncer.should_receive(:system).with(opt)
+        Open4.should_receive(:popen4).with(opt)
         @syncer.sync
       end
     end
+  end
 
-    it "returns true if sys command execution was successful" do
-      $?.stub!(:exitstatus).and_return 0
-      @syncer.sync.should be_true
+  describe "#success?" do
+    it "returns true if sync execution was successful" do
+      status.should_receive(:exitstatus).and_return(0)
+      @syncer.sync
+      @syncer.success?.should be_true
     end
 
-    it "returns false if sys command execution failed" do
-      $?.stub!(:exitstatus).and_return 1
-      @syncer.sync.should be_false
+    it "returns false if sync execution failed" do
+      status.should_receive(:exitstatus).and_return(1)
+      @syncer.sync
+      @syncer.success?.should be_false
+    end
+  end
+
+  describe "#output" do
+    it "returns standard output of rsync" do
+      stdout.should_receive(:read).and_return("some output")
+      @syncer.sync
+      @syncer.output.should == "some output"
+    end
+  end
+
+  describe "#errors" do
+    it "returns standard error output of rsync" do
+      stderr.should_receive(:read).and_return("some errors")
+      @syncer.sync
+      @syncer.errors.should == "some errors"
     end
   end
 
@@ -85,6 +113,8 @@ describe SourceTreeSyncer.new("") do
   def stub_utilities_methods
     Dir.stub!(:mktmpdir).and_return("tmp/dir")
     Dir.stub!(:chdir)
+    Open4.stub!(:popen4).and_return([1, stdin, stdout, stderr])
+    Process.stub!(:waitpid2).and_return([nil, status])
     FileUtils.stub!(:remove_entry_secure)
     @syncer.stub!(:system)
   end
