@@ -62,7 +62,7 @@ class Listener
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
 
-    if !run_after_sync
+    if !@syncer.success? || !run_after_sync
       clean_up
       return
     end
@@ -100,14 +100,14 @@ class Listener
     log "Downloading source tree to temp directory..."
     @syncer = SourceTreeSyncer.new source_tree_path
     @syncer.exclude = exclude
-    if @syncer.sync
+    @syncer.sync
+    if @syncer.success?
       log "Command '#{@syncer.sys_command}' completed successfully."
     else
-      #TODO handle error:
-      # - Discard job
-      # - Let the originator know about the error
-      # - Wait for the next job
+      send_crash_message({:stdout => @syncer.output, :stderr => @syncer.errors})
       log_error "Command '#{@syncer.sys_command}' failed!"
+      log_error "Stdout:\n#{@syncer.output}"
+      log_error "Stderr:\n#{@syncer.errors}"
     end
   end
 
@@ -130,11 +130,7 @@ class Listener
       error_msg = stderr.read
       log_error "ERROR MSG: #{error_msg}"
 
-      reply = {:type => :crash,
-        :hostname => Socket.gethostname,
-        :stdout => stdout.read,
-        :stderr => error_msg}
-      @reply_exchange.publish(Yajl::Encoder.encode(reply))
+      send_crash_message({:stdout => stdout.read, :stderr => error_msg})
     end
   end
 
@@ -144,5 +140,10 @@ class Listener
 
   def configuration
     @configuration ||= load_configuration_from_file("gorgon_listener.json")
+  end
+
+  def send_crash_message message
+    reply = message.merge({:type => :crash, :hostname => Socket.gethostname})
+    @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 end

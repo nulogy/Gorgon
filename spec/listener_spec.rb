@@ -3,7 +3,7 @@ require 'gorgon/listener'
 describe Listener do
   let(:connection_information) { double }
   let(:queue) { stub("Bunny Queue", :bind => nil) }
-  let(:exchange) { stub("Bunny Exchange") }
+  let(:exchange) { stub("Bunny Exchange", :publish => nil) }
   let(:bunny) { stub("Bunny", :start => nil, :queue => queue, :exchange => exchange) }
 
   before do
@@ -141,24 +141,62 @@ describe Listener do
           :sync_exclude => ["log"], :callbacks => {:a_callback => "path/to/callback"}
         }}
 
-      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil,
+      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :success? => true,
+                          :output => "some output", :errors => "some errors",
                           :remove_temp_dir => nil, :sys_command => "rsync ...")}
-
-      let(:io) { stub("IO object", :write => nil, :close => nil)}
       let(:process_status) { stub("Process Status", :exitstatus => 0)}
       let(:callback_handler) { stub("Callback Handler", :after_sync => nil) }
+      let(:stdin) { stub("IO object", :write => nil, :close => nil)}
+      let(:stdout) { stub("IO object", :read => nil, :close => nil)}
+      let(:stderr) { stub("IO object", :read => nil, :close => nil)}
 
       before do
+        stub_classes
         @listener = Listener.new
         @json_payload = Yajl::Encoder.encode(payload)
-        stub_classes
       end
 
       it "copy source tree" do
         SourceTreeSyncer.should_receive(:new).once.with("path/to/source").and_return syncer
         syncer.should_receive(:exclude=).with(["log"])
         syncer.should_receive(:sync)
+        syncer.should_receive(:success?).and_return(true)
         @listener.run_job(@json_payload)
+      end
+
+      context "syncer#sync fails" do
+        before do
+          syncer.stub!(:success?).and_return false
+          syncer.stub!(:output).and_return "some output"
+          syncer.stub!(:errors).and_return "some errors"
+        end
+
+        it "aborts current job" do
+          callback_handler.should_not_receive(:after_sync)
+          @listener.run_job(@json_payload)
+        end
+
+        it "sends message to originator with output and errors from syncer" do
+          reply = {:stdout => "some output", :stderr => "some errors",
+            :type => :crash, :hostname => "hostname"}
+          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
+          @listener.run_job(@json_payload)
+        end
+      end
+
+      context "Worker Manager crahes" do
+        before do
+          process_status.should_receive(:exitstatus).and_return 1
+        end
+
+        it "sends message to originator with output and errors from worker manager" do
+          stdout.should_receive(:read).and_return "some output"
+          stderr.should_receive(:read).and_return "some errors"
+          reply = {:stdout => "some output", :stderr => "some errors",
+            :type => :crash, :hostname => "hostname"}
+          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
+          @listener.run_job(@json_payload)
+        end
       end
 
       it "remove temp source directory when complete" do
@@ -187,8 +225,9 @@ describe Listener do
     def stub_classes
       SourceTreeSyncer.stub!(:new).and_return syncer
       CallbackHandler.stub!(:new).and_return callback_handler
-      Open4.stub!(:popen4).and_return([1, io])
+      Open4.stub!(:popen4).and_return([1, stdin, stdout, stderr])
       Process.stub!(:waitpid2).and_return([0, process_status])
+      Socket.stub!(:gethostname).and_return("hostname")
     end
   end
 end
