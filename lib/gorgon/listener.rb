@@ -10,6 +10,7 @@ require "awesome_print"
 require "open4"
 require "tmpdir"
 require "socket"
+require "bundler"
 
 class Listener
   include Configuration

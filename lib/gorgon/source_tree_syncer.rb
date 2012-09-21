@@ -3,7 +3,7 @@ class SourceTreeSyncer
   attr_reader :sys_command
 
   SYS_COMMAND = 'rsync'
-  OPTS = '-az'
+  OPTS = "-azr --timeout=5 --rsh='ssh -o NumberOfPasswordPrompts=0 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'"
   EXCLUDE_OPT = "--exclude"
 
   def initialize source_tree_path
@@ -16,7 +16,7 @@ class SourceTreeSyncer
     Dir.chdir(@tempdir)
 
     exclude_opt = build_exclude_opt
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} -r --rsh=ssh #{@source_tree_path}/ ."
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} #{@source_tree_path}/ ."
     system(@sys_command)
 
     return $?.exitstatus == 0

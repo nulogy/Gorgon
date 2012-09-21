@@ -18,16 +18,42 @@ describe SourceTreeSyncer.new("") do
       @syncer.sync
     end
 
-    it "runs rsync system command with appropriate options" do
-      cmd = /rsync.*-az.*-r --rsh=ssh path\/to\/source\/\ \./
-      @syncer.should_receive(:system).with(cmd)
-      @syncer.sync
-    end
+    context "options" do
+      it "runs rsync system command with appropriate options" do
+        cmd = /rsync.*-azr .*path\/to\/source\/\ \./
+        @syncer.should_receive(:system).with(cmd)
+        @syncer.sync
+      end
 
-    it "exclude files when they are specified" do
-      @syncer.exclude = ["log", ".git"]
-      @syncer.should_receive(:system).with(/--exclude log --exclude .git/)
-      @syncer.sync
+      it "exclude files when they are specified" do
+        @syncer.exclude = ["log", ".git"]
+        @syncer.should_receive(:system).with(/--exclude log --exclude .git/)
+        @syncer.sync
+      end
+
+      it "use NumberOfPasswordPrompts 0 as ssh option to avoid password prompts that will hang the listener" do
+        opt = /--rsh='ssh .*-o NumberOfPasswordPrompts=0.*'/
+        @syncer.should_receive(:system).with(opt)
+        @syncer.sync
+      end
+
+      it "set UserKnownHostsFile to /dev/null so we avoid hosts id changes and eavesdropping warnings in futures connections" do
+        opt = /ssh .*-o UserKnownHostsFile=\/dev\/null/
+        @syncer.should_receive(:system).with(opt)
+        @syncer.sync
+      end
+
+      it "set StrictHostKeyChecking to 'no' to avoid confirmation prompt of connection to unkown host" do
+        opt = /ssh .*-o StrictHostKeyChecking=no/
+        @syncer.should_receive(:system).with(opt)
+        @syncer.sync
+      end
+
+      it "uses io timeout to avoid listener hanging forever in case rsync asks for any input" do
+        opt = /--timeout=5/
+        @syncer.should_receive(:system).with(opt)
+        @syncer.sync
+      end
     end
 
     it "returns true if sys command execution was successful" do
