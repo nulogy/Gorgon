@@ -5,7 +5,7 @@ describe Originator do
                        :publish_job => nil, :receive_payloads => nil, :cancel_job => nil,
                        :disconnect => nil)}
 
-  let(:configuration){ {:files => ["some/file"]}}
+  let(:configuration){ {:job => {}, :files => ["some/file"]}}
   let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil,
                         :add_observer => nil)}
   let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
@@ -97,6 +97,25 @@ describe Originator do
       payload = Yajl::Parser.new(:symbolize_keys => true).parse(finish_payload)
       job_state.should_receive(:file_finished).with(payload)
       @originator.handle_reply(finish_payload)
+    end
+  end
+
+  describe "#job_definition" do
+    it "returns a JobDefinition object" do
+      @originator.stub!(:configuration).and_return configuration
+      job_definition = JobDefinition.new
+      JobDefinition.should_receive(:new).and_return job_definition
+      @originator.job_definition.should equal job_definition
+    end
+
+    it "builds source_tree_path if it was not specified in the configuration" do
+      @originator.stub!(:configuration).and_return({:job => {}})
+      @originator.job_definition.source_tree_path.should == "#{Etc.getlogin}@#{Socket.gethostname}:#{Dir.pwd}"
+    end
+
+    it "returns source_tree_path specified in configuration if it is present" do
+      @originator.stub!(:configuration).and_return({:job => {:source_tree_path => "login@host:path/to/dir"}})
+      @originator.job_definition.source_tree_path.should == "login@host:path/to/dir"
     end
   end
 
