@@ -6,6 +6,8 @@ require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
 
 require 'awesome_print'
+require 'etc'
+require 'socket'
 
 class Originator
   include Configuration
@@ -111,7 +113,11 @@ class Originator
   end
 
   def job_definition
-    JobDefinition.new(@configuration[:job])
+    job_config = configuration[:job]
+    if !job_config.has_key?(:source_tree_path)
+      job_config[:source_tree_path] = "#{Etc.getlogin}@#{Socket.gethostname}:#{Dir.pwd}"
+    end
+    JobDefinition.new(configuration[:job])
   end
 
   def configuration

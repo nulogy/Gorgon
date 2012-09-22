@@ -90,7 +90,7 @@ class WorkerManager
             :hostname => Socket.gethostname,
             :stdout => stdout.read,
             :stderr => error_msg}
-          @reply_ecxhange.publish(Yajl::Encoder.encode(reply))
+          @reply_exchange.publish(Yajl::Encoder.encode(reply))
           # TODO: find a way to stop the whole system when a worker crashes or do something more clever
         rescue Exception => e
           log_error "Exception raised when trying to report crash to originator:"
