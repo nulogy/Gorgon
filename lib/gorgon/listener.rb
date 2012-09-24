@@ -85,7 +85,7 @@ class Listener
       log_error e.message
       log_error "\n" + e.backtrace.join("\n")
 
-      reply = {:type => :crash,
+      reply = {:type => :exception,
         :hostname => Socket.gethostname,
         :message => "after_sync callback failed. Please, check your script in #{@job_definition.callbacks[:after_sync]}. Message: #{e.message}",
         :backtrace => e.backtrace.join("\n")
@@ -104,7 +104,7 @@ class Listener
     if @syncer.success?
       log "Command '#{@syncer.sys_command}' completed successfully."
     else
-      send_crash_message({:stdout => @syncer.output, :stderr => @syncer.errors})
+      send_crash_message @syncer.output, @syncer.errors
       log_error "Command '#{@syncer.sys_command}' failed!"
       log_error "Stdout:\n#{@syncer.output}"
       log_error "Stderr:\n#{@syncer.errors}"
@@ -130,7 +130,7 @@ class Listener
       error_msg = stderr.read
       log_error "ERROR MSG: #{error_msg}"
 
-      send_crash_message({:stdout => stdout.read, :stderr => error_msg})
+      send_crash_message stdout.read, error_msg
     end
   end
 
@@ -142,8 +142,9 @@ class Listener
     @configuration ||= load_configuration_from_file("gorgon_listener.json")
   end
 
-  def send_crash_message message
-    reply = message.merge({:type => :crash, :hostname => Socket.gethostname})
+  def send_crash_message output, error
+    reply = {:type => :crash, :hostname => Socket.gethostname,
+      :stdout => output, :stderr => error}
     @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 end

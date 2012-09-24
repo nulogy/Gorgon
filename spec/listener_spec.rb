@@ -177,8 +177,7 @@ describe Listener do
         end
 
         it "sends message to originator with output and errors from syncer" do
-          reply = {:stdout => "some output", :stderr => "some errors",
-            :type => :crash, :hostname => "hostname"}
+          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
           @listener.run_job(@json_payload)
         end
@@ -192,8 +191,7 @@ describe Listener do
         it "sends message to originator with output and errors from worker manager" do
           stdout.should_receive(:read).and_return "some output"
           stderr.should_receive(:read).and_return "some errors"
-          reply = {:stdout => "some output", :stderr => "some errors",
-            :type => :crash, :hostname => "hostname"}
+          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
           @listener.run_job(@json_payload)
         end
