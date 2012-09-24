@@ -3,6 +3,7 @@ require "gorgon/configuration"
 require 'gorgon/source_tree_syncer'
 require "gorgon/g_logger"
 require "gorgon/callback_handler"
+require "gorgon/version"
 
 require "yajl"
 require "bunny"
@@ -20,7 +21,7 @@ class Listener
     @listener_config_filename = Dir.pwd + "/gorgon_listener.json"
     initialize_logger configuration[:log_file]
 
-    log "Listener initialized"
+    log "Listener #{Gorgon::VERSION} initialized"
     connect
     initialize_personal_job_queue
   end
