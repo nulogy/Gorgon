@@ -13,6 +13,7 @@ describe JobState do
   it { should respond_to :finished_files_count }
   it { should respond_to(:file_started).with(1).argument }
   it { should respond_to(:file_finished).with(1).argument }
+  it { should respond_to(:crash_message).with(1).argument }
   it { should respond_to :cancel }
   it { should respond_to :each_failed_test }
   it { should respond_to :each_running_file }
@@ -138,6 +139,22 @@ describe JobState do
       @job_state.file_finished({:hostname => "hostname",
                                  :worker_id => "worker_id",
                                  :filename => "file_name"})
+    end
+  end
+
+  describe "#crash_message" do
+    let(:crash_msg) {{:type => "crash", :hostname => "host",
+        :stdout => "some output", :stderr => "some errors"}}
+
+    it "adds crashed host to JobState#crashed_hosted" do
+      @job_state.crash_message(crash_msg)
+      @job_state.crashed_hosts.should == ["host"]
+    end
+
+    it "notify observers" do
+      @job_state.should_receive :notify_observers
+      @job_state.should_receive :changed
+      @job_state.crash_message crash_msg
     end
   end
 

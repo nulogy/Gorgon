@@ -98,6 +98,14 @@ describe Originator do
       job_state.should_receive(:file_finished).with(payload)
       @originator.handle_reply(finish_payload)
     end
+
+    let(:crash_message) {{:type => "crash", :hostname => "host",
+        :stdout => "some output", :stderr => "some errors"}}
+
+    it "calls JobState#crash if payload[:type] is 'crash'" do
+      job_state.should_receive(:crash_message).with(crash_message)
+      @originator.handle_reply(Yajl::Encoder.encode(crash_message))
+    end
   end
 
   describe "#job_definition" do

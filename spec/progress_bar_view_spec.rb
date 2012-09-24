@@ -96,5 +96,17 @@ describe ProgressBarView do
         @progress_bar_view.update
       end
     end
+
+    context "when payload is a crash message" do
+      let(:crash_message) {{:type => "crash", :hostname => "host",
+          :stdout => "some output", :stderr => "some errors"}}
+      it "prints info about crash in standard error" do
+        $stderr.stub!(:write)
+        $stderr.should_receive(:write).with(/crash.*host/i)
+        $stderr.should_receive(:write).with(/some output/i)
+        $stderr.should_receive(:write).with(/some errors/i)
+        @progress_bar_view.update crash_message
+      end
+    end
   end
 end
