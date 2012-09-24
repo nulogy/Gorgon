@@ -1,0 +1,3 @@
+class PingService
+  
+end
