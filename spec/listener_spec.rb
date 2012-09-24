@@ -5,13 +5,13 @@ describe Listener do
   let(:queue) { stub("Bunny Queue", :bind => nil) }
   let(:exchange) { stub("Bunny Exchange", :publish => nil) }
   let(:bunny) { stub("Bunny", :start => nil, :queue => queue, :exchange => exchange) }
+  let(:logger) { stub("Logger", :info => true, :datetime_format= => "")}
 
   before do
+    Logger.stub(:new).and_return(logger)
     Bunny.stub(:new).and_return(bunny)
     Listener.any_instance.stub(:configuration => {})
     Listener.any_instance.stub(:connection_information => connection_information)
-    @stub_logger = stub :info => true, :datetime_format= => ""
-    Logger.stub(:new).and_return(@stub_logger)
   end
 
   describe "initialization" do
@@ -43,7 +43,7 @@ describe Listener do
       end
 
       it "should log to 'log_file'" do
-        @stub_logger.should_receive(:info).with("Listener initialized")
+        logger.should_receive(:info).with("Listener initialized")
 
         Listener.new
       end
@@ -63,7 +63,7 @@ describe Listener do
     context "without specifying a log file path" do
       it "should not log" do
         Logger.should_not_receive(:new)
-        @stub_logger.should_not_receive(:info)
+        logger.should_not_receive(:info)
 
         Listener.new
       end

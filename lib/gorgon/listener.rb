@@ -26,6 +26,7 @@ class Listener
   end
 
   def listen
+    at_exit_hook
     log "Waiting for jobs..."
     while true
       sleep 2 unless poll
@@ -72,6 +73,10 @@ class Listener
     end
 
     clean_up
+  end
+
+  def at_exit_hook
+    at_exit { log "Listener will exit!"}
   end
 
   private
