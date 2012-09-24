@@ -83,6 +83,10 @@ class Originator
       @job_state.file_finished payload
     elsif payload[:action] == "start"
       @job_state.file_started payload
+    elsif payload[:type] == "crash"
+      @job_state.crash_message payload
+    elsif payload[:type] == "exception"
+      # TODO
     end
     @logger.log_message payload
     # Uncomment this to see each message received by originator

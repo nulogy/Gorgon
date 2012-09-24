@@ -76,6 +76,9 @@ describe Originator do
   end
 
   describe "#handle_reply" do
+    let(:crash_message) {{:type => "crash", :hostname => "host",
+        :stdout => "some output", :stderr => "some errors"}}
+
     before do
       stub_methods
       JobState.stub!(:new).and_return job_state
@@ -97,6 +100,11 @@ describe Originator do
       payload = Yajl::Parser.new(:symbolize_keys => true).parse(finish_payload)
       job_state.should_receive(:file_finished).with(payload)
       @originator.handle_reply(finish_payload)
+    end
+
+    it "calls JobState#crash if payload[:type] is 'crash'" do
+      job_state.should_receive(:crash_message).with(crash_message)
+      @originator.handle_reply(Yajl::Encoder.encode(crash_message))
     end
   end
 

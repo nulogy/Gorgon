@@ -5,12 +5,13 @@ require 'observer'
 class JobState
   include Observable
 
-  attr_reader :total_files, :remaining_files_count, :state
+  attr_reader :total_files, :remaining_files_count, :state, :crashed_hosts
 
   def initialize total_files
     @total_files = total_files
     @remaining_files_count = total_files
     @failed_tests = []
+    @crashed_hosts = []
     @hosts = {}
 
     if @remaining_files_count > 0
@@ -51,6 +52,12 @@ class JobState
 
     @hosts[payload[:hostname]].file_finished payload[:worker_id], payload[:filename]
 
+    changed
+    notify_observers payload
+  end
+
+  def crash_message payload
+    @crashed_hosts << payload[:hostname]
     changed
     notify_observers payload
   end
