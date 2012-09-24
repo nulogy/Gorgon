@@ -84,7 +84,7 @@ class Originator
     elsif payload[:action] == "start"
       @job_state.file_started payload
     elsif payload[:type] == "crash"
-      @job_state.crash_message payload
+      @job_state.gorgon_crash_message payload
     elsif payload[:type] == "exception"
       # TODO
       ap payload
