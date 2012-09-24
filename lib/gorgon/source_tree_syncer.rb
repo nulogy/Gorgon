@@ -14,6 +14,8 @@ class SourceTreeSyncer
   end
 
   def sync
+    return if blank_source_tree_path?
+
     @tempdir = Dir.mktmpdir("gorgon")
     Dir.chdir(@tempdir)
 
@@ -34,10 +36,25 @@ class SourceTreeSyncer
   end
 
   def remove_temp_dir
-    FileUtils::remove_entry_secure(@tempdir)
+    FileUtils::remove_entry_secure(@tempdir) if @tempdir
   end
 
   private
+
+  def blank_source_tree_path?
+    if @source_tree_path.nil?
+      @errors = "Source tree path cannot be nil. Check your gorgon.json file."
+    elsif @source_tree_path.strip.empty?
+      @errors = "Source tree path cannot be empty. Check your gorgon.json file."
+    end
+
+    if @errors
+      @exitstatus = 1
+      return true
+    else
+      return false
+    end
+  end
 
   def build_exclude_opt
     return "" if @exclude.nil? or @exclude.empty?

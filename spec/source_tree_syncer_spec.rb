@@ -26,6 +26,24 @@ describe SourceTreeSyncer.new("") do
       @syncer.sync
     end
 
+    context "invalid source_tree_path" do
+      it "gives error if source_tree_path is empty string" do
+        syncer = SourceTreeSyncer.new "  "
+        Dir.should_not_receive(:mktmpdir)
+        syncer.sync
+        syncer.success?.should be_false
+        syncer.errors.should == "Source tree path cannot be empty. Check your gorgon.json file."
+      end
+
+      it "gives error if source_tree_path is nil" do
+        syncer = SourceTreeSyncer.new nil
+        Dir.should_not_receive(:mktmpdir)
+        syncer.sync
+        syncer.success?.should be_false
+        syncer.errors.should == "Source tree path cannot be nil. Check your gorgon.json file."
+      end
+    end
+
     context "options" do
       it "runs rsync system command with appropriate options" do
         cmd = /rsync.*-azr .*path\/to\/source\/\ \./
