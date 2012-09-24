@@ -123,9 +123,22 @@ class Originator
   def job_definition
     job_config = configuration[:job]
     if !job_config.has_key?(:source_tree_path)
-      job_config[:source_tree_path] = "#{Etc.getlogin}@#{Socket.gethostname}:#{Dir.pwd}"
+      job_config[:source_tree_path] = "#{Etc.getlogin}@#{local_ip_addr}:#{Dir.pwd}"
     end
     JobDefinition.new(configuration[:job])
+  end
+
+  private
+
+  def local_ip_addr
+    orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true  # turn off reverse DNS resolution temporarily
+
+    UDPSocket.open do |s|
+      s.connect '64.59.144.16', 1
+      s.addr.last
+    end
+  ensure
+    Socket.do_not_reverse_lookup = orig
   end
 
   def configuration

@@ -118,7 +118,8 @@ describe Originator do
 
     it "builds source_tree_path if it was not specified in the configuration" do
       @originator.stub!(:configuration).and_return({:job => {}})
-      @originator.job_definition.source_tree_path.should == "#{Etc.getlogin}@#{Socket.gethostname}:#{Dir.pwd}"
+      UDPSocket.any_instance.stub(:addr).and_return(["1.1.1.1"])
+      @originator.job_definition.source_tree_path.should == "#{Etc.getlogin}@1.1.1.1:#{Dir.pwd}"
     end
 
     it "returns source_tree_path specified in configuration if it is present" do
