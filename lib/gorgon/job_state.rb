@@ -56,9 +56,7 @@ class JobState
     notify_observers payload
   end
 
-  def crash_message payload
-    # TODO: probably we want to identify if the crash occurred in a worker when it was running a file, so we can
-    # add the file to failed tests, although it's more likely that crashes occur always before starting first file
+  def gorgon_crash_message payload
     @crashed_hosts << payload[:hostname]
     changed
     notify_observers payload
@@ -123,6 +121,6 @@ class JobState
   end
 
   def failed_test? payload
-    payload[:type] == "fail"
+    payload[:type] == "fail" || payload[:type] == "crash"
   end
 end

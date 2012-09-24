@@ -11,14 +11,20 @@ module WorkUnit
   def self.run_file filename
     require "gorgon/testunit_runner"
     start_t = Time.now
-    results = TestRunner.run_file(filename)
-    length = Time.now - start_t
 
-    if results.empty?
-      {:failures => [], :type => :pass, :time => length}
-    else
-      {:failures => results, :type => :fail, :time => length}
+    begin
+      failures = TestRunner.run_file(filename)
+      length = Time.now - start_t
+
+      if failures.empty?
+        results = {:failures => [], :type => :pass, :time => length}
+      else
+        results = {:failures => failures, :type => :fail, :time => length}
+      end
+    rescue Exception => e
+      results = {:failures => ["Exception: #{e.message}\n#{e.backtrace.join("\n")}"], :type => :crash, :time => (Time.now - start_t)}
     end
+    return results
   end
 end
 
@@ -75,8 +81,8 @@ class Worker
         exchange.publish make_finish_message(filename, test_results)
       end
     end
-    ensure # this 'ensure' that we run after_complete even after an 'INT' signal
-      clean_up
+  ensure # this 'ensure' that we run after_complete even after an 'INT' signal
+    clean_up
   end
 
   private

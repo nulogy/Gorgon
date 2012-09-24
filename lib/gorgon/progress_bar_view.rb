@@ -20,7 +20,7 @@ class ProgressBarView
   end
 
   def update payload={}
-    output_crash_message payload if payload[:type] == "crash"
+    output_gorgon_crash_message payload if gorgon_crashed? payload
 
     create_progress_bar_if_started_job_running
 
@@ -52,7 +52,11 @@ class ProgressBarView
   end
 
 private
-  def output_crash_message payload
+  def gorgon_crashed? payload
+     payload[:type] == "crash" && payload[:action] != "finish"
+  end
+
+  def output_gorgon_crash_message payload
     $stderr.puts "\nA #{'crash'.red} occured at '#{payload[:hostname].colorize HOST_COLOR}':"
     $stderr.puts payload[:stdout].yellow unless payload[:stdout].to_s.strip.length == 0
     $stderr.puts payload[:stderr].yellow unless payload[:stderr].to_s.strip.length == 0

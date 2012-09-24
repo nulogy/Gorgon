@@ -17,8 +17,6 @@ describe ProgressBarView do
     end
 
     it "prints in console gorgon's version and that is loading workers" do
-      $stdout.should_receive(:write).with(/Gorgon.*#{Gorgon::VERSION}/i)
-      $stdout.should_receive(:write).with("\n")
       $stdout.should_receive(:write).with(/loading .*workers/i)
       ProgressBar.should_not_receive(:create)
       @progress_bar_view.show
