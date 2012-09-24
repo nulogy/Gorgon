@@ -12,6 +12,9 @@ class OriginatorLogger
       log("Started running '#{payload[:filename]}' at '#{payload[:hostname]}'")
     elsif payload[:action] == "finish"
       print_finish(payload)
+    elsif payload[:type] == "crash" || payload[:type] == "exception"
+      # TODO: improve logging of these messages
+      log(payload)
     else # to be removed
       ap payload
     end

@@ -87,7 +87,11 @@ class Originator
       @job_state.crash_message payload
     elsif payload[:type] == "exception"
       # TODO
+      ap payload
+    else
+      ap payload
     end
+
     @logger.log_message payload
     # Uncomment this to see each message received by originator
     # ap payload
