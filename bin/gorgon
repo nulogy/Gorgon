@@ -2,6 +2,7 @@ require "rubygems"
 require 'gorgon/originator'
 require 'gorgon/listener'
 require 'gorgon/worker_manager'
+require 'gorgon/version'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 
