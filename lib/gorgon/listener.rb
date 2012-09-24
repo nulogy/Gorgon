@@ -48,16 +48,26 @@ class Listener
   def poll
     message = @job_queue.pop
     return false if message[:payload] == :queue_empty
+    log "Received: #{message[:payload]}"
 
-    run_job(message[:payload])
+    handle_request message[:payload]
 
     log "Waiting for more jobs..."
     return true
   end
 
-  def run_job(json_payload)
-    log "Job received: #{json_payload}"
+  def handle_request json_payload
     payload = Yajl::Parser.new(:symbolize_keys => true).parse(json_payload)
+
+    case payload[:type]
+    when "job_definition"
+      run_job(payload)
+    when "ping"
+      respong_to_ping payload[:reply_exchange_name]
+    end
+  end
+
+  def run_job(payload)
     @job_definition = JobDefinition.new(payload)
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 
@@ -138,6 +148,12 @@ class Listener
 
       send_crash_message stdout.read, error_msg
     end
+  end
+
+  def respong_to_ping reply_exchange_name
+    reply = {:type => "ping_response", :version => Gorgon::VERSION}
+    reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
+    reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 
   def connection_information

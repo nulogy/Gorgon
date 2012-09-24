@@ -19,6 +19,6 @@ class JobDefinition
 
   #This can probably be done with introspection somehow, but this is way easier despite being very verbose
   def to_hash
-    {:file_queue_name => @file_queue_name, :reply_exchange_name => @reply_exchange_name, :source_tree_path => @source_tree_path, :sync_exclude => @sync_exclude, :callbacks => @callbacks}
+    {:type => "job_definition", :file_queue_name => @file_queue_name, :reply_exchange_name => @reply_exchange_name, :source_tree_path => @source_tree_path, :sync_exclude => @sync_exclude, :callbacks => @callbacks}
   end
 end
