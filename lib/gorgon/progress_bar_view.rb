@@ -2,7 +2,6 @@ require 'ruby-progressbar'
 require 'colorize'
 
 MAX_LENGTH = 200
-WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
 LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts that have run files\nW - number of workers running files"
@@ -17,7 +16,6 @@ class ProgressBarView
   end
 
   def show
-    puts WELCOME_MSG
     print LOADING_MSG
   end
 

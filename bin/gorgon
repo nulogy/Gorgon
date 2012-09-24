@@ -3,6 +3,8 @@ require 'gorgon/originator'
 require 'gorgon/listener'
 require 'gorgon/worker_manager'
 
+WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
+
 def start
   o = Originator.new
   o.originate
@@ -25,7 +27,11 @@ end
 
 def usage
   #print instructions on how to use gorgon
+  puts "\tstart - remotely runs all tests specified in gorgon.json"
+  puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
 end
+
+puts WELCOME_MSG
 
 case ARGV[0]
 when nil
@@ -36,6 +42,10 @@ when "listen"
   listen
 when "manage_workers"
   manage_workers
-else
+when "help"
   usage
+else
+  puts "Unknown command!"
+  usage
+  exit 1
 end
