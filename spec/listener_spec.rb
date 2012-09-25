@@ -98,7 +98,7 @@ describe Listener do
     describe "#poll" do
 
       let(:empty_queue) { {:payload => :queue_empty} }
-      let(:job_payload) { {:payload => "Job"} }
+      let(:job_payload) { {:payload => Yajl::Encoder.encode({:type => "job_definition"}) } }
       before do
         listener.stub(:run_job)
       end
@@ -125,12 +125,30 @@ describe Listener do
 
         it "starts a new job when there is a job payload" do
           queue.should_receive(:pop).and_return(job_payload)
-          listener.should_receive(:run_job).with(job_payload[:payload])
+          listener.should_receive(:run_job).with({:type => "job_definition"})
           listener.poll
         end
 
         it "returns true" do
           listener.poll.should be_true
+        end
+      end
+
+      context "ping message pending on queue" do
+        let(:ping_payload) {{
+            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name"}) }}
+
+        before do
+          queue.stub!(:pop => ping_payload)
+        end
+
+        it "publishes ping_response message with Gorgon's version" do
+          listener.should_not_receive(:run_job)
+          bunny.should_receive(:exchange).with("name", anything).and_return(exchange)
+          response = {:type => "ping_response", :hostname => Socket.gethostname,
+            :version => Gorgon::VERSION}
+          exchange.should_receive(:publish).with(Yajl::Encoder.encode(response))
+          listener.poll
         end
       end
     end
@@ -153,7 +171,6 @@ describe Listener do
       before do
         stub_classes
         @listener = Listener.new
-        @json_payload = Yajl::Encoder.encode(payload)
       end
 
       it "copy source tree" do
@@ -161,7 +178,7 @@ describe Listener do
         syncer.should_receive(:exclude=).with(["log"])
         syncer.should_receive(:sync)
         syncer.should_receive(:success?).and_return(true)
-        @listener.run_job(@json_payload)
+        @listener.run_job(payload)
       end
 
       context "syncer#sync fails" do
@@ -173,13 +190,13 @@ describe Listener do
 
         it "aborts current job" do
           callback_handler.should_not_receive(:after_sync)
-          @listener.run_job(@json_payload)
+          @listener.run_job(payload)
         end
 
         it "sends message to originator with output and errors from syncer" do
           reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(@json_payload)
+          @listener.run_job(reply)
         end
       end
 
@@ -193,28 +210,28 @@ describe Listener do
           stderr.should_receive(:read).and_return "some errors"
           reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(@json_payload)
+          @listener.run_job(reply)
         end
       end
 
       it "remove temp source directory when complete" do
         syncer.should_receive(:remove_temp_dir)
-        @listener.run_job(@json_payload)
+        @listener.run_job(payload)
       end
 
       it "creates a CallbackHandler object using callbacks passed in payload" do
         CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
-        @listener.run_job(@json_payload)
+        @listener.run_job(payload)
       end
 
       it "calls after_sync callback" do
         callback_handler.should_receive(:after_sync).once
-        @listener.run_job(@json_payload)
+        @listener.run_job(payload)
       end
 
       it "uses Bundler#with_clean_env so the workers load new gems that could have been installed in after_sync" do
         Bundler.should_receive(:with_clean_env).and_yield
-        @listener.run_job(@json_payload)
+        @listener.run_job(payload)
       end
     end
 

@@ -39,7 +39,7 @@ describe OriginatorProtocol do
 
     it "opens a reply and exchange queue" do
       UUIDTools::UUID.stub!(:timestamp_create).and_return 1
-      channel.should_receive(:queue).twice.with("1")
+      channel.should_receive(:queue).once.with("1")
       @originator_p.connect @conn_information
     end
 
@@ -68,6 +68,7 @@ describe OriginatorProtocol do
   describe "#publish_job" do
     before do
       @originator_p.connect @conn_information
+      @originator_p.publish_files []
     end
 
     it "add queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
@@ -78,6 +79,19 @@ describe OriginatorProtocol do
 
       exchange.should_receive(:publish).with(exp_job_definition.to_json)
       @originator_p.publish_job JobDefinition.new
+    end
+  end
+
+  describe "#ping_listeners" do
+    before do
+      @originator_p.connect @conn_information
+    end
+
+    it "adds reply_exchange_name to ping_messages and fanouts it using 'gorgon.jobs' exchange" do
+      expected_msg = {:type => "ping", :reply_exchange_name => "exchange"}
+      channel.should_receive(:fanout).once.ordered.with("gorgon.jobs")
+      exchange.should_receive(:publish).once.ordered.with(Yajl::Encoder.encode(expected_msg))
+      @originator_p.ping_listeners
     end
   end
 
@@ -104,6 +118,7 @@ describe OriginatorProtocol do
     end
 
     it "purges file_queue" do
+      @originator_p.publish_files ['file1']
       queue.should_receive(:purge)
       @originator_p.cancel_job
     end
@@ -122,6 +137,7 @@ describe OriginatorProtocol do
     end
 
     it "deletes reply and file queue" do
+      @originator_p.publish_files []
       queue.should_receive(:delete).twice
       @originator_p.disconnect
     end
