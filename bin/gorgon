@@ -35,6 +35,7 @@ def usage
   #print instructions on how to use gorgon
   puts "\tstart - remotely runs all tests specified in gorgon.json"
   puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
+  puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
 end
 
 puts WELCOME_MSG
