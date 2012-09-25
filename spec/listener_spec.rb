@@ -145,7 +145,8 @@ describe Listener do
         it "publishes ping_response message with Gorgon's version" do
           listener.should_not_receive(:run_job)
           bunny.should_receive(:exchange).with("name", anything).and_return(exchange)
-          response = {:type => "ping_response", :version => Gorgon::VERSION}
+          response = {:type => "ping_response", :hostname => Socket.gethostname,
+            :version => Gorgon::VERSION}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(response))
           listener.poll
         end

@@ -151,8 +151,11 @@ class Listener
   end
 
   def respong_to_ping reply_exchange_name
-    reply = {:type => "ping_response", :version => Gorgon::VERSION}
+    reply = {:type => "ping_response", :hostname => Socket.gethostname,
+      :version => Gorgon::VERSION}
     reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
+
+    log "Sending #{reply}"
     reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 
