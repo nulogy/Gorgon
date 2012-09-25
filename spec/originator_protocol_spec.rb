@@ -82,6 +82,19 @@ describe OriginatorProtocol do
     end
   end
 
+  describe "#ping_listeners" do
+    before do
+      @originator_p.connect @conn_information
+    end
+
+    it "adds reply_exchange_name to ping_messages and fanouts it using 'gorgon.jobs' exchange" do
+      expected_msg = {:type => "ping", :reply_exchange_name => "exchange"}
+      channel.should_receive(:fanout).once.ordered.with("gorgon.jobs")
+      exchange.should_receive(:publish).once.ordered.with(Yajl::Encoder.encode(expected_msg))
+      @originator_p.ping_listeners
+    end
+  end
+
   describe "#receive_payloads" do
     before do
       @originator_p.connect @conn_information
