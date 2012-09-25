@@ -16,6 +16,8 @@ class OriginatorProtocol
   end
 
   def publish_files files
+    @file_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
+
     files.each do |file|
       @channel.default_exchange.publish(file, :routing_key => @file_queue.name)
     end
@@ -35,7 +37,7 @@ class OriginatorProtocol
   end
 
   def cancel_job
-    @file_queue.purge
+    @file_queue.purge if @file_queue
     @channel.fanout("gorgon.worker_managers").publish(cancel_message)
     @logger.log "Cancel Message sent"
   end
@@ -51,12 +53,11 @@ class OriginatorProtocol
     @reply_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
     @reply_exchange = @channel.direct(UUIDTools::UUID.timestamp_create.to_s)
     @reply_queue.bind(@reply_exchange)
-    @file_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
   end
 
   def cleanup_queues
-    @reply_queue.delete
-    @file_queue.delete
+    @reply_queue.delete if @reply_queue
+    @file_queue.delete if @file_queue
   end
 
   def cancel_message
