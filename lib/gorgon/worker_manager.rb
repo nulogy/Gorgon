@@ -115,10 +115,15 @@ class WorkerManager
   def on_current_job_complete
     log "Job '#{@job_definition.inspect}' completed"
 
+    stop
+  end
+
+  def stop
     EventMachine.stop_event_loop
     @bunny.stop
   end
 
+  CANCEL_TIMEOUT = 15
   def subscribe_to_originator_queue
 
     originator_watcher = proc do
@@ -138,6 +143,8 @@ class WorkerManager
         log "Sending 'INT' signal to #{@worker_pids}"
         Process.kill("INT", *@worker_pids)
         log "Signal sent"
+
+        EM.add_timer(CANCEL_TIMEOUT) { stop }
       else
         EventMachine.defer(originator_watcher, handle_message)
       end

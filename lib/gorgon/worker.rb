@@ -32,8 +32,6 @@ class Worker
   include GLogger
 
   def self.build(config)
-    Signal.trap("INT") { interrupted }
-
     payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
     job_definition = JobDefinition.new(payload)
 
@@ -77,6 +75,7 @@ class Worker
     @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
       while filename = queue.pop
         exchange.publish make_start_message(filename)
+        log "Running '#{filename}'"
         test_results = run_file(filename)
         exchange.publish make_finish_message(filename, test_results)
       end
@@ -102,9 +101,5 @@ class Worker
 
   def make_finish_message(filename, results)
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
-  end
-
-  def self.interrupted
-    exit # to avoid raising "INT" exception
   end
 end
