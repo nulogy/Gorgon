@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gorgon (0.1.1)
+    gorgon (0.2.1)
       amqp (~> 0.9.7)
       awesome_print
       bunny (~> 0.8.0)
@@ -18,12 +18,12 @@ GEM
     amq-client (0.9.4)
       amq-protocol (>= 0.9.4)
       eventmachine
-    amq-protocol (0.9.4)
+    amq-protocol (0.9.5)
     amqp (0.9.7)
       amq-client (~> 0.9.4)
       amq-protocol (>= 0.9.4)
       eventmachine
-    awesome_print (1.0.2)
+    awesome_print (1.1.0)
     bunny (0.8.0)
     colorize (0.5.8)
     diff-lcs (1.1.3)
