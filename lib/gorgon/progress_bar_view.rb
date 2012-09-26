@@ -27,7 +27,7 @@ class ProgressBarView
 
     failed_files_count = @job_state.failed_files_count
 
-    @progress_bar.title="F: #{failed_files_count} H: #{@job_state.total_running_hosts} W: #{@job_state.total_running_workers}"
+    @progress_bar.title=" F: #{failed_files_count} H: #{@job_state.total_running_hosts} W: #{@job_state.total_running_workers}"
     if failed_files_count > 0
       @progress_bar.format(format(bar: :red, title: :default))
     end
@@ -70,7 +70,7 @@ private
     bar = "%w>%i".colorize(colors[:bar])
     title = "%t".colorize(colors[:title])
 
-    "%e [#{bar}] %c/%C | #{title}"
+    "#{title} | [#{bar}] %c/%C %e"
   end
 
   def terminal_size
