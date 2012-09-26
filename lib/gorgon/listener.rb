@@ -21,7 +21,7 @@ class Listener
     @listener_config_filename = Dir.pwd + "/gorgon_listener.json"
     initialize_logger configuration[:log_file]
 
-    log "Listener #{Gorgon::VERSION} initialized"
+    log "Listener #{Gorgon::VERSION} initialize"
     connect
     initialize_personal_job_queue
   end

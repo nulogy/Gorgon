@@ -19,6 +19,8 @@ class WorkerManager
 
   def initialize config
     initialize_logger config[:log_file]
+    log "Worker Manager #{Gorgon::VERSION} initialize"
+
     @worker_pids = []
 
     @config = config

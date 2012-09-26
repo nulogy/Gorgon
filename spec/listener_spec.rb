@@ -43,7 +43,7 @@ describe Listener do
       end
 
       it "should log to 'log_file'" do
-        logger.should_receive(:info).with(/Listener.*initialized/)
+        logger.should_receive(:info).with(/Listener.*initialize/)
 
         Listener.new
       end
