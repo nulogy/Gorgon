@@ -68,27 +68,35 @@ class Worker
   end
 
   def work
-    log "Running before_start callback..."
-    @callback_handler.before_start
+    begin
+      log "Running before_start callback..."
+      @callback_handler.before_start
+      register_trap_ints
+      @cleaned = false
 
-    log "Running files ..."
-    @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
-      while filename = queue.pop
-        exchange.publish make_start_message(filename)
-        log "Running '#{filename}'"
-        test_results = run_file(filename)
-        exchange.publish make_finish_message(filename, test_results)
+      log "Running files ..."
+      @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
+        while filename = queue.pop
+          exchange.publish make_start_message(filename)
+          log "Running '#{filename}'"
+          test_results = run_file(filename)
+          exchange.publish make_finish_message(filename, test_results)
+        end
       end
+    rescue Exception => e
+      clean_up
+      raise e                     # So worker manager can catch it
     end
-  ensure # this 'ensure' that we run after_complete even after an 'INT' signal
     clean_up
   end
 
   private
 
   def clean_up
+    return if @cleaned
     log "Running after_complete callback"
     @callback_handler.after_complete
+    @cleaned = true
   end
 
   def run_file(filename)
@@ -101,5 +109,15 @@ class Worker
 
   def make_finish_message(filename, results)
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
+  end
+
+  def register_trap_ints
+    Signal.trap("INT") { ctrl_c }
+    Signal.trap("TERM") { ctrl_c }
+  end
+
+  def ctrl_c
+    clean_up
+    exit
   end
 end

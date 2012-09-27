@@ -125,7 +125,7 @@ class WorkerManager
     @bunny.stop
   end
 
-  CANCEL_TIMEOUT = 15
+  CANCEL_TIMEOUT = 20
   def subscribe_to_originator_queue
 
     originator_watcher = proc do
