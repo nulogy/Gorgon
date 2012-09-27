@@ -10,9 +10,15 @@ class WorkerManager
   include PipeManager
   include GLogger
 
+  STDOUT_FILE='/tmp/gorgon-worker-mgr.out'
+  STDERR_FILE='/tmp/gorgon-worker-mgr.err'
+
   def self.build listener_config_file
     @listener_config_file = listener_config_file
     config = Configuration.load_configuration_from_file(listener_config_file)
+
+    STDOUT.reopen(File.open(STDOUT_FILE, 'w'))
+    STDERR.reopen(File.open(STDERR_FILE, 'w'))
 
     new config
   end
