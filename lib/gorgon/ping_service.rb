@@ -53,7 +53,7 @@ class PingService
 
     @listeners << payload
     hostname = payload[:hostname].colorize(Colors::HOST)
-    puts "#{hostname} is running Listener version #{payload[:version]}"
+    puts "#{hostname} is running Listener version #{payload[:version]} and uses #{payload[:worker_slots]} workers"
   end
 
   def print_summary

@@ -152,7 +152,7 @@ class Listener
 
   def respong_to_ping reply_exchange_name
     reply = {:type => "ping_response", :hostname => Socket.gethostname,
-      :version => Gorgon::VERSION}
+      :version => Gorgon::VERSION, :worker_slots => configuration[:worker_slots]}
     reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
 
     log "Sending #{reply}"

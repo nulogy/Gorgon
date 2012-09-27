@@ -140,13 +140,14 @@ describe Listener do
 
         before do
           queue.stub!(:pop => ping_payload)
-        end
+          listener.stub(:configuration).and_return({:worker_slots => 3})
+       end
 
         it "publishes ping_response message with Gorgon's version" do
           listener.should_not_receive(:run_job)
           bunny.should_receive(:exchange).with("name", anything).and_return(exchange)
           response = {:type => "ping_response", :hostname => Socket.gethostname,
-            :version => Gorgon::VERSION}
+            :version => Gorgon::VERSION, :worker_slots => 3}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(response))
           listener.poll
         end
