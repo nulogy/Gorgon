@@ -17,10 +17,17 @@ class WorkerManager
     @listener_config_file = listener_config_file
     config = Configuration.load_configuration_from_file(listener_config_file)
 
-    STDOUT.reopen(File.open(STDOUT_FILE, 'w'))
-    STDERR.reopen(File.open(STDERR_FILE, 'w'))
+    redirect_output_to_files
 
     new config
+  end
+
+  def self.redirect_output_to_files
+    STDOUT.reopen(File.open(STDOUT_FILE, 'w'))
+    STDOUT.sync = true
+
+    STDERR.reopen(File.open(STDERR_FILE, 'w'))
+    STDERR.sync = true
   end
 
   def initialize config

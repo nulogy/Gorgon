@@ -206,12 +206,20 @@ describe Listener do
           process_status.should_receive(:exitstatus).and_return 1
         end
 
+        it "tails workermanager output files to get last few lines" do
+          @listener.should_receive(:'`').once.
+            with(/tail.*#{WorkerManager::STDOUT_FILE}/).and_return ""
+          @listener.should_receive(:'`').once.
+            with(/tail.*#{WorkerManager::STDERR_FILE}/).and_return ""
+          @listener.run_job(payload)
+        end
+
         it "sends message to originator with output and errors from worker manager" do
-          stdout.should_receive(:read).and_return "some output"
-          stderr.should_receive(:read).and_return "some errors"
-          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
+          @listener.stub!(:'`').and_return "some output", "some errors"
+          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output",
+            :stderr => "some errors#{Listener::ERROR_FOOTER_TEXT}"}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(reply)
+          @listener.run_job(payload)
         end
       end
 

@@ -10,6 +10,8 @@ describe WorkerManager do
     STDIN.stub!(:read).and_return "{}"
     STDOUT.stub!(:reopen)
     STDERR.stub!(:reopen)
+    STDOUT.stub!(:sync)
+    STDERR.stub!(:sync)
     Bunny.stub!(:new).and_return(bunny)
     Configuration.stub!(:load_configuration_from_file).and_return({})
     EventMachine.stub!(:run).and_yield
@@ -30,7 +32,21 @@ describe WorkerManager do
       STDOUT.should_receive(:reopen).with(:file1)
       File.should_receive(:open).with(WorkerManager::STDERR_FILE, 'w').and_return(:file2)
       STDERR.should_receive(:reopen).with(:file2)
-      WorkerManager.build "file.json"
+      WorkerManager.build ""
+    end
+
+    it "use STDOUT#sync to flush output immediately so if an exception happens, we can grab the last\
+few lines of output and send it to originator. Order matters" do
+      STDOUT.should_receive(:reopen).once.ordered
+      STDOUT.should_receive(:sync=).with(true).once.ordered
+      WorkerManager.build ""
+    end
+
+    it "use STDERR#sync to flush output immediately so if an exception happens, we can grab the last\
+few lines of output and send it to originator. Order matters" do
+      STDERR.should_receive(:reopen).once.ordered
+      STDERR.should_receive(:sync=).with(true).once.ordered
+      WorkerManager.build ""
     end
   end
 end

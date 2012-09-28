@@ -4,6 +4,7 @@ require 'gorgon/source_tree_syncer'
 require "gorgon/g_logger"
 require "gorgon/callback_handler"
 require "gorgon/version"
+require "gorgon/worker_manager"
 
 require "yajl"
 require "bunny"
@@ -134,7 +135,8 @@ class Listener
   def fork_worker_manager
     log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
-    pid, stdin, stdout, stderr = Open4::popen4 "bundle exec gorgon manage_workers"
+
+    pid, stdin = Open4::popen4 "bundle exec gorgon manage_workers"
     stdin.write(@job_definition.to_json)
     stdin.close
 
@@ -142,12 +144,21 @@ class Listener
     log "Worker Manager #{pid} finished"
 
     if status.exitstatus != 0
-      log_error "Worker Manager #{pid} crashed with exit status #{status.exitstatus}!"
-      error_msg = stderr.read
-      log_error "ERROR MSG: #{error_msg}"
-
-      send_crash_message stdout.read, error_msg
+      report_error pid, status.exitstatus
     end
+  end
+
+  OUTPUT_LINES_TO_REPORT = 40
+  ERROR_FOOTER_TEXT = "\n***** See #{WorkerManager::STDERR_FILE} and #{WorkerManager::STDOUT_FILE} at '#{Socket.gethostname}' for more details *****\n"
+  def report_error pid, exitstatus
+    log_error "Worker Manager #{pid} crashed with exit status #{exitstatus}!"
+
+    stdout = `tail -n #{OUTPUT_LINES_TO_REPORT} #{WorkerManager::STDOUT_FILE}`
+    stderr = `tail -n #{OUTPUT_LINES_TO_REPORT} #{WorkerManager::STDERR_FILE}` + \
+    ERROR_FOOTER_TEXT
+    log_error "ERROR MSG: #{stderr}"
+
+    send_crash_message stdout, stderr
   end
 
   def respong_to_ping reply_exchange_name
