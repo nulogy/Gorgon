@@ -1,13 +1,13 @@
 require "gorgon/worker"
 require "gorgon/g_logger"
 require 'gorgon/callback_handler'
-require 'gorgon/pipe_manager'
+require 'gorgon/pipe_forker'
 require 'gorgon/job_definition'
 
 require 'eventmachine'
 
 class WorkerManager
-  include PipeManager
+  include PipeForker
   include GLogger
 
   STDOUT_FILE='/tmp/gorgon-worker-mgr.out'
@@ -81,7 +81,11 @@ class WorkerManager
     @available_worker_slots -= 1
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
-    pid, stdin, stdout, stderr = pipe_fork_worker
+    pid, stdin = pipe_fork do
+      worker = Worker.build(@config)
+      worker.work
+    end
+
     @worker_pids << pid
     stdin.write(@job_definition.to_json)
     stdin.close
