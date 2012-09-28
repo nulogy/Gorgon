@@ -81,8 +81,10 @@ class WorkerManager
     @available_worker_slots -= 1
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
+    worker_id = get_worker_id
+    log "Forking Worker #{worker_id}"
     pid, stdin = pipe_fork do
-      worker = Worker.build(@config)
+      worker = Worker.build(worker_id, @config)
       worker.work
     end
 
@@ -120,6 +122,10 @@ class WorkerManager
       on_worker_complete
     end
     EventMachine.defer(watcher, worker_complete)
+  end
+
+  def get_worker_id
+    @worker_id_count = @worker_id_count.nil? ? 1 : @worker_id_count + 1
   end
 
   def on_worker_complete

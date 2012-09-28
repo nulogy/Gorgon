@@ -2,6 +2,7 @@ require "gorgon/configuration"
 require "gorgon/amqp_service"
 require 'gorgon/callback_handler'
 require "gorgon/g_logger"
+require 'gorgon/job_definition'
 
 require "uuidtools"
 require "awesome_print"
@@ -31,29 +32,44 @@ end
 class Worker
   include GLogger
 
-  def self.build(config)
-    payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
-    job_definition = JobDefinition.new(payload)
+  class << self
+    def build(worker_id, config)
+      redirect_output_to_files worker_id
 
-    connection_config = config[:connection]
-    amqp = AmqpService.new connection_config
+      payload = Yajl::Parser.new(:symbolize_keys => true).parse($stdin.read)
+      job_definition = JobDefinition.new(payload)
 
-    callback_handler = CallbackHandler.new(job_definition.callbacks)
+      connection_config = config[:connection]
+      amqp = AmqpService.new connection_config
 
-    worker_id = UUIDTools::UUID.timestamp_create.to_s
-    ENV["GORGON_WORKER_ID"] = worker_id
+      callback_handler = CallbackHandler.new(job_definition.callbacks)
 
-    params = {
-      :amqp => amqp,
-      :file_queue_name => job_definition.file_queue_name,
-      :reply_exchange_name => job_definition.reply_exchange_name,
-      :worker_id => worker_id,
-      :test_runner => WorkUnit,
-      :callback_handler => callback_handler,
-      :log_file => config[:log_file]
-    }
+      ENV["GORGON_WORKER_ID"] = worker_id.to_s
 
-    new(params)
+      params = {
+        :amqp => amqp,
+        :file_queue_name => job_definition.file_queue_name,
+        :reply_exchange_name => job_definition.reply_exchange_name,
+        :worker_id => worker_id,
+        :test_runner => WorkUnit,
+        :callback_handler => callback_handler,
+        :log_file => config[:log_file]
+      }
+
+      new(params)
+    end
+
+    def output_file id, stream
+      "/tmp/gorgon-worker-#{id}.#{stream.to_s}"
+    end
+
+    def redirect_output_to_files worker_id
+      STDOUT.reopen(File.open(output_file(worker_id, :out), 'w'))
+      STDOUT.sync = true
+
+      STDERR.reopen(File.open(output_file(worker_id, :err), 'w'))
+      STDERR.sync = true
+    end
   end
 
   def initialize(params)
