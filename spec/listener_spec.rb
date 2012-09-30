@@ -195,30 +195,21 @@ describe Listener do
         end
 
         it "sends message to originator with output and errors from syncer" do
-          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
-          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(reply)
+          @listener.should_receive(:send_crash_message).with exchange, "some output", "some errors"
+          @listener.run_job(payload)
         end
       end
 
-      context "Worker Manager crahes" do
+      context "Worker Manager crashes" do
         before do
-          process_status.should_receive(:exitstatus).and_return 1
+          process_status.should_receive(:exitstatus).and_return 2, 2
         end
 
-        it "tails workermanager output files to get last few lines" do
-          @listener.should_receive(:'`').once.
-            with(/tail.*#{WorkerManager::STDOUT_FILE}/).and_return ""
-          @listener.should_receive(:'`').once.
-            with(/tail.*#{WorkerManager::STDERR_FILE}/).and_return ""
-          @listener.run_job(payload)
-        end
-
-        it "sends message to originator with output and errors from worker manager" do
-          @listener.stub!(:'`').and_return "some output", "some errors"
-          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output",
-            :stderr => "some errors#{Listener::ERROR_FOOTER_TEXT}"}
-          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
+        it "report_crash with pid, exitstatus, stdout and stderr outputs" do
+          @listener.should_receive(:report_crash).with(exchange,
+                                                       :out_file => WorkerManager::STDOUT_FILE,
+                                                       :err_file => WorkerManager::STDERR_FILE,
+                                                       :footer_text => Listener::ERROR_FOOTER_TEXT)
           @listener.run_job(payload)
         end
       end
