@@ -35,7 +35,7 @@ This file contains the listener-specific settings, such as:
 * How many worker slots are provided by this listener
 * The file used for logs
 
-See [gorgon.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
+See [gorgon_listener.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
 
 Architecture
 ---------------------
@@ -45,18 +45,26 @@ By running `bundle exec gorgon start`, the originating computer will publish a *
 * The rsync information with which to fetch the source tree
 * The name of a AMQP queue that contains the list of files that require testing
 * The name of a AMQP exchange to send replies to
-* Application-specific setup/teardown, either per-job or per-worker [scheduled for post-alpha]
+* Application-specific setup/teardown, either per-job or per-worker (callbacks)
 
 The job listener subscribes to the job publish event, and maintains its own queue of jobs. When a job has available *worker slots*, it will prepare the workspace:
 
 * Create a unique temporary workspace directory for the job
 * Rsync the source tree to the temporary workspace
-* Run per-job application-specific setup [scheduled for post-alpha]
-* Invoke *n* workers, where *n* is the number of available *worker slots*.
+* Run after_sync callback
+* Invoke a WorkerManager
 
-To invoke a job worker, the listener passes the name of the *file queue*, *reply queue*, and *listener queue* to the worker initialization. After all workers have been started, the listener will block until an event appears on the *listener queue*.
+After WorkerManager starts, it will:
+* Run before\_creating\_workers callback
+* Fork *n* workers, where *n* is the number of available *worker slots*.
+* Subscribe to a queue where originator can send a cancel_job message
 
-The worker process will run any application-specific startup, start a test environment, and load a stub test file that dynamically pulls files out of the *file queue*. It runs the test, posts the results to the *reply queue*, and repeats until the *file queue* is empty. When the *file queue* becomes empty, the worker runs application-specific teardown, then reports its completion to the *listener queue*, and shuts down.
+Each Worker will:
+* Run before_start callback
+* Pop a file from file queue and run it until file queue is empty, or WorkerManager sends an INT signal. For each file, it post a 'start_message' and a 'finish_message' with the results to the *reply queue*
+* Run after_complete callback
+
+To invoke the worker manager, the listener passes the name of the *file queue*, *reply queue*, and *listener queue* to the worker manager initialization, and then it will block until worker manager finishes.
 
 Contributors
 ---------------------
