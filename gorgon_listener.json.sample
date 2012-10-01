@@ -1,0 +1,8 @@
+{
+    "connection": {
+        "host": "localhost"
+    },
+
+    "worker_slots": 3,
+    "log_file": "/tmp/gorgon-remote.log"
+}
