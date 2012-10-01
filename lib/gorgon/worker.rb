@@ -86,8 +86,8 @@ class Worker
   def work
     begin
       log "Running before_start callback..."
+      register_trap_ints        # do it before calling before_start callback!
       @callback_handler.before_start
-      register_trap_ints
       @cleaned = false
 
       log "Running files ..."
