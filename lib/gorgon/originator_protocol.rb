@@ -16,7 +16,7 @@ class OriginatorProtocol
   end
 
   def publish_files files
-    @file_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
+    @file_queue = @channel.queue("file_queue_" + UUIDTools::UUID.timestamp_create.to_s)
 
     files.each do |file|
       @channel.default_exchange.publish(file, :routing_key => @file_queue.name)
@@ -49,21 +49,22 @@ class OriginatorProtocol
   end
 
   def disconnect
-    cleanup_queues
+    cleanup_queues_and_exchange
     @connection.disconnect
   end
 
   private
 
   def open_queues
-    @reply_queue = @channel.queue(UUIDTools::UUID.timestamp_create.to_s)
-    @reply_exchange = @channel.direct(UUIDTools::UUID.timestamp_create.to_s)
+    @reply_queue = @channel.queue("reply_queue_" + UUIDTools::UUID.timestamp_create.to_s)
+    @reply_exchange = @channel.direct("reply_exchange_" + UUIDTools::UUID.timestamp_create.to_s)
     @reply_queue.bind(@reply_exchange)
   end
 
-  def cleanup_queues
+  def cleanup_queues_and_exchange
     @reply_queue.delete if @reply_queue
     @file_queue.delete if @file_queue
+    @reply_exchange.delete if @reply_exchange
   end
 
   def cancel_message

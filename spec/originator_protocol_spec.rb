@@ -4,7 +4,7 @@ describe OriginatorProtocol do
   let(:connection) { stub("Connection", :disconnect => nil, :on_closed => nil)}
   let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
                      :delete => nil) }
-  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange") }
+  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange", :delete => nil) }
   let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
                        :default_exchange => exchange) }
   let(:logger){ stub("Logger", :log => nil)}
@@ -39,13 +39,13 @@ describe OriginatorProtocol do
 
     it "opens a reply and exchange queue" do
       UUIDTools::UUID.stub!(:timestamp_create).and_return 1
-      channel.should_receive(:queue).once.with("1")
+      channel.should_receive(:queue).once.with("reply_queue_1")
       @originator_p.connect @conn_information
     end
 
     it "opens a reply exchange and binds reply queue to it" do
       UUIDTools::UUID.stub!(:timestamp_create).and_return 1
-      channel.should_receive(:direct).with("1")
+      channel.should_receive(:direct).with("reply_exchange_1")
       queue.should_receive(:bind).with(exchange)
       @originator_p.connect @conn_information
     end
@@ -136,9 +136,10 @@ describe OriginatorProtocol do
       @originator_p.connect @conn_information
     end
 
-    it "deletes reply and file queue" do
+    it "deletes reply_exchange and reply and file queues" do
       @originator_p.publish_files []
       queue.should_receive(:delete).twice
+      exchange.should_receive(:delete)
       @originator_p.disconnect
     end
 
