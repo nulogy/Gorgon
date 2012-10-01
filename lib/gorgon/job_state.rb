@@ -30,7 +30,7 @@ class JobState
   end
 
   def file_started payload
-    raise_if_completed_or_cancelled
+    raise_if_completed
 
     if @state == :starting
       @state = :running
@@ -43,7 +43,7 @@ class JobState
   end
 
   def file_finished payload
-    raise_if_completed_or_cancelled
+    raise_if_completed
 
     @remaining_files_count -= 1
     @state = :complete if @remaining_files_count == 0
@@ -115,9 +115,9 @@ class JobState
     @failed_tests << payload
   end
 
-  def raise_if_completed_or_cancelled
+  def raise_if_completed
     raise "JobState#file_finished called when job was already complete" if is_job_complete?
-    raise "JobState#file_finished called after job was cancelled" if is_job_cancelled?
+    puts "NOTICE: JobState#file_finished called after job was cancelled" if is_job_cancelled?
   end
 
   def failed_test? payload

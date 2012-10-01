@@ -123,13 +123,6 @@ describe JobState do
       end.should raise_error
     end
 
-    it "raises if job was cancelled" do
-      @job_state.cancel
-      lambda do
-        @job_state.file_finished payload
-      end.should raise_error
-    end
-
     it "tells to the proper HostState object that a file finished in that host" do
       HostState.stub!(:new).and_return host_state
       @job_state.file_started({:hostname => "hostname",
