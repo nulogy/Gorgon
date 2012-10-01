@@ -31,17 +31,9 @@ describe "CrashReporter" do
       container_class.stub!(:'`').and_return "stdout text", "stderr text "
       container_class.stub!(:send_crash_message)
       result = container_class.report_crash exchange, info
-      result.should == "stderr text Text"
+      result.should == "stdout text\nstderr text Text"
     end
   end
-
-  # it "sends message to originator with output and errors from worker manager" do
-  #   @listener.stub!(:'`').and_return "some output", "some errors"
-  #   reply = {:type => :crash, :hostname => "hostname", :stdout => "some output",
-  #     :stderr => "some errors#{Listener::ERROR_FOOTER_TEXT}"}
-  #   exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-  #   @listener.run_job(payload)
-  # end
 
   describe "#send_crash_message" do
     it "sends message with output and errors from syncer using reply_exchange " do

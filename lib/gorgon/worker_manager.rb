@@ -3,12 +3,14 @@ require "gorgon/g_logger"
 require 'gorgon/callback_handler'
 require 'gorgon/pipe_forker'
 require 'gorgon/job_definition'
+require "gorgon/crash_reporter"
 
 require 'eventmachine'
 
 class WorkerManager
   include PipeForker
   include GLogger
+  include CrashReporter
 
   STDOUT_FILE='/tmp/gorgon-worker-mgr.out'
   STDERR_FILE='/tmp/gorgon-worker-mgr.err'
@@ -101,17 +103,18 @@ class WorkerManager
 
     worker_complete = proc do |status|
       if status.exitstatus != 0
-        log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-        error_msg = stderr.read
-        log_error "ERROR MSG: #{error_msg}"
+        exitstatus = status.exitstatus
+        log_error "Worker #{pid} crashed with exit status #{exitstatus}!"
 
         # originator may have cancel job and exit, so only try to send message
         begin
-          reply = {:type => :crash,
-            :hostname => Socket.gethostname,
-            :stdout => stdout.read,
-            :stderr => error_msg}
-          @reply_exchange.publish(Yajl::Encoder.encode(reply))
+          out_file = Worker.output_file(worker_id, :out)
+          err_file = Worker.output_file(worker_id, :err)
+
+          msg = report_crash @reply_exchange, :out_file => out_file,
+          :err_file => err_file, :footer_text => footer_text(err_file, out_file)
+          log_error "Process output:\n#{msg}"
+
           # TODO: find a way to stop the whole system when a worker crashes or do something more clever
         rescue Exception => e
           log_error "Exception raised when trying to report crash to originator:"
@@ -176,5 +179,9 @@ class WorkerManager
     end
 
     EventMachine.defer(originator_watcher, handle_message)
+  end
+
+  def footer_text err_file, out_file
+    "\n***** See #{err_file} and #{out_file} at '#{Socket.gethostname}' for more details *****\n"
   end
 end

@@ -150,10 +150,10 @@ class Listener
       exitstatus = status.exitstatus
       log_error "Worker Manager #{pid} crashed with exit status #{exitstatus}!"
 
-      error_msg = report_crash @reply_exchange, :out_file => WorkerManager::STDOUT_FILE,
+      msg = report_crash @reply_exchange, :out_file => WorkerManager::STDOUT_FILE,
       :err_file => WorkerManager::STDERR_FILE, :footer_text => ERROR_FOOTER_TEXT
 
-      log_error "ERROR MSG:\n#{error_msg}"
+      log_error "Process output:\n#{msg}"
     end
   end
 

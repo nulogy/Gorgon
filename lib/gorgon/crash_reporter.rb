@@ -8,7 +8,7 @@ module CrashReporter
 
     send_crash_message reply_exchange, stdout, stderr
 
-    stderr
+    "#{stdout}\n#{stderr}"
   end
 
   def send_crash_message reply_exchange, output, error
