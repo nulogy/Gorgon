@@ -51,3 +51,13 @@ The job listener subscribes to the job publish event, and maintains its own queu
 To invoke a job worker, the listener passes the name of the *file queue*, *reply queue*, and *listener queue* to the worker initialization. After all workers have been started, the listener will block until an event appears on the *listener queue*.
 
 The worker process will run any application-specific startup, start a test environment, and load a stub test file that dynamically pulls files out of the *file queue*. It runs the test, posts the results to the *reply queue*, and repeats until the *file queue* is empty. When the *file queue* becomes empty, the worker runs application-specific teardown, then reports its completion to the *listener queue*, and shuts down.
+
+Contributors
+---------------------
+* Justin Fitzsimmons
+* Arturo Pie
+* Sean Kirby
+* Clemens Park
+* Victor Savkin
+
+Gorgon is funded by [Nulogy Corp](http://www.nulogy.com/)
