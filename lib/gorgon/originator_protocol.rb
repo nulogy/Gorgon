@@ -49,7 +49,7 @@ class OriginatorProtocol
   end
 
   def disconnect
-    cleanup_queues
+    cleanup_queues_and_exchange
     @connection.disconnect
   end
 
@@ -61,9 +61,10 @@ class OriginatorProtocol
     @reply_queue.bind(@reply_exchange)
   end
 
-  def cleanup_queues
+  def cleanup_queues_and_exchange
     @reply_queue.delete if @reply_queue
     @file_queue.delete if @file_queue
+    @reply_exchange.delete if @reply_exchange
   end
 
   def cancel_message

@@ -4,7 +4,7 @@ describe OriginatorProtocol do
   let(:connection) { stub("Connection", :disconnect => nil, :on_closed => nil)}
   let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
                      :delete => nil) }
-  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange") }
+  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange", :delete => nil) }
   let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
                        :default_exchange => exchange) }
   let(:logger){ stub("Logger", :log => nil)}
