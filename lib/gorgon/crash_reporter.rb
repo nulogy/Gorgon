@@ -1,5 +1,5 @@
 module CrashReporter
-  OUTPUT_LINES_TO_REPORT = 40
+  OUTPUT_LINES_TO_REPORT = 70
 
   def report_crash reply_exchange, info
     stdout = `tail -n #{OUTPUT_LINES_TO_REPORT} #{info[:out_file]}`
