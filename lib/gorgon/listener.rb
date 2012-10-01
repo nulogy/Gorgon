@@ -4,6 +4,8 @@ require 'gorgon/source_tree_syncer'
 require "gorgon/g_logger"
 require "gorgon/callback_handler"
 require "gorgon/version"
+require "gorgon/worker_manager"
+require "gorgon/crash_reporter"
 
 require "yajl"
 require "bunny"
@@ -16,6 +18,7 @@ require "bundler"
 class Listener
   include Configuration
   include GLogger
+  include CrashReporter
 
   def initialize
     @listener_config_filename = Dir.pwd + "/gorgon_listener.json"
@@ -120,7 +123,7 @@ class Listener
     if @syncer.success?
       log "Command '#{@syncer.sys_command}' completed successfully."
     else
-      send_crash_message @syncer.output, @syncer.errors
+      send_crash_message @reply_exchange, @syncer.output, @syncer.errors
       log_error "Command '#{@syncer.sys_command}' failed!"
       log_error "Stdout:\n#{@syncer.output}"
       log_error "Stderr:\n#{@syncer.errors}"
@@ -131,10 +134,12 @@ class Listener
     @syncer.remove_temp_dir
   end
 
+  ERROR_FOOTER_TEXT = "\n***** See #{WorkerManager::STDERR_FILE} and #{WorkerManager::STDOUT_FILE} at '#{Socket.gethostname}' for more details *****\n"
   def fork_worker_manager
     log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
-    pid, stdin, stdout, stderr = Open4::popen4 "bundle exec gorgon manage_workers"
+
+    pid, stdin = Open4::popen4 "bundle exec gorgon manage_workers"
     stdin.write(@job_definition.to_json)
     stdin.close
 
@@ -142,11 +147,13 @@ class Listener
     log "Worker Manager #{pid} finished"
 
     if status.exitstatus != 0
-      log_error "Worker Manager #{pid} crashed with exit status #{status.exitstatus}!"
-      error_msg = stderr.read
-      log_error "ERROR MSG: #{error_msg}"
+      exitstatus = status.exitstatus
+      log_error "Worker Manager #{pid} crashed with exit status #{exitstatus}!"
 
-      send_crash_message stdout.read, error_msg
+      msg = report_crash @reply_exchange, :out_file => WorkerManager::STDOUT_FILE,
+      :err_file => WorkerManager::STDERR_FILE, :footer_text => ERROR_FOOTER_TEXT
+
+      log_error "Process output:\n#{msg}"
     end
   end
 
@@ -165,11 +172,5 @@ class Listener
 
   def configuration
     @configuration ||= load_configuration_from_file("gorgon_listener.json")
-  end
-
-  def send_crash_message output, error
-    reply = {:type => :crash, :hostname => Socket.gethostname,
-      :stdout => output, :stderr => error}
-    @reply_exchange.publish(Yajl::Encoder.encode(reply))
   end
 end

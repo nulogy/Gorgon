@@ -195,23 +195,22 @@ describe Listener do
         end
 
         it "sends message to originator with output and errors from syncer" do
-          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
-          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(reply)
+          @listener.should_receive(:send_crash_message).with exchange, "some output", "some errors"
+          @listener.run_job(payload)
         end
       end
 
-      context "Worker Manager crahes" do
+      context "Worker Manager crashes" do
         before do
-          process_status.should_receive(:exitstatus).and_return 1
+          process_status.should_receive(:exitstatus).and_return 2, 2
         end
 
-        it "sends message to originator with output and errors from worker manager" do
-          stdout.should_receive(:read).and_return "some output"
-          stderr.should_receive(:read).and_return "some errors"
-          reply = {:type => :crash, :hostname => "hostname", :stdout => "some output", :stderr => "some errors"}
-          exchange.should_receive(:publish).with(Yajl::Encoder.encode(reply))
-          @listener.run_job(reply)
+        it "report_crash with pid, exitstatus, stdout and stderr outputs" do
+          @listener.should_receive(:report_crash).with(exchange,
+                                                       :out_file => WorkerManager::STDOUT_FILE,
+                                                       :err_file => WorkerManager::STDERR_FILE,
+                                                       :footer_text => Listener::ERROR_FOOTER_TEXT)
+          @listener.run_job(payload)
         end
       end
 

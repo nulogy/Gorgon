@@ -1,20 +1,35 @@
 require "gorgon/worker"
 require "gorgon/g_logger"
 require 'gorgon/callback_handler'
-require 'gorgon/pipe_manager'
+require 'gorgon/pipe_forker'
 require 'gorgon/job_definition'
+require "gorgon/crash_reporter"
 
 require 'eventmachine'
 
 class WorkerManager
-  include PipeManager
+  include PipeForker
   include GLogger
+  include CrashReporter
+
+  STDOUT_FILE='/tmp/gorgon-worker-mgr.out'
+  STDERR_FILE='/tmp/gorgon-worker-mgr.err'
 
   def self.build listener_config_file
     @listener_config_file = listener_config_file
     config = Configuration.load_configuration_from_file(listener_config_file)
 
+    redirect_output_to_files
+
     new config
+  end
+
+  def self.redirect_output_to_files
+    STDOUT.reopen(File.open(STDOUT_FILE, 'w'))
+    STDOUT.sync = true
+
+    STDERR.reopen(File.open(STDERR_FILE, 'w'))
+    STDERR.sync = true
   end
 
   def initialize config
@@ -68,7 +83,13 @@ class WorkerManager
     @available_worker_slots -= 1
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
-    pid, stdin, stdout, stderr = pipe_fork_worker
+    worker_id = get_worker_id
+    log "Forking Worker #{worker_id}"
+    pid, stdin = pipe_fork do
+      worker = Worker.build(worker_id, @config)
+      worker.work
+    end
+
     @worker_pids << pid
     stdin.write(@job_definition.to_json)
     stdin.close
@@ -82,17 +103,18 @@ class WorkerManager
 
     worker_complete = proc do |status|
       if status.exitstatus != 0
-        log_error "Worker #{pid} crashed with exit status #{status.exitstatus}!"
-        error_msg = stderr.read
-        log_error "ERROR MSG: #{error_msg}"
+        exitstatus = status.exitstatus
+        log_error "Worker #{pid} crashed with exit status #{exitstatus}!"
 
         # originator may have cancel job and exit, so only try to send message
         begin
-          reply = {:type => :crash,
-            :hostname => Socket.gethostname,
-            :stdout => stdout.read,
-            :stderr => error_msg}
-          @reply_exchange.publish(Yajl::Encoder.encode(reply))
+          out_file = Worker.output_file(worker_id, :out)
+          err_file = Worker.output_file(worker_id, :err)
+
+          msg = report_crash @reply_exchange, :out_file => out_file,
+          :err_file => err_file, :footer_text => footer_text(err_file, out_file)
+          log_error "Process output:\n#{msg}"
+
           # TODO: find a way to stop the whole system when a worker crashes or do something more clever
         rescue Exception => e
           log_error "Exception raised when trying to report crash to originator:"
@@ -103,6 +125,10 @@ class WorkerManager
       on_worker_complete
     end
     EventMachine.defer(watcher, worker_complete)
+  end
+
+  def get_worker_id
+    @worker_id_count = @worker_id_count.nil? ? 1 : @worker_id_count + 1
   end
 
   def on_worker_complete
@@ -153,5 +179,9 @@ class WorkerManager
     end
 
     EventMachine.defer(originator_watcher, handle_message)
+  end
+
+  def footer_text err_file, out_file
+    "\n***** See #{err_file} and #{out_file} at '#{Socket.gethostname}' for more details *****\n"
   end
 end
