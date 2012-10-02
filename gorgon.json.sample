@@ -20,9 +20,9 @@
   },
 
   "files": [
-      "test/integration/**/*_test.rb",
+      "test/unit/**/*_test.rb",
       "test/functional/**/*_test.rb",
-      "test/unit/**/*_test.rb"
+      "test/integration/**/*_test.rb"
   ],
 
   "originator_log_file": "log/gorgon-orginator.log"
