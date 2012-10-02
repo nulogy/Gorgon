@@ -7,7 +7,7 @@ describe UpdateHandler do
   let(:payload) {
       {:type => :update, :reply_exchange_name => "name",
                                          :body => {:version => "1.2.3"}}
-    }
+  }
 
   describe "#handle" do
     before do

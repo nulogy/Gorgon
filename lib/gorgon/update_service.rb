@@ -45,6 +45,10 @@ class UpdateService
     when "update_complete"
       puts "Update Complete! #{payload[:hostname]} is now running Gorgon #{payload[:version]}"
       @updating.delete payload[:hostname]
+    when "update_failed"
+      puts "Update failed in #{payload[:hostname]}."
+      puts "Output:\n#{payload[:stdout]}#{payload[:stderr]}"
+      @updating.delete payload[:hostname]
     end
   end
 
