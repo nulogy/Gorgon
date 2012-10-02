@@ -26,7 +26,7 @@ class PingService
       @protocol.connect @configuration[:connection],  :on_closed => proc {EM.stop}
 
       @logger.log "Pinging Listeners..."
-      @protocol.ping_listeners
+      @protocol.send_message_to_listeners :ping
 
       EM.add_timer(TIMEOUT) { disconnect }
 
