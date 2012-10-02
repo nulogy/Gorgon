@@ -6,6 +6,7 @@ require "gorgon/callback_handler"
 require "gorgon/version"
 require "gorgon/worker_manager"
 require "gorgon/crash_reporter"
+require "gorgon/update_handler"
 
 require "yajl"
 require "bunny"
@@ -67,6 +68,8 @@ class Listener
       run_job(payload)
     when "ping"
       respond_to_ping payload[:reply_exchange_name]
+    when "update"
+      UpdateHandler.new(@bunny).handle payload
     end
   end
 
@@ -160,10 +163,14 @@ class Listener
   def respond_to_ping reply_exchange_name
     reply = {:type => "ping_response", :hostname => Socket.gethostname,
       :version => Gorgon::VERSION, :worker_slots => configuration[:worker_slots]}
+    publish_to reply_exchange_name, reply
+  end
+
+  def publish_to reply_exchange_name, message
     reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
 
-    log "Sending #{reply}"
-    reply_exchange.publish(Yajl::Encoder.encode(reply))
+    log "Sending #{message}"
+    reply_exchange.publish(Yajl::Encoder.encode(message))
   end
 
   def connection_information

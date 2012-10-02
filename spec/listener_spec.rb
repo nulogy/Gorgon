@@ -136,7 +136,8 @@ describe Listener do
 
       context "ping message pending on queue" do
         let(:ping_payload) {{
-            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name"}) }}
+            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name",
+                                               :body => {}}) }}
 
         before do
           queue.stub!(:pop => ping_payload)
@@ -149,6 +150,26 @@ describe Listener do
           response = {:type => "ping_response", :hostname => Socket.gethostname,
             :version => Gorgon::VERSION, :worker_slots => 3}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(response))
+          listener.poll
+        end
+      end
+
+      context "update message pending on queue" do
+        let(:payload) {
+            {:type => "update", :reply_exchange_name => "name",
+              :body => {:version => "1.2.3"}}
+        }
+
+        let(:update_handler) { stub("UpdateHandler", :handle => nil)  }
+
+        before do
+          queue.stub!(:pop => {:payload => Yajl::Encoder.encode(payload)})
+          listener.stub(:configuration).and_return({:worker_slots => 3})
+        end
+
+        it "calls UpdateHandler#handle and pass payload" do
+          UpdateHandler.should_receive(:new).with(bunny).and_return update_handler
+          update_handler.should_receive(:handle).with payload
           listener.poll
         end
       end
