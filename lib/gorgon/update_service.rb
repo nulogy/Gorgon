@@ -19,7 +19,7 @@ class UpdateService
       @protocol.connect @configuration[:connection],  :on_closed => proc {EM.stop}
 
       @logger.log "Sending Update..."
-      @protocol.send_update_message version
+      @protocol.send_message_to_listeners :update, :version => version
 
       @protocol.receive_payloads do |payload|
         @logger.log "Received #{payload}"

@@ -4,7 +4,7 @@ describe UpdateService do
   let(:configuration){ {:connection => {:host => "host"}, :originator_log_file => "file.log"}}
   let(:protocol) { stub("OriginatorProtocol", :connect => nil,
                         :receive_payloads => nil, :disconnect => nil,
-                        :send_update_message => nil)}
+                        :send_message_to_listeners => nil)}
   let(:logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
 
   before do
@@ -24,8 +24,8 @@ describe UpdateService do
       @service.update
     end
 
-    it "calls Protocol#send_update_message with version number" do
-      protocol.should_receive(:send_update_message).with("1.2.0")
+    it "calls Protocol#send_message_to_listeners with version number" do
+      protocol.should_receive(:send_message_to_listeners).with(:update, :version => "1.2.0")
       @service.update "1.2.0"
     end
 
