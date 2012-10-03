@@ -10,7 +10,9 @@ class GemService
     @configuration = load_configuration_from_file("gorgon.json")
     @logger = OriginatorLogger.new @configuration[:originator_log_file]
     @protocol = OriginatorProtocol.new @logger
-    @running = []
+    @hosts_running = []
+    @started_running = 0
+    @finished_running = 0
   end
 
   def run command
@@ -34,7 +36,7 @@ class GemService
   private
 
   def disconnect_if_none_running
-    disconnect if @running.empty?
+    disconnect if @hosts_running.empty?
   end
 
   def handle_reply payload
@@ -44,22 +46,32 @@ class GemService
     case payload[:type]
     when "running_command"
       puts "#{hostname} is running command #{payload[:command]}..."
-      @running << payload[:hostname]
+      @hosts_running << payload[:hostname]
+      @started_running += 1
     when "command_completed"
       puts "Command '#{command}' completed in #{hostname}"
       command_finished payload
     when "command_failed"
       puts "Command '#{command}' failed in #{hostname}."
       command_finished payload
+    else
+      puts "Unknown message received: #{payload}"
     end
   end
 
   def command_finished payload
     puts "Output:\n#{payload[:stdout]}#{payload[:stderr]}"
-    @running.delete payload[:hostname]
+    @hosts_running.delete payload[:hostname]
+    @finished_running += 1
   end
 
   def disconnect
     @protocol.disconnect
+    print_summary
+  end
+
+  def print_summary
+    puts "#{@started_running} host(s) started running the command. #{@finished_running} host(s) reported they finished"
+    puts "Use 'gorgon ping' to check if all listeners are running the correct gorgon version."
   end
 end

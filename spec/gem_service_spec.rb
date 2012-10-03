@@ -61,7 +61,7 @@ describe GemService do
       end
 
       it "writes to console" do
-        $stdout.should_receive(:write).twice.with(/host/)
+        $stdout.should_receive(:write).at_least(:twice).with(/host/)
         @service.run @command
       end
 
