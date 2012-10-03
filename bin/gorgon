@@ -3,7 +3,7 @@ require 'gorgon/originator'
 require 'gorgon/listener'
 require 'gorgon/worker_manager'
 require 'gorgon/ping_service'
-require 'gorgon/update_service'
+require 'gorgon/gem_service'
 require 'gorgon/version'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
@@ -32,8 +32,8 @@ def ping_listeners
   PingService.new.ping_listeners
 end
 
-def update_listeners version
-  UpdateService.new.update version
+def run_gem command
+  GemService.new.run command
 end
 
 def usage
@@ -56,8 +56,9 @@ when "manage_workers"
   manage_workers
 when "ping"
   ping_listeners
-when "update"
-  update_listeners ARGV[1]
+when "gem"
+  ARGV.shift
+  run_gem ARGV.join(' ')
 when "help"
   usage
 else
