@@ -3,6 +3,7 @@ require "gorgon/amqp_service"
 require 'gorgon/callback_handler'
 require "gorgon/g_logger"
 require 'gorgon/job_definition'
+require "gorgon/testunit_runner"
 
 require "uuidtools"
 require "awesome_print"
@@ -10,7 +11,6 @@ require "socket"
 
 module WorkUnit
   def self.run_file filename
-    require "gorgon/testunit_runner"
     start_t = Time.now
 
     begin
