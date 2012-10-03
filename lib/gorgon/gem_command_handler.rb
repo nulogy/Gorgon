@@ -3,21 +3,18 @@ require "yajl"
 require "bunny"
 require 'open4'
 
-class UpdateHandler
+class GemCommandHandler
   def initialize bunny
     @bunny = bunny
   end
 
   def handle payload, configuration
     reply_exchange_name = payload[:reply_exchange_name]
-    reply = {:type => :updating}
-    publish_to reply_exchange_name, reply
+    publish_to reply_exchange_name, :type => :running_command
 
-    version = payload[:body][:version]
-    version_opt = "--version #{version}" if version
     gem = configuration[:bin_gem_path] || "gem"
 
-    cmd = "#{gem} install #{version_opt} gorgon"
+    cmd = "#{gem} #{payload[:body][:gem_command]} gorgon"
     pid, stdin, stdout, stderr = Open4::popen4 cmd
     stdin.close
 
@@ -27,13 +24,13 @@ class UpdateHandler
     output, errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
 
     if exitstatus == 0
-      reply = {:type => :update_complete, :command => cmd, :stdout => output,
+      reply = {:type => :command_completed, :command => cmd, :stdout => output,
         :stderr => errors}
       publish_to reply_exchange_name, reply
       @bunny.stop
-      exit
+      exit     # TODO: for now exit until we implement a command to exit listeners
     else
-      reply = {:type => :update_failed, :command => cmd, :stdout => output, :stderr => errors}
+      reply = {:type => :command_failed, :command => cmd, :stdout => output, :stderr => errors}
       publish_to reply_exchange_name, reply
    end
   end

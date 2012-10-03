@@ -26,7 +26,7 @@ describe GemService do
     end
 
     it "calls Protocol#send_message_to_listeners with version number" do
-      protocol.should_receive(:send_message_to_listeners).with(:gem_command, :command => @command)
+      protocol.should_receive(:send_message_to_listeners).with(:gem_command, :gem_command => @command)
       @service.run @command
     end
 

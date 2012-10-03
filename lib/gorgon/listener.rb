@@ -6,7 +6,7 @@ require "gorgon/callback_handler"
 require "gorgon/version"
 require "gorgon/worker_manager"
 require "gorgon/crash_reporter"
-require "gorgon/update_handler"
+require "gorgon/gem_command_handler"
 
 require "yajl"
 require "bunny"
@@ -67,8 +67,8 @@ class Listener
       run_job(payload)
     when "ping"
       respond_to_ping payload[:reply_exchange_name]
-    when "update"
-      UpdateHandler.new(@bunny).handle payload, configuration
+    when "gem_command"
+      GemCommandHandler.new(@bunny).handle payload, configuration
     end
   end
 

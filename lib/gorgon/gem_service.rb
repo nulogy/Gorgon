@@ -19,7 +19,7 @@ class GemService
       @protocol.connect @configuration[:connection],  :on_closed => proc {EM.stop}
 
       @logger.log "Sending gem command #{command}..."
-      @protocol.send_message_to_listeners :gem_command, :command => command
+      @protocol.send_message_to_listeners :gem_command, :gem_command => command
 
       @protocol.receive_payloads do |payload|
         @logger.log "Received #{payload}"
@@ -38,15 +38,18 @@ class GemService
   end
 
   def handle_reply payload
+    hostname = payload[:hostname].colorize(Colors::HOST)
+    command = payload[:command].colorize(Colors::COMMAND) if payload[:command]
+
     case payload[:type]
     when "running_command"
-      puts "#{payload[:hostname]} is running command #{payload[:command]}..."
+      puts "#{hostname} is running command #{payload[:command]}..."
       @running << payload[:hostname]
     when "command_completed"
-      puts "Command #{payload[:command]} completed in #{payload[:hostname]}"
+      puts "Command '#{command}' completed in #{hostname}"
       command_finished payload
     when "command_failed"
-      puts "Command #{payload[:command]} failed in #{payload[:hostname]}."
+      puts "Command '#{command}' failed in #{hostname}."
       command_finished payload
     end
   end

@@ -154,22 +154,24 @@ describe Listener do
         end
       end
 
-      context "update message pending on queue" do
+      context "gem_command message pending on queue" do
+        let(:command) { "install" }
+
         let(:payload) {
-            {:type => "update", :reply_exchange_name => "name",
-              :body => {:version => "1.2.3"}}
+            {:type => "gem_command", :reply_exchange_name => "name",
+              :body => {:command => command}}
         }
 
-        let(:update_handler) { stub("UpdateHandler", :handle => nil)  }
+        let(:gem_command_handler) { stub("GemCommandHandler", :handle => nil)  }
         let(:configuration) { {:worker_slots => 3} }
         before do
           queue.stub!(:pop => {:payload => Yajl::Encoder.encode(payload)})
           listener.stub(:configuration).and_return(configuration)
         end
 
-        it "calls UpdateHandler#handle and pass payload" do
-          UpdateHandler.should_receive(:new).with(bunny).and_return update_handler
-          update_handler.should_receive(:handle).with payload, configuration
+        it "calls GemCommandHandler#handle and pass payload" do
+          GemCommandHandler.should_receive(:new).with(bunny).and_return gem_command_handler
+          gem_command_handler.should_receive(:handle).with payload, configuration
           listener.poll
         end
       end
