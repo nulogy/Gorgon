@@ -1,6 +1,7 @@
 require "socket"
 require "yajl"
 require "bunny"
+require 'open4'
 
 class UpdateHandler
   def initialize bunny
