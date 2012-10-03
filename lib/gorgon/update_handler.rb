@@ -12,8 +12,11 @@ class UpdateHandler
     reply = {:type => :updating}
     publish_to reply_exchange_name, reply
 
+    version = payload[:body][:version]
+    version_opt = "--version #{version}" if version
     # TODO: this is no complete, we have to make sure it installs it in the listener's environment
-    pid, stdin, stdout, stderr = Open4::popen4 "gem install gorgon #{payload[:version]}"
+    cmd = "~/.rvm/bin/gem-ruby-1.9.3-p194 install #{version_opt} gorgon"
+    pid, stdin, stdout, stderr = Open4::popen4 cmd
     stdin.close
 
     ignore, status = Process.waitpid2 pid
@@ -21,14 +24,14 @@ class UpdateHandler
 
     output, errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
 
-    exitstatus = 1
     if exitstatus == 0
-      reply = {:type => :update_complete}
+      reply = {:type => :update_complete, :command => cmd, :stdout => output,
+        :stderr => errors}
       publish_to reply_exchange_name, reply
       @bunny.stop
       exit
     else
-      reply = {:type => :update_failed, :stdout => output, :stderr => errors}
+      reply = {:type => :update_failed, :command => cmd, :stdout => output, :stderr => errors}
       publish_to reply_exchange_name, reply
    end
   end
