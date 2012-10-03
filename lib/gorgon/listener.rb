@@ -14,7 +14,6 @@ require "awesome_print"
 require "open4"
 require "tmpdir"
 require "socket"
-require "bundler"
 
 class Listener
   include Configuration
@@ -85,9 +84,7 @@ class Listener
       return
     end
 
-    Bundler.with_clean_env do
-      fork_worker_manager
-    end
+    fork_worker_manager
 
     clean_up
   end
@@ -142,7 +139,7 @@ class Listener
     log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
-    pid, stdin = Open4::popen4 "bundle exec gorgon manage_workers"
+    pid, stdin = Open4::popen4 "gorgon manage_workers"
     stdin.write(@job_definition.to_json)
     stdin.close
 
