@@ -30,9 +30,9 @@ class OriginatorProtocol
     @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
   end
 
-  def ping_listeners
-    # TODO: we probably want to use a different exchange for pinging when we add more services
-    message = {:type => "ping", :reply_exchange_name => @reply_exchange.name}
+  def send_message_to_listeners type, body={}
+    # TODO: we probably want to use a different exchange for this type of messages
+    message = {:type => type, :reply_exchange_name => @reply_exchange.name, :body => body}
     @channel.fanout("gorgon.jobs").publish(Yajl::Encoder.encode(message))
   end
 

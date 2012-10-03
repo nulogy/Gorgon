@@ -6,6 +6,7 @@ require "gorgon/callback_handler"
 require "gorgon/version"
 require "gorgon/worker_manager"
 require "gorgon/crash_reporter"
+require "gorgon/gem_command_handler"
 
 require "yajl"
 require "bunny"
@@ -13,7 +14,6 @@ require "awesome_print"
 require "open4"
 require "tmpdir"
 require "socket"
-require "bundler"
 
 class Listener
   include Configuration
@@ -67,6 +67,8 @@ class Listener
       run_job(payload)
     when "ping"
       respond_to_ping payload[:reply_exchange_name]
+    when "gem_command"
+      GemCommandHandler.new(@bunny).handle payload, configuration
     end
   end
 
@@ -82,9 +84,7 @@ class Listener
       return
     end
 
-    Bundler.with_clean_env do
-      fork_worker_manager
-    end
+    fork_worker_manager
 
     clean_up
   end
@@ -139,7 +139,7 @@ class Listener
     log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename
 
-    pid, stdin = Open4::popen4 "bundle exec gorgon manage_workers"
+    pid, stdin = Open4::popen4 "gorgon manage_workers"
     stdin.write(@job_definition.to_json)
     stdin.close
 
@@ -160,10 +160,14 @@ class Listener
   def respond_to_ping reply_exchange_name
     reply = {:type => "ping_response", :hostname => Socket.gethostname,
       :version => Gorgon::VERSION, :worker_slots => configuration[:worker_slots]}
+    publish_to reply_exchange_name, reply
+  end
+
+  def publish_to reply_exchange_name, message
     reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
 
-    log "Sending #{reply}"
-    reply_exchange.publish(Yajl::Encoder.encode(reply))
+    log "Sending #{message}"
+    reply_exchange.publish(Yajl::Encoder.encode(message))
   end
 
   def connection_information

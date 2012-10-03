@@ -3,6 +3,7 @@ require 'gorgon/originator'
 require 'gorgon/listener'
 require 'gorgon/worker_manager'
 require 'gorgon/ping_service'
+require 'gorgon/gem_service'
 require 'gorgon/version'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
@@ -31,11 +32,16 @@ def ping_listeners
   PingService.new.ping_listeners
 end
 
+def run_gem command
+  GemService.new.run command
+end
+
 def usage
   #print instructions on how to use gorgon
   puts "\tstart - remotely runs all tests specified in gorgon.json"
   puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
   puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
+  puts "\tgem command [options...] - execute the gem command on every listener and shutdown listener. e.g. 'gorgon gem install --version 1.0.0'"
 end
 
 puts WELCOME_MSG
@@ -51,6 +57,9 @@ when "manage_workers"
   manage_workers
 when "ping"
   ping_listeners
+when "gem"
+  ARGV.shift
+  run_gem ARGV.join(' ')
 when "help"
   usage
 else

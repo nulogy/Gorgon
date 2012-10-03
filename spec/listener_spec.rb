@@ -136,7 +136,8 @@ describe Listener do
 
       context "ping message pending on queue" do
         let(:ping_payload) {{
-            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name"}) }}
+            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name",
+                                               :body => {}}) }}
 
         before do
           queue.stub!(:pop => ping_payload)
@@ -149,6 +150,28 @@ describe Listener do
           response = {:type => "ping_response", :hostname => Socket.gethostname,
             :version => Gorgon::VERSION, :worker_slots => 3}
           exchange.should_receive(:publish).with(Yajl::Encoder.encode(response))
+          listener.poll
+        end
+      end
+
+      context "gem_command message pending on queue" do
+        let(:command) { "install" }
+
+        let(:payload) {
+            {:type => "gem_command", :reply_exchange_name => "name",
+              :body => {:command => command}}
+        }
+
+        let(:gem_command_handler) { stub("GemCommandHandler", :handle => nil)  }
+        let(:configuration) { {:worker_slots => 3} }
+        before do
+          queue.stub!(:pop => {:payload => Yajl::Encoder.encode(payload)})
+          listener.stub(:configuration).and_return(configuration)
+        end
+
+        it "calls GemCommandHandler#handle and pass payload" do
+          GemCommandHandler.should_receive(:new).with(bunny).and_return gem_command_handler
+          gem_command_handler.should_receive(:handle).with payload, configuration
           listener.poll
         end
       end
@@ -226,11 +249,6 @@ describe Listener do
 
       it "calls after_sync callback" do
         callback_handler.should_receive(:after_sync).once
-        @listener.run_job(payload)
-      end
-
-      it "uses Bundler#with_clean_env so the workers load new gems that could have been installed in after_sync" do
-        Bundler.should_receive(:with_clean_env).and_yield
         @listener.run_job(payload)
       end
     end

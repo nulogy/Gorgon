@@ -5,7 +5,7 @@ describe "PingService" do
     let(:configuration){ {:connection => {:host => "host"}, :originator_log_file => "file.log"}}
     let(:protocol) { stub("OriginatorProtocol", :connect => nil, :ping => nil,
                           :receive_payloads => nil, :disconnect => nil,
-                          :ping_listeners => nil)}
+                          :send_message_to_listeners => nil)}
     let(:logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
 
     before do
@@ -16,10 +16,10 @@ describe "PingService" do
       OriginatorLogger.stub!(:new).and_return logger
     end
 
-    it "connnects and calls OriginatorProtocol#ping_listeners" do
+    it "connnects and calls OriginatorProtocol#send_message_to_listeners" do
       OriginatorProtocol.should_receive(:new).once.ordered.and_return(protocol)
       protocol.should_receive(:connect).once.ordered.with({:host => "host"}, anything)
-      protocol.should_receive(:ping_listeners).once.ordered
+      protocol.should_receive(:send_message_to_listeners).once.ordered
       PingService.new.ping_listeners
     end
 

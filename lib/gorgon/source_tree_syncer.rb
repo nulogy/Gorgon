@@ -25,9 +25,10 @@ class SourceTreeSyncer
     pid, stdin, stdout, stderr = Open4::popen4 @sys_command
     stdin.close
 
+    ignore, status = Process.waitpid2 pid
+
     @output, @errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
 
-    ignore, status = Process.waitpid2 pid
     @exitstatus = status.exitstatus
   end
 
