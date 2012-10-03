@@ -6,3 +6,5 @@ TAGS
 pkg
 .idea
 .rbenv-version
+*.log
+*.json
