@@ -161,15 +161,15 @@ describe Listener do
         }
 
         let(:update_handler) { stub("UpdateHandler", :handle => nil)  }
-
+        let(:configuration) { {:worker_slots => 3} }
         before do
           queue.stub!(:pop => {:payload => Yajl::Encoder.encode(payload)})
-          listener.stub(:configuration).and_return({:worker_slots => 3})
+          listener.stub(:configuration).and_return(configuration)
         end
 
         it "calls UpdateHandler#handle and pass payload" do
           UpdateHandler.should_receive(:new).with(bunny).and_return update_handler
-          update_handler.should_receive(:handle).with payload
+          update_handler.should_receive(:handle).with payload, configuration
           listener.poll
         end
       end
