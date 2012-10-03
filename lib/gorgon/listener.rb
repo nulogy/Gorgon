@@ -68,7 +68,7 @@ class Listener
     when "ping"
       respond_to_ping payload[:reply_exchange_name]
     when "update"
-      UpdateHandler.new(@bunny).handle payload
+      UpdateHandler.new(@bunny).handle payload, configuration
     end
   end
 

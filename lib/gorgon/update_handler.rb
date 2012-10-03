@@ -8,15 +8,16 @@ class UpdateHandler
     @bunny = bunny
   end
 
-  def handle payload
+  def handle payload, configuration
     reply_exchange_name = payload[:reply_exchange_name]
     reply = {:type => :updating}
     publish_to reply_exchange_name, reply
 
     version = payload[:body][:version]
     version_opt = "--version #{version}" if version
-    # TODO: this is no complete, we have to make sure it installs it in the listener's environment
-    cmd = "~/.rvm/bin/gem-ruby-1.9.3-p194 install #{version_opt} gorgon"
+    gem = configuration[:bin_gem_path] || "gem"
+
+    cmd = "#{gem} install #{version_opt} gorgon"
     pid, stdin, stdout, stderr = Open4::popen4 cmd
     stdin.close
 
