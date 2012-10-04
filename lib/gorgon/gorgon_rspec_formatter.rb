@@ -1,8 +1,6 @@
 require 'rspec/core/formatters/base_formatter'
 require 'json'
 
-require 'letters'
-
 module RSpec
   module Core
     module Formatters
@@ -15,7 +13,7 @@ module RSpec
         end
 
         def message(message)
-          @failures += message
+          @failures += message unless @failures.empty?
         end
 
         def stop
