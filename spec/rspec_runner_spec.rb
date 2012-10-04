@@ -25,6 +25,17 @@ describe RspecRunner do
       RspecRunner.run_file "file"
     end
 
-    it "parses the output of the Runner and returns it"
+    it "parses the output of the Runner and returns it" do
+      str_io = stub("StringIO", :rewind => nil, :read => :content)
+      StringIO.stub!(:new).and_return(str_io)
+      Yajl::Parser.any_instance.should_receive(:parse).with(:content).and_return :result
+      RspecRunner.run_file("file").should == :result
+    end
+  end
+
+  describe "#runner" do
+    it "returns :rspec" do
+      RspecRunner.runner.should == :rspec
+    end
   end
 end
