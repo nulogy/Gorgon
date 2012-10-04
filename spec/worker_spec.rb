@@ -28,7 +28,6 @@ describe Worker do
       :file_queue_name => "queue",
       :reply_exchange_name => "exchange",
       :worker_id => WORKER_ID,
-      :test_runner => test_runner,
       :callback_handler => callback_handler,
       :log_file => "path/to/log_file"
     }
@@ -73,7 +72,6 @@ few lines of output and send it to originator. Order matters" do
 
     it "creates a new worker" do
       JobDefinition.stub!(:new).and_return job_definition
-      stub_const("WorkUnit", test_runner)
       Worker.should_receive(:new).with(params)
       Worker.build 1, config
     end
@@ -81,6 +79,7 @@ few lines of output and send it to originator. Order matters" do
 
   describe '#work' do
     before do
+      stub_const("TestRunner", test_runner)
       Worker.any_instance.stub(:initialize_logger)
     end
 
@@ -100,7 +99,7 @@ few lines of output and send it to originator. Order matters" do
       end
       reply_exchange.should_receive(:publish).with(any_args())
 
-      test_runner.should_receive(:run_file).with("testfile1").and_return({:type => :pass, :time => 0})
+      test_runner.should_receive(:run_file).with("testfile1", TestUnitRunner).and_return({:type => :pass, :time => 0})
 
       worker = Worker.new params
 
@@ -117,7 +116,7 @@ few lines of output and send it to originator. Order matters" do
         msg[:filename].should == 'testfile1'
       end
 
-      test_runner.should_receive(:run_file).with('testfile1').and_return({:type => :pass, :time => 0})
+      test_runner.should_receive(:run_file).with('testfile1', TestUnitRunner).and_return({:type => :pass, :time => 0})
 
       worker = Worker.new params
 
