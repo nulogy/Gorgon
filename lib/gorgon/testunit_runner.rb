@@ -47,4 +47,8 @@ class TestUnitRunner
 
     output
   end
+
+  def self.runner
+    :test_unit
+  end
 end
