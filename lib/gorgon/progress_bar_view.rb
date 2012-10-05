@@ -8,10 +8,15 @@ LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
 LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts that have run files\nW - number of workers running files"
 
+PROGRESS_BAR_REFRESH_RATE = 0.5
+# - because the resolution of the elapsed time is one second, we use the nyquist frequency of 0.5 seconds
+# http://en.wikipedia.org/wiki/Nyquist_frequency
+
 class ProgressBarView
   def initialize job_state
     @job_state = job_state
     @job_state.add_observer(self)
+    @timer = EventMachine::PeriodicTimer.new(PROGRESS_BAR_REFRESH_RATE) { update_elapsed_time }
   end
 
   def show
@@ -48,6 +53,11 @@ class ProgressBarView
                                          :length => [terminal_size[0], MAX_LENGTH].min,
                                          :format => format(bar: :green, title: :white));
     end
+  end
+
+  def update_elapsed_time
+    @timer.cancel if @finished
+    @progress_bar.refresh if @progress_bar
   end
 
 private
