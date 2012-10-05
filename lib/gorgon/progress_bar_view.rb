@@ -70,7 +70,7 @@ private
     bar = "%w>%i".colorize(colors[:bar])
     title = "%t".colorize(colors[:title])
 
-    "#{title} | [#{bar}] %c/%C %e"
+    "%a | #{title} | [#{bar}] %c/%C %e"
   end
 
   def terminal_size
