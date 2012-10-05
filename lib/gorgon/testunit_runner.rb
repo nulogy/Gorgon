@@ -28,7 +28,7 @@ class Test::Unit::TestCase
   end
 end
 
-class TestRunner
+class TestUnitRunner
   def self.run_file(filename)
     GorgonTestCases.clear_cases!
     load filename
@@ -46,5 +46,9 @@ class TestRunner
     end
 
     output
+  end
+
+  def self.runner
+    :test_unit
   end
 end

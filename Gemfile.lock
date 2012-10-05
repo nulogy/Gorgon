@@ -1,14 +1,13 @@
 PATH
   remote: .
   specs:
-    gorgon (0.3.0)
+    gorgon (0.3.1.a)
       amqp (~> 0.9.7)
       awesome_print
       bunny (~> 0.8.0)
       colorize (~> 0.5.8)
       open4 (~> 1.3.0)
       ruby-progressbar (~> 1.0.1)
-      test-unit
       uuidtools (~> 2.1.3)
       yajl-ruby (~> 1.1.0)
 
@@ -49,4 +48,5 @@ PLATFORMS
 DEPENDENCIES
   gorgon!
   rake
-  rspec
+  rspec (~> 2.11.0)
+  test-unit

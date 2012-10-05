@@ -3,24 +3,24 @@ require "gorgon/amqp_service"
 require 'gorgon/callback_handler'
 require "gorgon/g_logger"
 require 'gorgon/job_definition'
-require "gorgon/testunit_runner"
 
 require "uuidtools"
 require "awesome_print"
 require "socket"
 
-module WorkUnit
-  def self.run_file filename
+module TestRunner
+  def self.run_file filename, test_runner
     start_t = Time.now
 
     begin
-      failures = TestRunner.run_file(filename)
+      failures = test_runner.run_file(filename)
       length = Time.now - start_t
 
       if failures.empty?
-        results = {:failures => [], :type => :pass, :time => length}
+        results = {:failures => [], :type => :pass, :runner => test_runner.runner, :time => length}
       else
-        results = {:failures => failures, :type => :fail, :time => length}
+        results = {:failures => failures, :type => :fail, :runner => test_runner.runner,
+          :time => length}
       end
     rescue Exception => e
       results = {:failures => ["Exception: #{e.message}\n#{e.backtrace.join("\n")}"], :type => :crash, :time => (Time.now - start_t)}
@@ -51,7 +51,6 @@ class Worker
         :file_queue_name => job_definition.file_queue_name,
         :reply_exchange_name => job_definition.reply_exchange_name,
         :worker_id => worker_id,
-        :test_runner => WorkUnit,
         :callback_handler => callback_handler,
         :log_file => config[:log_file]
       }
@@ -79,7 +78,6 @@ class Worker
     @file_queue_name = params[:file_queue_name]
     @reply_exchange_name = params[:reply_exchange_name]
     @worker_id = params[:worker_id]
-    @test_runner = params[:test_runner]
     @callback_handler = params[:callback_handler]
   end
 
@@ -116,7 +114,13 @@ class Worker
   end
 
   def run_file(filename)
-    @test_runner.run_file(filename)
+    if filename =~ /_spec.rb$/i
+      require_relative "rspec_runner"
+      TestRunner.run_file(filename, RspecRunner)
+    else
+      require_relative "testunit_runner"
+      TestRunner.run_file(filename, TestUnitRunner)
+    end
   end
 
   def make_start_message(filename)

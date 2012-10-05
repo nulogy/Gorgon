@@ -14,7 +14,7 @@ end
 describe Worker do
   WORKER_ID = 1
   let(:file_queue) { double("Queue") }
-  let(:reply_exchange) { double("Exchange") }
+  let(:reply_exchange) { double("Exchange", :publish => nil) }
   let(:fake_amqp) { fake_amqp = FakeAmqp.new file_queue, reply_exchange }
   let(:test_runner) { double("Test Runner") }
   let(:callback_handler) { stub("Callback Handler", :before_start => nil, :after_complete => nil) }
@@ -28,7 +28,6 @@ describe Worker do
       :file_queue_name => "queue",
       :reply_exchange_name => "exchange",
       :worker_id => WORKER_ID,
-      :test_runner => test_runner,
       :callback_handler => callback_handler,
       :log_file => "path/to/log_file"
     }
@@ -73,7 +72,6 @@ few lines of output and send it to originator. Order matters" do
 
     it "creates a new worker" do
       JobDefinition.stub!(:new).and_return job_definition
-      stub_const("WorkUnit", test_runner)
       Worker.should_receive(:new).with(params)
       Worker.build 1, config
     end
@@ -81,14 +79,15 @@ few lines of output and send it to originator. Order matters" do
 
   describe '#work' do
     before do
+      stub_const("TestRunner", test_runner)
       Worker.any_instance.stub(:initialize_logger)
+      @worker = Worker.new params
     end
 
     it 'should do nothing if the file queue is empty' do
       file_queue.should_receive(:pop).and_return(nil)
 
-      worker = Worker.new params
-      worker.work
+      @worker.work
     end
 
     it "should send start message when file queue is not empty" do
@@ -100,11 +99,9 @@ few lines of output and send it to originator. Order matters" do
       end
       reply_exchange.should_receive(:publish).with(any_args())
 
-      test_runner.should_receive(:run_file).with("testfile1").and_return({:type => :pass, :time => 0})
+      test_runner.stub!(:run_file).and_return({:type => :pass, :time => 0})
 
-      worker = Worker.new params
-
-      worker.work
+      @worker.work
     end
 
     it "should send finish message when test run is successful" do
@@ -117,11 +114,9 @@ few lines of output and send it to originator. Order matters" do
         msg[:filename].should == 'testfile1'
       end
 
-      test_runner.should_receive(:run_file).with('testfile1').and_return({:type => :pass, :time => 0})
+      test_runner.stub!(:run_file).and_return({:type => :pass, :time => 0})
 
-      worker = Worker.new params
-
-      worker.work
+      @worker.work
     end
 
     it "should send finish message when test run has failures" do
@@ -137,31 +132,36 @@ few lines of output and send it to originator. Order matters" do
         msg[:failures].should == failures
       end
 
-      test_runner.should_receive(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
+      test_runner.stub!(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
 
-      worker = Worker.new params
-
-      worker.work
+      @worker.work
     end
 
     it "should notify the callback framework that it has started" do
       file_queue.stub(:pop => nil)
       callback_handler.should_receive(:before_start)
 
-      worker = Worker.new params
-
-      worker.work
+      @worker.work
     end
 
     it "should notify the callback framework when it finishes" do
       file_queue.stub(:pop => nil)
       callback_handler.should_receive(:after_complete)
 
-      worker = Worker.new params
-
-      worker.work
+      @worker.work
     end
 
+    it "runs file using TestUnitRunner when test is unit test" do
+      file_queue.stub!(:pop).and_return("file_test.rb", nil)
+      test_runner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
+      @worker.work
+    end
+
+    it "runs file using RspecRunner when file is a spec (finishes in _spec.rb)" do
+      file_queue.stub!(:pop).and_return("file_spec.rb", nil)
+      test_runner.should_receive(:run_file).with("file_spec.rb", RspecRunner).and_return({})
+      @worker.work
+    end
   end
 
   private
