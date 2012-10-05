@@ -18,15 +18,15 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_development_dependency "rspec"
   s.add_development_dependency "rake"
+  s.add_development_dependency "test-unit"
+  s.add_development_dependency "rspec", '~>2.11.0'
 
   s.add_runtime_dependency "amqp", '~>0.9.7'
   s.add_runtime_dependency "awesome_print"
   s.add_runtime_dependency "open4", '~>1.3.0'
   s.add_runtime_dependency "yajl-ruby", '~>1.1.0'
   s.add_runtime_dependency "uuidtools", '~>2.1.3'
-  s.add_runtime_dependency "test-unit"
   s.add_runtime_dependency "bunny", '~>0.8.0'
   s.add_runtime_dependency "ruby-progressbar", '~>1.0.1'
   s.add_runtime_dependency "colorize", '~>0.5.8'

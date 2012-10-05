@@ -3,8 +3,6 @@ require "gorgon/amqp_service"
 require 'gorgon/callback_handler'
 require "gorgon/g_logger"
 require 'gorgon/job_definition'
-require "gorgon/testunit_runner"
-require "gorgon/rspec_runner"
 
 require "uuidtools"
 require "awesome_print"
@@ -117,8 +115,10 @@ class Worker
 
   def run_file(filename)
     if filename =~ /_spec.rb$/i
+      require_relative "rspec_runner"
       TestRunner.run_file(filename, RspecRunner)
     else
+      require_relative "testunit_runner"
       TestRunner.run_file(filename, TestUnitRunner)
     end
   end

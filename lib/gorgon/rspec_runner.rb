@@ -1,7 +1,8 @@
 require 'rspec'
-require 'gorgon/gorgon_rspec_formatter'
 require 'stringio'
 require "yajl"
+
+require_relative "gorgon_rspec_formatter"
 
 class RspecRunner
   class << self
