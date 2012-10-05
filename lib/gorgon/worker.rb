@@ -4,6 +4,7 @@ require 'gorgon/callback_handler'
 require "gorgon/g_logger"
 require 'gorgon/job_definition'
 require "gorgon/testunit_runner"
+require "gorgon/rspec_runner"
 
 require "uuidtools"
 require "awesome_print"
@@ -18,9 +19,10 @@ module TestRunner
       length = Time.now - start_t
 
       if failures.empty?
-        results = {:failures => [], :type => :pass, :time => length}
+        results = {:failures => [], :type => :pass, :runner => test_runner.runner, :time => length}
       else
-        results = {:failures => failures, :type => :fail, :time => length}
+        results = {:failures => failures, :type => :fail, :runner => test_runner.runner,
+          :time => length}
       end
     rescue Exception => e
       results = {:failures => ["Exception: #{e.message}\n#{e.backtrace.join("\n")}"], :type => :crash, :time => (Time.now - start_t)}
@@ -114,7 +116,11 @@ class Worker
   end
 
   def run_file(filename)
-    TestRunner.run_file(filename, TestUnitRunner)
+    if filename =~ /_spec.rb$/i
+      TestRunner.run_file(filename, RspecRunner)
+    else
+      TestRunner.run_file(filename, TestUnitRunner)
+    end
   end
 
   def make_start_message(filename)
