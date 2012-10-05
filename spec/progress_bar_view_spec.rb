@@ -2,6 +2,10 @@ require 'gorgon/progress_bar_view'
 require 'gorgon/job_state'
 
 describe ProgressBarView do
+  before do
+    EventMachine::PeriodicTimer.stub(:new)
+  end
+
   describe "#initialize" do
     it "adds itself to observers of job_state" do
       job_state = JobState.new 1
