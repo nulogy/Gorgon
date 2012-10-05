@@ -8,10 +8,15 @@ LOADING_MSG = "Loading environment and workers..."
 RUNNING_MSG = "Running files:"
 LEGEND_MSG = "Legend:\nF - failure files count\nH - number of hosts that have run files\nW - number of workers running files"
 
+PROGRESS_BAR_REFRESH_RATE = 0.5
+# - because the resolution of the elapsed time is one second, we use the nyquist frequency of 0.5 seconds
+# http://en.wikipedia.org/wiki/Nyquist_frequency
+
 class ProgressBarView
   def initialize job_state
     @job_state = job_state
     @job_state.add_observer(self)
+    @timer = EventMachine::PeriodicTimer.new(PROGRESS_BAR_REFRESH_RATE) { update_elapsed_time }
   end
 
   def show
@@ -50,6 +55,11 @@ class ProgressBarView
     end
   end
 
+  def update_elapsed_time
+    @timer.cancel if @finished
+    @progress_bar.refresh if @progress_bar
+  end
+
 private
   def gorgon_crashed? payload
      payload[:type] == "crash" && payload[:action] != "finish"
@@ -70,7 +80,7 @@ private
     bar = "%w>%i".colorize(colors[:bar])
     title = "%t".colorize(colors[:title])
 
-    "#{title} | [#{bar}] %c/%C %e"
+    "#{title} | [#{bar}] %c/%C %a"
   end
 
   def terminal_size
