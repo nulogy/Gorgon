@@ -124,10 +124,11 @@ private
   end
 
   def build_fail_message_from_hash failure
-    result = "#{'Test name'.yellow}: #{failure[:test_name]}"
-    result << "\n#{'Message:'.yellow} \n#{failure[:message]}" if failure[:message]
+    result = "#{'Test name'.light_yellow}: #{failure[:test_name]}"
+    result << "\n#{failure[:class].red}" if failure[:class]
+    result << "\n#{'Message:'.light_yellow} \n\t#{failure[:message]}" if failure[:message]
     if failure[:location]
-      result << "\n#{'In:'.yellow} \n\t"
+      result << "\n#{'In:'.light_yellow} \n\t"
       result << failure[:location].join("\n\t")
     end
     result
