@@ -3,7 +3,7 @@ module CrashReporter
 
   def report_crash reply_exchange, info
     stdout = `tail -n #{OUTPUT_LINES_TO_REPORT} #{info[:out_file]}`
-    stderr = `tail -n #{OUTPUT_LINES_TO_REPORT} #{info[:err_file]}` + \
+    stderr = `cat #{info[:err_file]}` + \
     info[:footer_text]
 
     send_crash_message reply_exchange, stdout, stderr

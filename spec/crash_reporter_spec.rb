@@ -13,11 +13,11 @@ describe "CrashReporter" do
   end
 
   describe "#report_crash" do
-    it "tails output files to get last few lines" do
+    it "tails output file to get last few lines and cat err file to get all lines" do
       container_class.should_receive(:'`').once.
         with(/tail.*stdout_file/).and_return ""
       container_class.should_receive(:'`').once.
-        with(/tail.*stderr_file/).and_return ""
+        with(/cat.*stderr_file/).and_return ""
       container_class.report_crash exchange, info
     end
 
