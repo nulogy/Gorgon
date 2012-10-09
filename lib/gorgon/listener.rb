@@ -134,7 +134,7 @@ class Listener
     @syncer.remove_temp_dir
   end
 
-  ERROR_FOOTER_TEXT = "\n***** See #{WorkerManager::STDERR_FILE} and #{WorkerManager::STDOUT_FILE} at '#{Socket.gethostname}' for more details *****\n"
+  ERROR_FOOTER_TEXT = "\n***** See #{WorkerManager::STDERR_FILE} and #{WorkerManager::STDOUT_FILE} at '#{Socket.gethostname}' for complete output *****\n"
   def fork_worker_manager
     log "Forking Worker Manager..."
     ENV["GORGON_CONFIG_PATH"] = @listener_config_filename

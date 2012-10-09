@@ -182,6 +182,6 @@ class WorkerManager
   end
 
   def footer_text err_file, out_file
-    "\n***** See #{err_file} and #{out_file} at '#{Socket.gethostname}' for more details *****\n"
+    "\n***** See #{err_file} and #{out_file} at '#{Socket.gethostname}' for complete output *****\n"
   end
 end
