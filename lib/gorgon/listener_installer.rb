@@ -31,7 +31,7 @@ class ListenerInstaller
     private
 
     def install_gem gem
-      system("gem install #{gem}") unless gem_available? gem
+      system("rvm use 1.9.3 do sudo gem install #{gem}") unless gem_available? gem
       if $?.exitstatus != 0
         puts "Error installing #{gem} gem. Aborting installation"
         exit
@@ -57,7 +57,7 @@ class ListenerInstaller
     end
 
     def foreman_export_to_upstart
-      system("rvmsudo foreman export upstart /etc/init -a gorgon -u `whoami` -c listener=1")
+      system("rvm use 1.9.3 do rvmsudo foreman export upstart /etc/init -a gorgon -u `whoami` -c listener=1")
     end
 
     def start_gorgon_daemon
