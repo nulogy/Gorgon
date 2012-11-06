@@ -7,7 +7,7 @@ describe MiniTestRunner do
 
   describe "#run_file" do
 
-    let(:runner) {stub("MiniTestUnitRunner", :run => nil)}
+    let(:runner) {stub("MiniTestUnitRunner", :run => nil, :report => ["report"])}
     before do
       Object.stub(:load)
       MiniTestUnitRunner.stub(:new).and_return(runner)
@@ -21,6 +21,10 @@ describe MiniTestRunner do
     it "runs the MiniTestUnitRunner" do
       runner.should_receive(:run)
       MiniTestRunner.run_file "file_test.rb"
+    end
+
+    it "returns runner's report" do
+      MiniTestRunner.run_file("file_test.rb").should == ["report"]
     end
   end
 

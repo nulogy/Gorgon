@@ -12,6 +12,8 @@ class MiniTestRunner
       MiniTest::Unit.runner = MiniTestUnitRunner.new
       load filename
       MiniTest::Unit.runner.run
+
+      MiniTest::Unit.runner.report
     end
 
     def runner
