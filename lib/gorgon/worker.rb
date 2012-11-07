@@ -115,29 +115,25 @@ class Worker
   end
 
   def run_file(filename)
-    case test_framework(filename)
-    when :rspec
-      require_relative "rspec_runner"
-      result = TestRunner.run_file(filename, RspecRunner)
-    when :minitest
-      require_relative "mini_test_runner"
-      result = TestRunner.run_file(filename, MiniTestRunner)
-    when :testunit
-      require_relative "testunit_runner"
-      result = TestRunner.run_file(filename, TestUnitRunner)
-    when :unknown
-      result = {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]}
+    framework = test_framework(filename)
+    if framework == :unknown
+      return {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]}
     end
-    result
+
+    ruby_file = framework.to_s + "_runner"
+    runner_class = Kernel.const_get(framework.to_s.split("_").map(&:capitalize).join + "Runner")
+
+    require_relative ruby_file
+    TestRunner.run_file(filename, runner_class)
   end
 
   def test_framework(filename)
     if filename =~ /_spec.rb$/i && defined?(Rspec)
       :rspec
     elsif defined?(MiniTest)
-      :minitest
+      :mini_test
     elsif defined?(Test)
-      :testunit
+      :test_unit
     else
       :unknown
     end

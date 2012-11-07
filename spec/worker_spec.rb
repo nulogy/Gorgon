@@ -171,7 +171,7 @@ few lines of output and send it to originator. Order matters" do
       it "runs file using TestUnitRunner when file doesn't ends in _spec and Test is defined" do
         stub_const("Test", :test_unit)
 
-        @worker.should_receive(:require_relative).with "testunit_runner"
+        @worker.should_receive(:require_relative).with "test_unit_runner"
         TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
 
         @worker.work
