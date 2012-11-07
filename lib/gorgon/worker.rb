@@ -115,15 +115,12 @@ class Worker
   end
 
   def run_file(filename)
-    framework = test_framework(filename)
-    if framework == :unknown
-      return {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]}
-    end
+    framework = test_framework(filename).to_s
+    return {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]} if framework == "unknown"
 
-    ruby_file = framework.to_s + "_runner"
-    runner_class = Kernel.const_get(framework.to_s.split("_").map(&:capitalize).join + "Runner")
+    require_runner_code_for framework
+    runner_class = get_runner_class_for framework
 
-    require_relative ruby_file
     TestRunner.run_file(filename, runner_class)
   end
 
@@ -145,6 +142,20 @@ class Worker
 
   def make_finish_message(filename, results)
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
+  end
+
+  def require_runner_code_for framework
+    ruby_file = framework.to_s + "_runner"
+    require_relative ruby_file
+  end
+
+  def get_runner_class_for framework
+    class_name = camelize(framework) + "Runner"
+    Kernel.const_get(class_name)
+  end
+
+  def camelize str
+    str.split("_").map(&:capitalize).join
   end
 
   def register_trap_ints
