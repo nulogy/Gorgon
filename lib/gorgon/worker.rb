@@ -31,6 +31,7 @@ end
 
 class Worker
   include GLogger
+  UNKNOWN_FRAMEWORK_MSG = "Unkown Test Framework. Gorgon only supports Test::Unit, MiniTest, and RSpec"
 
   class << self
     def build(worker_id, config)
@@ -114,12 +115,31 @@ class Worker
   end
 
   def run_file(filename)
-    if filename =~ /_spec.rb$/i
+    case test_framework(filename)
+    when :rspec
       require_relative "rspec_runner"
-      TestRunner.run_file(filename, RspecRunner)
-    else
+      result = TestRunner.run_file(filename, RspecRunner)
+    when :minitest
+      require_relative "mini_test_runner"
+      result = TestRunner.run_file(filename, MiniTestRunner)
+    when :testunit
       require_relative "testunit_runner"
-      TestRunner.run_file(filename, TestUnitRunner)
+      result = TestRunner.run_file(filename, TestUnitRunner)
+    when :unknown
+      result = {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]}
+    end
+    result
+  end
+
+  def test_framework(filename)
+    if filename =~ /_spec.rb$/i && defined?(Rspec)
+      :rspec
+    elsif defined?(MiniTest)
+      :minitest
+    elsif defined?(Test)
+      :testunit
+    else
+      :unknown
     end
   end
 
