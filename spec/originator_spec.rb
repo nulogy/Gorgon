@@ -109,6 +109,10 @@ describe Originator do
   end
 
   describe "#job_definition" do
+    before do
+      UDPSocket.any_instance.stub(:connect)
+    end
+
     it "returns a JobDefinition object" do
       @originator.stub!(:configuration).and_return configuration
       job_definition = JobDefinition.new
