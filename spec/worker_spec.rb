@@ -195,14 +195,13 @@ few lines of output and send it to originator. Order matters" do
         @worker.work
       end
 
-      it "sends 'Unknown test framework' message when the test framework is not known" do
-        reply_exchange.should_receive(:publish).once
-        reply_exchange.should_receive(:publish) do |msg|
-          msg[:action].should == :finish
-          msg[:type].should == :crash
-          msg[:filename].should == 'file_test.rb'
-          msg[:failures].should == [Worker::UNKNOWN_FRAMEWORK_MSG]
-        end
+      it "uses UnknownRunner if the framework is unknown" do
+        stub_const("UnknownRunner", :unknown_runner)
+        file_queue.stub!(:pop).and_return("file_spec.rb", nil)
+
+        @worker.should_receive(:require_relative).with "unknown_runner"
+        TestRunner.should_receive(:run_file).with("file_spec.rb", UnknownRunner).and_return({})
+
         @worker.work
       end
 

@@ -31,7 +31,6 @@ end
 
 class Worker
   include GLogger
-  UNKNOWN_FRAMEWORK_MSG = "Unkown Test Framework. Gorgon only supports Test::Unit, MiniTest, and RSpec"
 
   class << self
     def build(worker_id, config)
@@ -116,7 +115,6 @@ class Worker
 
   def run_file(filename)
     framework = test_framework(filename).to_s
-    return {:type => :crash, :failures => [UNKNOWN_FRAMEWORK_MSG]} if framework == "unknown"
 
     require_runner_code_for framework
     runner_class = get_runner_class_for framework
