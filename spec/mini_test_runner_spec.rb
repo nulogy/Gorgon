@@ -13,8 +13,9 @@ describe MiniTestRunner do
       MiniTestUnitRunner.stub(:new).and_return(runner)
     end
 
-    it "loads filename" do
-      Object.should_receive(:load).with("file_test.rb")
+    it "clear test cases previously loaded (when a previous file was loaded), and then loads filename" do
+      MiniTest::Unit::TestCase.should_receive(:reset).ordered
+      Object.should_receive(:load).with("file_test.rb").ordered
       MiniTestRunner.run_file "file_test.rb"
     end
 

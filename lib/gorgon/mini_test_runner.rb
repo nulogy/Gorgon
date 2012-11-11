@@ -9,6 +9,7 @@ end
 class MiniTestRunner
   class << self
     def run_file(filename)
+      forget_previous_tests
       MiniTest::Unit.runner = MiniTestUnitRunner.new
       load filename
       MiniTest::Unit.runner.run
@@ -18,6 +19,12 @@ class MiniTestRunner
 
     def runner
       :minitest
+    end
+
+    private
+
+    def forget_previous_tests
+      MiniTest::Unit::TestCase.reset
     end
   end
 end
