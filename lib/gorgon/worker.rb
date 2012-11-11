@@ -114,12 +114,23 @@ class Worker
   end
 
   def run_file(filename)
-    if filename =~ /_spec.rb$/i
-      require_relative "rspec_runner"
-      TestRunner.run_file(filename, RspecRunner)
+    framework = test_framework(filename).to_s
+
+    require_runner_code_for framework
+    runner_class = get_runner_class_for framework
+
+    TestRunner.run_file(filename, runner_class)
+  end
+
+  def test_framework(filename)
+    if filename =~ /_spec.rb$/i && defined?(RSpec)
+      :rspec
+    elsif defined?(MiniTest)
+      :mini_test
+    elsif defined?(Test)
+      :test_unit
     else
-      require_relative "testunit_runner"
-      TestRunner.run_file(filename, TestUnitRunner)
+      :unknown
     end
   end
 
@@ -129,6 +140,20 @@ class Worker
 
   def make_finish_message(filename, results)
     {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
+  end
+
+  def require_runner_code_for framework
+    ruby_file = framework.to_s + "_runner"
+    require_relative ruby_file
+  end
+
+  def get_runner_class_for framework
+    class_name = camelize(framework) + "Runner"
+    Kernel.const_get(class_name)
+  end
+
+  def camelize str
+    str.split("_").map(&:capitalize).join
   end
 
   def register_trap_ints

@@ -16,7 +16,6 @@ describe Worker do
   let(:file_queue) { double("Queue") }
   let(:reply_exchange) { double("Exchange", :publish => nil) }
   let(:fake_amqp) { fake_amqp = FakeAmqp.new file_queue, reply_exchange }
-  let(:test_runner) { double("Test Runner") }
   let(:callback_handler) { stub("Callback Handler", :before_start => nil, :after_complete => nil) }
   let(:job_definition) {stub("JobDefinition", :callbacks => ["/path/to/callback"],
                              :file_queue_name => "queue",
@@ -79,9 +78,11 @@ few lines of output and send it to originator. Order matters" do
 
   describe '#work' do
     before do
-      stub_const("TestRunner", test_runner)
+      stub_const("MiniTestRunner", :mini_test_runner)
+      stub_const("MiniTest", :test)
       Worker.any_instance.stub(:initialize_logger)
       @worker = Worker.new params
+      @worker.stub!(:require_relative)
     end
 
     it 'should do nothing if the file queue is empty' do
@@ -99,7 +100,7 @@ few lines of output and send it to originator. Order matters" do
       end
       reply_exchange.should_receive(:publish).with(any_args())
 
-      test_runner.stub!(:run_file).and_return({:type => :pass, :time => 0})
+      TestRunner.stub!(:run_file).and_return({:type => :pass, :time => 0})
 
       @worker.work
     end
@@ -114,7 +115,7 @@ few lines of output and send it to originator. Order matters" do
         msg[:filename].should == 'testfile1'
       end
 
-      test_runner.stub!(:run_file).and_return({:type => :pass, :time => 0})
+      TestRunner.stub!(:run_file).and_return({:type => :pass, :time => 0})
 
       @worker.work
     end
@@ -132,7 +133,7 @@ few lines of output and send it to originator. Order matters" do
         msg[:failures].should == failures
       end
 
-      test_runner.stub!(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
+      TestRunner.stub!(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
 
       @worker.work
     end
@@ -151,17 +152,63 @@ few lines of output and send it to originator. Order matters" do
       @worker.work
     end
 
-    it "runs file using TestUnitRunner when test is unit test" do
-      file_queue.stub!(:pop).and_return("file_test.rb", nil)
-      test_runner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
-      @worker.work
+    describe "shoosing right runner" do
+      before :all do
+        # we assume MiniTest is defined (default ruby 1.9), but let's define it just in case
+        MiniTest ||= 1
+        Temp = MiniTest
+      end
+
+      before do
+        stub_const("TestUnitRunner", :test_unit_runner)
+        stub_const("RspecRunner", :rspec_runner)
+
+        # ruby 1.9 defines MiniTest by default, so let's remove it for these test cases
+        Object.send(:remove_const, :MiniTest)
+        file_queue.stub!(:pop).and_return("file_test.rb", nil)
+      end
+
+      it "runs file using TestUnitRunner when file doesn't ends in _spec and Test is defined" do
+        stub_const("Test", :test_unit)
+
+        @worker.should_receive(:require_relative).with "test_unit_runner"
+        TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
+
+        @worker.work
+      end
+
+      it "runs file using RspecRunner when file finishes in _spec.rb and Rspec is defined" do
+        file_queue.stub!(:pop).and_return("file_spec.rb", nil)
+
+        @worker.should_receive(:require_relative).with "rspec_runner"
+        TestRunner.should_receive(:run_file).with("file_spec.rb", RspecRunner).and_return({})
+
+        @worker.work
+      end
+
+      it "runs file using MiniTest when file name doesn't end in _spec.rb and MiniTest is defined" do
+        MiniTest = Temp
+
+        @worker.should_receive(:require_relative).with "mini_test_runner"
+        TestRunner.should_receive(:run_file).with("file_test.rb", MiniTestRunner).and_return({})
+        @worker.work
+      end
+
+      it "uses UnknownRunner if the framework is unknown" do
+        stub_const("UnknownRunner", :unknown_runner)
+        file_queue.stub!(:pop).and_return("file.rb", nil)
+
+        @worker.should_receive(:require_relative).with "unknown_runner"
+        TestRunner.should_receive(:run_file).with("file.rb", UnknownRunner).and_return({})
+
+        @worker.work
+      end
+
+      after do
+        MiniTest ||= Temp
+      end
     end
 
-    it "runs file using RspecRunner when file is a spec (finishes in _spec.rb)" do
-      file_queue.stub!(:pop).and_return("file_spec.rb", nil)
-      test_runner.should_receive(:run_file).with("file_spec.rb", RspecRunner).and_return({})
-      @worker.work
-    end
   end
 
   private
