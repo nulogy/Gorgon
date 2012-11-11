@@ -9,9 +9,9 @@ Gorgon provides a method for distributing the workload of running ruby test suit
 Usage
 ---------------------
 
-To queue the current test suite, run `bundle exec gorgon start`, or `bundle exec gorgon`. _gorgon_ will read the application configuration out of _gorgon.json_, connect to the AMQP server, and publish the job.
+To queue the current test suite, run `gorgon start`, or `gorgon`. _gorgon_ will read the application configuration out of _gorgon.json_, connect to the AMQP server, and publish the job.
 
-In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run `bundle exec gorgon listen`. This command will read the listener configuration out of _gorgon\_listener.json_, then start the listener process in the background.
+In order for the job to run, _gorgon job listeners_ must be started that can process the job. To start a gorgon listener, run `gorgon listen`. This command will read the listener configuration out of _gorgon\_listener.json_, then start the listener process in the background.
 
 Configuration
 ---------------------
@@ -36,6 +36,9 @@ This file contains the listener-specific settings, such as:
 * The file used for logs
 
 See [gorgon_listener.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
+
+### Setting up gorgon listener as a daemon process using Upstart
+For an example on how to run listener as a daemon process, follow [these steps](/blob/master/daemon_with_upstart_and_rvm.md)
 
 Contributing
 ---------------------
