@@ -178,7 +178,6 @@ few lines of output and send it to originator. Order matters" do
       end
 
       it "runs file using RspecRunner when file finishes in _spec.rb and Rspec is defined" do
-        stub_const("Rspec", :rspec)
         file_queue.stub!(:pop).and_return("file_spec.rb", nil)
 
         @worker.should_receive(:require_relative).with "rspec_runner"
@@ -197,10 +196,10 @@ few lines of output and send it to originator. Order matters" do
 
       it "uses UnknownRunner if the framework is unknown" do
         stub_const("UnknownRunner", :unknown_runner)
-        file_queue.stub!(:pop).and_return("file_spec.rb", nil)
+        file_queue.stub!(:pop).and_return("file.rb", nil)
 
         @worker.should_receive(:require_relative).with "unknown_runner"
-        TestRunner.should_receive(:run_file).with("file_spec.rb", UnknownRunner).and_return({})
+        TestRunner.should_receive(:run_file).with("file.rb", UnknownRunner).and_return({})
 
         @worker.work
       end

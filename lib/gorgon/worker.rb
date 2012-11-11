@@ -123,7 +123,7 @@ class Worker
   end
 
   def test_framework(filename)
-    if filename =~ /_spec.rb$/i && defined?(Rspec)
+    if filename =~ /_spec.rb$/i && defined?(RSpec)
       :rspec
     elsif defined?(MiniTest)
       :mini_test
