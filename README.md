@@ -38,7 +38,7 @@ This file contains the listener-specific settings, such as:
 See [gorgon_listener.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
 
 ### Setting up gorgon listener as a daemon process using Upstart
-For an example on how to run listener as a daemon process, follow [these steps](/blob/master/daemon_with_upstart_and_rvm.md)
+For an example on how to run listener as a daemon process, follow [these steps](/Fitzsimmons/Gorgon/blob/master/daemon_with_upstart_and_rvm.md)
 
 Contributing
 ---------------------
