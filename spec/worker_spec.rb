@@ -166,9 +166,10 @@ few lines of output and send it to originator. Order matters" do
         # ruby 1.9 defines MiniTest by default, so let's remove it for these test cases
         Object.send(:remove_const, :MiniTest)
         file_queue.stub!(:pop).and_return("file_test.rb", nil)
+        File.stub!(:read).and_return("")
       end
 
-      it "runs file using TestUnitRunner when file doesn't ends in _spec and Test is defined" do
+      it "runs file using TestUnitRunner when file doesn't end in _spec and Test is defined" do
         stub_const("Test", :test_unit)
 
         @worker.should_receive(:require_relative).with "test_unit_runner"
@@ -191,6 +192,17 @@ few lines of output and send it to originator. Order matters" do
 
         @worker.should_receive(:require_relative).with "mini_test_runner"
         TestRunner.should_receive(:run_file).with("file_test.rb", MiniTestRunner).and_return({})
+        @worker.work
+      end
+
+      it "runs file using TestUnitRunner when file doesn't end in _spec.rb, MiniTest is defined but project is using test-unit gem" do
+        MiniTest = Temp
+        File.stub!(:read).and_return("test-unit")
+        stub_const("Test", :test_unit)
+
+        @worker.should_receive(:require_relative).with "test_unit_runner"
+        TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
+
         @worker.work
       end
 

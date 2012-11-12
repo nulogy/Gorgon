@@ -125,13 +125,19 @@ class Worker
   def test_framework(filename)
     if filename =~ /_spec.rb$/i && defined?(RSpec)
       :rspec
-    elsif defined?(MiniTest)
+    elsif defined?(MiniTest) && !test_unit_gem?
       :mini_test
     elsif defined?(Test)
       :test_unit
     else
       :unknown
     end
+  end
+
+  # Is the user using test-unit gem?
+  def test_unit_gem?
+    gemfile_lock = "./Gemfile.lock"
+    File.exists?(gemfile_lock) && File.read(gemfile_lock).scan(/\btest-unit/).any?
   end
 
   def make_start_message(filename)
