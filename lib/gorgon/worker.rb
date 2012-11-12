@@ -137,7 +137,8 @@ class Worker
   # Is the user using test-unit gem?
   def test_unit_gem?
     gemfile_lock = "./Gemfile.lock"
-    File.exists?(gemfile_lock) && File.read(gemfile_lock).scan(/\btest-unit/).any?
+    @using_test_unit_gem ||= File.exists?(gemfile_lock) &&
+      File.read(gemfile_lock).scan(/\btest-unit/).any?
   end
 
   def make_start_message(filename)
