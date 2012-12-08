@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gorgon (0.4.0.rc2)
+    gorgon (0.4.0)
       amqp (~> 0.9.7)
       awesome_print
       bunny (~> 0.8.0)
