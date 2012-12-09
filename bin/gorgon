@@ -46,6 +46,7 @@ def usage
   puts "\tstart - remotely runs all tests specified in gorgon.json"
   puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
   puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
+  puts "\tinstall_listener - runs gorgon listener as a daemon process"
   puts "\tgem command [options...] - execute the gem command on every listener and shutdown listener. e.g. 'gorgon gem install --version 1.0.0'"
 end
 
