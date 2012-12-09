@@ -5,6 +5,7 @@ require 'gorgon/worker_manager'
 require 'gorgon/ping_service'
 require 'gorgon/gem_service'
 require 'gorgon/version'
+require 'gorgon/listener_installer'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 
@@ -36,11 +37,16 @@ def run_gem command
   GemService.new.run command
 end
 
+def install_listener
+  ListenerInstaller.install
+end
+
 def usage
   #print instructions on how to use gorgon
   puts "\tstart - remotely runs all tests specified in gorgon.json"
   puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
   puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
+  puts "\tinstall_listener - runs gorgon listener as a daemon process"
   puts "\tgem command [options...] - execute the gem command on every listener and shutdown listener. e.g. 'gorgon gem install --version 1.0.0'"
 end
 
@@ -62,6 +68,8 @@ when "gem"
   run_gem ARGV.join(' ')
 when "help"
   usage
+when "install_listener"
+  install_listener
 else
   puts "Unknown command!"
   usage
