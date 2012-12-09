@@ -26,7 +26,7 @@ This file contains project-specific settings for gorgon, such as:
 * A glob for generating the list of test files
 * The file used for Originator's logs
 
-See [gorgon.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample) for more details.
+See [gorgon.json example](/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample) for more details.
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:
@@ -35,7 +35,7 @@ This file contains the listener-specific settings, such as:
 * How many worker slots are provided by this listener
 * The file used for logs
 
-See [gorgon_listener.json example](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
+See [gorgon_listener.json example](/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
 
 ### Setting up gorgon listener as a daemon process using Upstart
 For an example on how to run listener as a daemon process, follow [these steps](/Fitzsimmons/Gorgon/blob/master/daemon_with_upstart_and_rvm.md)
@@ -54,4 +54,4 @@ Gorgon is maintained by:
 * Victor Savkin
 
 Gorgon is funded by [Nulogy Corp](http://www.nulogy.com/).
-Thank you to all the [contributors](/contributors).
+Thank you to all the [contributors](/Fitzsimmons/Gorgon/graphs/contributors).
