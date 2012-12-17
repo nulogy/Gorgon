@@ -6,6 +6,7 @@ require 'gorgon/ping_service'
 require 'gorgon/gem_service'
 require 'gorgon/version'
 require 'gorgon/listener_installer'
+require 'gorgon/settings/initial_files_creator'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 
@@ -35,6 +36,10 @@ end
 
 def run_gem command
   GemService.new.run command
+end
+
+def init framework
+  Settings::InitialFilesCreator.run framework
 end
 
 def install_listener
@@ -68,6 +73,8 @@ when "gem"
   run_gem ARGV.join(' ')
 when "help"
   usage
+when "init"
+  init ARGV[1]
 when "install_listener"
   install_listener
 else
