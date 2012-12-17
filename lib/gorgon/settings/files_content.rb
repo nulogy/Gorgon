@@ -1,6 +1,7 @@
 module Settings
   class FilesContent
-    attr_accessor :amqp_host, :sync_exclude, :files, :originator_log_file
+    attr_accessor :amqp_host, :sync_exclude, :files, :originator_log_file,
+      :callbacks, :callbacks_dir
 
     TEST_UNIT_GLOB = "test/**/*_test.rb"
     RSPEC_GLOB = "spec/**/*_spec.rb"
@@ -9,7 +10,6 @@ module Settings
       @files = []
       @files << FilesContent::TEST_UNIT_GLOB if Dir.exist?('test')
       @files << FilesContent::RSPEC_GLOB if Dir.exist?('spec')
-      @originator_log_file = 'log/gorgon-originator.log'
     end
 
     DEFAULT_AMQP_HOST = 'localhost'

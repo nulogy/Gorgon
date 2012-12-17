@@ -6,6 +6,7 @@ module Settings
       super
       @amqp_host = FilesContent.get_amqp_host
       @sync_exclude = [".git", ".rvmrc"]
+      @originator_log_file = 'gorgon-originator.log'
     end
   end
 end

@@ -1,0 +1,95 @@
+require 'gorgon/settings/files_content'
+
+module Settings
+  class RailsProjectFilesContent < FilesContent
+    def initialize
+      super
+      @amqp_host = FilesContent.get_amqp_host
+      @sync_exclude = [".git", ".rvmrc","tmp","log","doc"]
+      @originator_log_file = 'log/gorgon-originator.log'
+      create_callbacks
+    end
+
+    private
+
+    def create_callbacks
+      @callbacks_dir = "#{get_app_subdir}gorgon_callbacks"
+      @callbacks = [{name: :after_sync, file_name: "after_sync.rb",
+                      content: after_sync_content},
+                    {name: :before_creating_workers, file_name: "before_creating_workers.rb",
+                      content: before_creating_workers_content},
+                    {name: :before_start, file_name: "before_start.rb",
+                      content: before_start_content},
+                    {name: :after_complete, file_name: "after_complete.rb",
+                      content: after_complete_content}]
+    end
+
+    def get_app_subdir
+      if Dir.exist? "test"
+        "test/"
+      elsif Dir.exist? "spec"
+        "spec/"
+      elsif Dir.exist? "lib"
+        "lib/"
+      else
+        ""
+      end
+    end
+
+    def after_sync_content
+      <<-CONTENT
+require 'bundler'
+require 'open4'
+
+Bundler.with_clean_env do
+  BUNDLE_LOG_FILE||="/tmp/gorgon-bundle-install.log "
+
+  pid, stdin, stdout, stderr = Open4::popen4 "bundle install > \#\{BUNDLE_LOG_FILE\} 2>&1 "
+
+  ignore, status = Process.waitpid2 pid
+
+  if status.exitstatus != 0
+    raise "ERROR: 'bundle install' failed.\n\#\{stderr.read\}"
+  end
+end
+CONTENT
+    end
+
+    def before_creating_workers_content
+      content = ""
+      content << "require './test/test_helper'\n" if File.exist?("test/test_helper.rb")
+      content << "require './spec/spec_helper'\n" if File.exist?("spec/spec_helper.rb")
+      content
+    end
+
+    def before_start_content
+      <<-CONTENT
+require 'rake'
+load './Rakefile'
+
+begin
+  Rails.env = 'remote_test'
+  ENV['TEST_ENV_NUMBER'] = Process.pid.to_s
+
+  Rake::Task['db:reset'].invoke
+end
+
+CONTENT
+    end
+
+    def after_complete_content
+      <<-CONTENT
+require 'rake'
+load './Rakefile'
+
+begin
+  if Rails.env = 'remote_test'
+    Rake::Task['db:drop'].execute
+  end
+rescue Exception => ex
+  puts "Error dropping test database:\n  \#\{ex\}"
+end
+CONTENT
+    end
+  end
+end

@@ -1,7 +1,5 @@
-# Facade to all settings class
-
 require 'gorgon/settings/simple_project_files_content'
-#require 'gorgon/settings/rails_project_files_content'
+require 'gorgon/settings/rails_project_files_content'
 
 module Settings
   class InitialFilesCreator
@@ -38,8 +36,41 @@ module Settings
         files: content.files
       }
 
+      log_file = content.originator_log_file
+      config[:originator_log_file] = log_file if log_file
+
+      if content.callbacks
+        create_callback_files(content)
+
+        config[:job][:callbacks] = content.callbacks.inject({}) do |callbacks, e|
+          callbacks[e[:name]] = "#{content.callbacks_dir}/#{e[:file_name]}"
+          callbacks
+        end
+      end
+
+      puts "Creating #{GORGON_JSON_FILE}..."
       File.open(GORGON_JSON_FILE, 'w') do |f|
         Yajl::Encoder.encode(config, f, :pretty => true, :indent => "  ")
+      end
+    end
+
+    def self.create_callback_files content
+      FileUtils.mkdir_p content.callbacks_dir
+      content.callbacks.each do |callback|
+        create_callback_file content.callbacks_dir, callback
+      end
+    end
+
+    def self.create_callback_file dir, callback
+      file_path = "#{dir}/#{callback[:file_name]}"
+      if File.exist? file_path
+        puts "#{file_path} already exists. Skipping..."
+        return
+      end
+
+      puts "Creating #{file_path}..."
+      File.open(file_path, 'w') do |f|
+        f.write callback[:content]
       end
     end
   end
