@@ -1,3 +1,3 @@
 module Gorgon
-  VERSION = "0.4.1.dev"
+  VERSION = "0.4.1.rc1"
 end
