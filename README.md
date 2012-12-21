@@ -11,7 +11,7 @@ Installing Gorgon
 1. `sudo apt-get install rabbitmq-server`
 1. When you run gorgon, every listener will use rsync to pull the directory tree from origin; therefore, you need passwordless ssh login from every listener to origin (even if origin and listener are on the same host). Follow [these steps](http://linuxconfig.org/Passwordless_ssh).
 1. cd to your project
-1. `gem install gorgon --pre`
+1. `gem install gorgon`
 1. if using rails, `gorgon init rails` will create initial files for a typical rails project. Otherwise, you can use `gorgon init`
 1. check gorgon.json to see and modify any necessary setting
 1. add the following lines to your _database.yml_ file
@@ -34,7 +34,7 @@ Try it out!
 -----------
 1. run `gorgon` to run all the tests.
 
-**NOTE:** if you get `cannot load such file -- qrack/qrack (LoadError)`, just add `gem 'gorgon', '~> 0.4.1.beta' , :group => :remote_test` to your Gemfile, and run tests using `bundle exec gorgon`
+**NOTE:** if you get `cannot load such file -- qrack/qrack (LoadError)`, just add `gem 'gorgon', '~> 0.4.1' , :group => :remote_test` to your Gemfile, and run tests using `bundle exec gorgon`
 
 Also note that these steps are **not** meant to work on every project, they will only give you initial settings. You will probably have to modify the following files:
 * gorgon.json
