@@ -23,7 +23,7 @@ remote_test: &remote_test
   min_messages: warning
 ```
 
-Where `<<: *defaults` are the default values used in _database.yml_, like for example, adapter, username, password, and host. Replace <my-app> with a name to identify this application's dbs
+Where `<<: *defaults` are the default values used in _database.yml_, like for example, adapter, username, password, and host. Replace `<my-app>` with a name to identify this application's dbs
 
 Installing listener as a Daemon process (Ubuntu 9.10 or later)
 ----------------------------------------------------------------
