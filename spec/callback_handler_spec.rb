@@ -7,7 +7,8 @@ describe CallbackHandler do
       :before_start => "some/file.rb",
       :after_complete => "some/other/file.rb",
       :before_creating_workers => "callbacks/before_creating_workers_file.rb",
-      :after_sync => "callbacks/after_sync_file.rb"
+      :after_sync => "callbacks/after_sync_file.rb",
+      :after_creating_workers => "callbacks/after_creating_workers.rb"
     }
   }
 
@@ -73,5 +74,21 @@ describe CallbackHandler do
     handler.should_not_receive(:load)
 
     handler.after_sync
+  end
+
+  it "calls the after creating workers hook" do
+    handler = CallbackHandler.new(config)
+
+    handler.should_receive(:load).with("callbacks/after_creating_workers.rb")
+
+    handler.after_creating_workers
+  end
+
+  it "does not attempt to load the after creating workers hook when after_creating_workers is not defined" do
+    handler = CallbackHandler.new({})
+
+    handler.should_not_receive(:load)
+
+    handler.after_creating_workers
   end
 end
