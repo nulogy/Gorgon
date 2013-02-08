@@ -18,6 +18,8 @@ module Settings
                       content: after_sync_content},
                     {name: :before_creating_workers, file_name: "before_creating_workers.rb",
                       content: before_creating_workers_content},
+                    {name: :after_creating_workers, file_name: "after_creating_workers.rb",
+                      content: after_creating_workers_content},
                     {name: :before_start, file_name: "before_start.rb",
                       content: before_start_content},
                     {name: :after_complete, file_name: "after_complete.rb",
@@ -56,10 +58,23 @@ CONTENT
     end
 
     def before_creating_workers_content
-      content = ""
-      content << "require './test/test_helper'\n" if File.exist?("test/test_helper.rb")
-      content << "require './spec/spec_helper'\n" if File.exist?("spec/spec_helper.rb")
-      content
+      <<-CONTENT
+ENV["TEST_ENV_NUMBER"] = Process.pid.to_s
+ENV["RAILS_ENV"] = 'remote_test'
+
+pid, stdin, stdout, stderr = Open4::popen4 "TEST_ENV_NUMBER=#{Process.pid.to_s} RAILS_ENV='remote_test' bundle exec rake db:setup"
+ignore, status = Process.waitpid2 pid
+
+if status.exitstatus != 0
+  raise "ERROR: 'rake db:setup' failed.\n#{stderr.read}\n#{stdout.read}"
+end
+
+require File.expand_path('../../test_helper', __FILE__)
+CONTENT
+    end
+
+    def after_creating_workers_content
+      after_complete_content
     end
 
     def before_start_content
