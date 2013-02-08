@@ -77,6 +77,7 @@ class WorkerManager
 
       subscribe_to_originator_queue
     end
+    @callback_handler.after_creating_workers
   end
 
   def fork_a_worker

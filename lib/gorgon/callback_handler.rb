@@ -18,4 +18,8 @@ class CallbackHandler
   def after_sync
     load(@config[:after_sync]) if @config[:after_sync]
   end
+
+  def after_creating_workers
+    load(@config[:after_creating_workers]) if @config[:after_creating_workers]
+  end
 end

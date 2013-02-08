@@ -40,6 +40,7 @@ Also note that these steps are **not** meant to work on every project, they will
 * gorgon.json
 * test/gorgon_callbacks/after\_sync.rb
 * test/gorgon_callbacks/before\_creating\_workers.rb
+* test/gorgon_callbacks/after\_creating\_workers.rb
 * test/gorgon_callbacks/before\_start.rb
 * test/gorgon_callbacks/after\_complete.rb
 * ~/.gorgon/gorgon_listener.json
