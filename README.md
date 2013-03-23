@@ -76,14 +76,14 @@ This file contains the listener-specific settings, such as:
 * How many worker slots are provided by this listener
 * The file used for logs
 
-See [gorgon_listener.json example](/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample) for more details.
+See [gorgon_listener.json example](/gorgon_listener.json.sample) for more details.
 
 ### Manually setting up gorgon listener as a daemon process (Ubuntu 9.10 or later)
-If `gorgon install_listener` didn't work for you, you can try [these steps](/Fitzsimmons/Gorgon/blob/master/daemon_with_upstart_and_rvm.md)
+If `gorgon install_listener` didn't work for you, you can try [these steps](/daemon_with_upstart_and_rvm.md)
 
 Contributing
 ---------------------
-Read overview [architecture](/Fitzsimmons/Gorgon/blob/master/architecture.md)
+Read overview [architecture](/architecture.md)
 
 Credits
 ---------------------
@@ -95,4 +95,4 @@ Gorgon is maintained by:
 * Victor Savkin
 
 Gorgon is funded by [Nulogy Corp](http://www.nulogy.com/).
-Thank you to all the [contributors](/Fitzsimmons/Gorgon/graphs/contributors).
+Thank you to all the [contributors](/contributors).
