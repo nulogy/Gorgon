@@ -67,7 +67,7 @@ This file contains project-specific settings for gorgon, such as:
 * A glob for generating the list of test files
 * The file used for Originator's logs
 
-See [gorgon.json example](/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample) for more details.
+See [gorgon.json example](/gorgon.json.sample) for more details.
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:
