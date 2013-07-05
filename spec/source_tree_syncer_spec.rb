@@ -57,24 +57,6 @@ describe SourceTreeSyncer.new("") do
         @syncer.sync
       end
 
-      it "use NumberOfPasswordPrompts 0 as ssh option to avoid password prompts that will hang the listener" do
-        opt = /--rsh='ssh .*-o NumberOfPasswordPrompts=0.*'/
-        Open4.should_receive(:popen4).with(opt)
-        @syncer.sync
-      end
-
-      it "set UserKnownHostsFile to /dev/null so we avoid hosts id changes and eavesdropping warnings in futures connections" do
-        opt = /ssh .*-o UserKnownHostsFile=\/dev\/null/
-        Open4.should_receive(:popen4).with(opt)
-        @syncer.sync
-      end
-
-      it "set StrictHostKeyChecking to 'no' to avoid confirmation prompt of connection to unkown host" do
-        opt = /ssh .*-o StrictHostKeyChecking=no/
-        Open4.should_receive(:popen4).with(opt)
-        @syncer.sync
-      end
-
       it "uses io timeout to avoid listener hanging forever in case rsync asks for any input" do
         opt = /--timeout=5/
         Open4.should_receive(:popen4).with(opt)
