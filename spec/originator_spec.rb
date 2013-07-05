@@ -10,9 +10,11 @@ describe Originator do
                         :add_observer => nil)}
   let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
   let(:originator_logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
+  let(:rsync_daemon) { stub("Rsync Daemon", :start => true, :stop => true)}
 
   before do
     OriginatorLogger.stub(:new).and_return originator_logger
+    RsyncDaemon.stub(:new).and_return rsync_daemon
     @originator = Originator.new
   end
 
@@ -32,6 +34,12 @@ describe Originator do
       JobState.stub!(:new).and_return job_state
       ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
       progress_bar_view.should_receive(:show)
+      @originator.publish
+    end
+
+    it "starts the rsync daemon" do
+      rsync_daemon.should_receive(:start)
+
       @originator.publish
     end
   end
@@ -54,6 +62,13 @@ describe Originator do
       @originator.publish
       @originator.cancel_job
     end
+
+    it "stops the rsync daemon" do
+      rsync_daemon.should_receive(:stop)
+
+      @originator.publish
+      @originator.cancel_job
+    end
   end
 
   describe "#cleanup_if_job_complete" do
@@ -71,6 +86,13 @@ describe Originator do
     it "disconnect if job is complete" do
       job_state.stub!(:is_job_complete?).and_return true
       protocol.should_receive(:disconnect)
+      @originator.cleanup_if_job_complete
+    end
+
+    it "stops the rsync daemon" do
+      job_state.stub!(:is_job_complete?).and_return true
+      rsync_daemon.should_receive(:stop)
+
       @originator.cleanup_if_job_complete
     end
   end

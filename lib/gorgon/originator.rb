@@ -4,6 +4,7 @@ require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
+require 'gorgon/rsync_daemon'
 
 require 'awesome_print'
 require 'etc'
@@ -14,6 +15,7 @@ class Originator
 
   def initialize
     @configuration = nil
+    @rsync_daemon = RsyncDaemon.new
   end
 
   def originate
@@ -44,11 +46,13 @@ class Originator
     @job_state.cancel
 
     @protocol.disconnect
+    @rsync_daemon.stop
   end
 
   def publish
     @logger = OriginatorLogger.new configuration[:originator_log_file]
     @protocol = OriginatorProtocol.new @logger
+    @rsync_daemon.start
 
     EventMachine.run do
       @logger.log "Connecting..."
@@ -72,6 +76,7 @@ class Originator
     if @job_state.is_job_complete?
       @logger.log "Job is done"
       @protocol.disconnect
+      @rsync_daemon.stop
     end
   end
 
