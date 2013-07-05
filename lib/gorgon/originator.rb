@@ -128,7 +128,7 @@ class Originator
   def job_definition
     job_config = configuration[:job]
     if !job_config.has_key?(:source_tree_path)
-      job_config[:source_tree_path] = "#{Etc.getlogin}@#{local_ip_addr}:#{Dir.pwd}"
+      job_config[:source_tree_path] = "rsync://#{local_ip_addr}:43434/src"
     end
     JobDefinition.new(configuration[:job])
   end

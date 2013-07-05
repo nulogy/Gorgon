@@ -5,7 +5,7 @@ class SourceTreeSyncer
   attr_reader :sys_command, :output, :errors
 
   SYS_COMMAND = 'rsync'
-  OPTS = "-azr --timeout=5 --rsh='ssh -o NumberOfPasswordPrompts=0 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'"
+  OPTS = "-azr --timeout=5"
   EXCLUDE_OPT = "--exclude"
 
   def initialize source_tree_path
