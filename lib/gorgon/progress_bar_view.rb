@@ -66,7 +66,7 @@ private
   end
 
   def output_gorgon_crash_message payload
-    $stderr.puts "\nA #{'crash'.red} occured at '#{payload[:hostname].colorize Colors::HOST}':"
+    $stderr.puts "\nA #{'crash'.red} occurred at '#{payload[:hostname].colorize Colors::HOST}':"
     $stderr.puts payload[:stdout].yellow unless payload[:stdout].to_s.strip.length == 0
     $stderr.puts payload[:stderr].yellow unless payload[:stderr].to_s.strip.length == 0
     if @progress_bar.nil?
