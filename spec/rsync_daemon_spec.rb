@@ -3,7 +3,8 @@ require 'gorgon/rsync_daemon'
 describe RsyncDaemon do
   before(:each) do
     Kernel.stub(:system => true)
-    Dir.stub(:mktmpdir => "loltmpdir", :chdir => "lol", :pwd => "/lol/hax")
+    Dir.stub(:mktmpdir => "loltmpdir", :pwd => "/lol/hax")
+    Dir.stub(:chdir).and_yield
     File.stub(:write => 100, :read => "12345")
     @r = RsyncDaemon.new
   end

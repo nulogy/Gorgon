@@ -11,10 +11,13 @@ class RsyncDaemon
   def start
     return if @started
     @tmpdir = Dir.mktmpdir("gorgon")
-    Dir.chdir(@tmpdir)
-    File.write("rsyncd.conf", rsyncd_config_string(@project_directory))
+    success = nil
+    Dir.chdir(@tmpdir) do
+      File.write("rsyncd.conf", rsyncd_config_string(@project_directory))
 
-    success = Kernel.system("rsync --daemon --config rsyncd.conf")
+      success = Kernel.system("rsync --daemon --config rsyncd.conf")
+    end
+
     if success
       @started = true
       return true
@@ -25,8 +28,12 @@ class RsyncDaemon
 
   def stop
     return unless @started
-    pid = File.read("rsync.pid")
-    success = Kernel.system("kill #{pid}")
+
+    success = nil
+    Dir.chdir(@tmpdir) do
+      pid = File.read("rsync.pid")
+      success = Kernel.system("kill #{pid}")
+    end
 
     if success
       @started = false
