@@ -7,8 +7,12 @@ describe RspecRunner do
   it {should respond_to(:runner).with(0).argument}
 
   describe "#run_file" do
+    let(:configuration) { double('Configuration', include_or_extend_modules: ['modules'],
+                                 :include_or_extend_modules= => nil) }
+
     before do
       RSpec::Core::Runner.stub(:run)
+      RSpec.stub(configuration: configuration)
     end
 
     it "uses Rspec runner to run filename and uses the correct options" do
@@ -30,6 +34,13 @@ describe RspecRunner do
       StringIO.stub!(:new).and_return(str_io)
       Yajl::Parser.any_instance.should_receive(:parse).with(:content).and_return :result
       RspecRunner.run_file("file").should == :result
+    end
+
+    # since configuration is reset on each run
+    # https://github.com/rspec/rspec-core/issues/621
+    it 'restore initial rspec configuration' do
+      RSpec.configuration.should_receive(:include_or_extend_modules=).with(['modules'])
+      RspecRunner.run_file "file"
     end
   end
 

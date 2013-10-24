@@ -14,7 +14,10 @@ class RspecRunner
 
       err, out = StringIO.new, StringIO.new
 
-      RSpec::Core::Runner.run(args, err, out)
+      keep_config_modules do
+        RSpec::Core::Runner.run(args, err, out)
+      end
+
       out.rewind
 
       Yajl::Parser.new(:symbolize_keys => true).parse(out.read)
@@ -22,6 +25,14 @@ class RspecRunner
 
     def runner
       :rspec
+    end
+
+    private
+
+    def keep_config_modules
+      config_modules = RSpec.configuration.include_or_extend_modules
+      yield
+      RSpec.configuration.include_or_extend_modules = config_modules
     end
   end
 end
