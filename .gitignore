@@ -1,3 +1,6 @@
+.floo
+.flooignore
+.sublime-project
 .bundle
 *.swp
 .rvmrc
