@@ -56,7 +56,7 @@ class WorkerManager
   private
 
   def connect
-    @bunny = Bunny.new(@config[:connection])
+    @bunny = GorgonBunny.new(@config[:connection])
     @bunny.start
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
 

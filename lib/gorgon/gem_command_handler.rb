@@ -1,6 +1,7 @@
 require "socket"
 require "yajl"
-require "bunny"
+
+require "gorgon_bunny/lib/gorgon_bunny"
 require 'open4'
 
 class GemCommandHandler

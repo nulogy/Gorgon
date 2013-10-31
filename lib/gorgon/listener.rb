@@ -9,7 +9,7 @@ require "gorgon/crash_reporter"
 require "gorgon/gem_command_handler"
 
 require "yajl"
-require "bunny"
+require "gorgon_bunny"
 require "awesome_print"
 require "open4"
 require "tmpdir"
@@ -38,7 +38,7 @@ class Listener
   end
 
   def connect
-    @bunny = Bunny.new(connection_information)
+    @bunny = GorgonBunny.new(connection_information)
     @bunny.start
   end
 

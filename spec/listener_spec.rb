@@ -2,14 +2,14 @@ require 'gorgon/listener'
 
 describe Listener do
   let(:connection_information) { double }
-  let(:queue) { stub("Bunny Queue", :bind => nil) }
-  let(:exchange) { stub("Bunny Exchange", :publish => nil) }
-  let(:bunny) { stub("Bunny", :start => nil, :queue => queue, :exchange => exchange) }
+  let(:queue) { stub("GorgonBunny Queue", :bind => nil) }
+  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
+  let(:bunny) { stub("GorgonBunny", :start => nil, :queue => queue, :exchange => exchange) }
   let(:logger) { stub("Logger", :info => true, :datetime_format= => "")}
 
   before do
     Logger.stub(:new).and_return(logger)
-    Bunny.stub(:new).and_return(bunny)
+    GorgonBunny.stub(:new).and_return(bunny)
     Listener.any_instance.stub(:configuration => {})
     Listener.any_instance.stub(:connection_information => connection_information)
   end
@@ -75,7 +75,7 @@ describe Listener do
 
     describe "#connect" do
       it "connects" do
-        Bunny.should_receive(:new).with(connection_information).and_return(bunny)
+        GorgonBunny.should_receive(:new).with(connection_information).and_return(bunny)
         bunny.should_receive(:start)
 
         listener.connect

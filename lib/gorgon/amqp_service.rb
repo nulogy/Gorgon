@@ -1,4 +1,4 @@
-require 'bunny'
+require 'gorgon_bunny'
 require 'yajl'
 
 class AmqpQueueDecorator
@@ -30,7 +30,7 @@ class AmqpService
   end
 
   def start_worker file_queue_name, reply_exchange_name
-    Bunny.run @connection_config do |b|
+    GorgonBunny.run @connection_config do |b|
       queue = b.queue file_queue_name
       exchange = b.exchange reply_exchange_name
       yield AmqpQueueDecorator.new(queue), AmqpExchangeDecorator.new(exchange)

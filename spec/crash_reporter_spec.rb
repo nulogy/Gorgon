@@ -1,7 +1,7 @@
 require 'gorgon/crash_reporter'
 
 describe "CrashReporter" do
-  let(:exchange) { stub("Bunny Exchange", :publish => nil) }
+  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
   let(:info) { {
       :out_file => "stdout_file", :err_file => "stderr_file", :footer_text => "Text"
     } }

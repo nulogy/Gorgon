@@ -1,10 +1,10 @@
 require 'gorgon/worker_manager'
 
 describe WorkerManager do
-  let(:exchange) { stub("Bunny Exchange", :publish => nil) }
+  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
   let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :delete => nil,
                      :pop => {:payload => :queue_empty}) }
-  let(:bunny) { stub("Bunny", :start => nil, :exchange => exchange,
+  let(:bunny) { stub("GorgonBunny", :start => nil, :exchange => exchange,
                      :queue => queue, :stop => nil) }
   before do
     STDIN.stub!(:read).and_return "{}"
@@ -12,7 +12,7 @@ describe WorkerManager do
     STDERR.stub!(:reopen)
     STDOUT.stub!(:sync)
     STDERR.stub!(:sync)
-    Bunny.stub!(:new).and_return(bunny)
+    GorgonBunny.stub!(:new).and_return(bunny)
     Configuration.stub!(:load_configuration_from_file).and_return({})
     EventMachine.stub!(:run).and_yield
   end

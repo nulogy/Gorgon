@@ -1,8 +1,8 @@
 require 'gorgon/gem_command_handler'
 
 describe GemCommandHandler do
-  let(:exchange) { stub("Bunny Exchange", :publish => nil) }
-  let(:bunny) { stub("Bunny", :exchange => exchange, :stop => nil) }
+  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
+  let(:bunny) { stub("GorgonBunny", :exchange => exchange, :stop => nil) }
 
   let(:payload) {
       {:type => :update, :reply_exchange_name => "name",
