@@ -9,7 +9,7 @@ require "gorgon/crash_reporter"
 require "gorgon/gem_command_handler"
 
 require "yajl"
-require "gorgon_bunny"
+require "gorgon_bunny/lib/gorgon_bunny"
 require "awesome_print"
 require "open4"
 require "tmpdir"

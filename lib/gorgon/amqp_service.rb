@@ -1,4 +1,4 @@
-require 'gorgon_bunny'
+require 'gorgon_bunny/lib/gorgon_bunny'
 require 'yajl'
 
 class AmqpQueueDecorator
