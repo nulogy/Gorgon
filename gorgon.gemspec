@@ -32,5 +32,4 @@ Gem::Specification.new do |s|
   # This problem should be fixed
   s.add_runtime_dependency "yajl-ruby", '=1.1.0'
   s.add_runtime_dependency "uuidtools", '=2.1.3'
-  s.add_runtime_dependency "bunny", '=0.8.0'
 end
