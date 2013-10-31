@@ -97,8 +97,8 @@ describe Listener do
 
     describe "#poll" do
 
-      let(:empty_queue) { {:payload => :queue_empty} }
-      let(:job_payload) { {:payload => Yajl::Encoder.encode({:type => "job_definition"}) } }
+      let(:empty_queue) { [nil, nil, nil] }
+      let(:job_payload) { [nil, nil, Yajl::Encoder.encode({:type => "job_definition"})] }
       before do
         listener.stub(:run_job)
       end
@@ -135,9 +135,7 @@ describe Listener do
       end
 
       context "ping message pending on queue" do
-        let(:ping_payload) {{
-            :payload => Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name",
-                                               :body => {}}) }}
+        let(:ping_payload) { [nil, nil, Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name", :body => {}}) ] }
 
         before do
           queue.stub!(:pop => ping_payload)
@@ -165,7 +163,7 @@ describe Listener do
         let(:gem_command_handler) { stub("GemCommandHandler", :handle => nil)  }
         let(:configuration) { {:worker_slots => 3} }
         before do
-          queue.stub!(:pop => {:payload => Yajl::Encoder.encode(payload)})
+          queue.stub!(:pop => [nil, nil, Yajl::Encoder.encode(payload)])
           listener.stub(:configuration).and_return(configuration)
         end
 
