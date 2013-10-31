@@ -350,7 +350,7 @@ module GorgonBunny
     # @see http://rubybunny.info/articles/exchanges.html Exchanges and Publishing guide
     # @api public
     def default_exchange
-      self.direct(AMQ::Protocol::EMPTY_STRING, :no_declare => true)
+      self.direct(GorgonAMQ::Protocol::EMPTY_STRING, :no_declare => true)
     end
 
     # Declares a headers exchange or looks it up in the cache of previously
@@ -390,7 +390,7 @@ module GorgonBunny
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @see http://rubybunny.info/articles/extensions.html RabbitMQ Extensions guide
     # @api public
-    def queue(name = AMQ::Protocol::EMPTY_STRING, opts = {})
+    def queue(name = GorgonAMQ::Protocol::EMPTY_STRING, opts = {})
       q = find_queue(name) || GorgonBunny::Queue.new(self, name, opts)
 
       register_queue(q)
@@ -535,7 +535,7 @@ module GorgonBunny
         @next_publish_seq_no += 1
       end
 
-      frames = AMQ::Protocol::Basic::Publish.encode(@id,
+      frames = GorgonAMQ::Protocol::Basic::Publish.encode(@id,
         payload,
         opts,
         exchange_name,
@@ -572,7 +572,7 @@ module GorgonBunny
     def basic_get(queue, opts = {:ack => true})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Basic::Get.encode(@id, queue, !(opts[:ack])))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Get.encode(@id, queue, !(opts[:ack])))
       # this is a workaround for the edge case when basic_get is called in a tight loop
       # and network goes down we need to perform recovery. The problem is, basic_get will
       # keep blocking the thread that calls it without clear way to constantly unblock it
@@ -595,7 +595,7 @@ module GorgonBunny
     # @param [Integer] prefetch_count How many messages can consumers on this channel be given at a time
     #                                 (before they have to acknowledge or reject one of the earlier received messages)
     # @param [Boolean] global (false) Ignored, as it is not supported by RabbitMQ
-    # @return [AMQ::Protocol::Basic::QosOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Basic::QosOk] RabbitMQ response
     # @see GorgonBunny::Channel#prefetch
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
@@ -603,7 +603,7 @@ module GorgonBunny
       raise ArgumentError.new("prefetch count must be a positive integer, given: #{prefetch_count}") if prefetch_count < 0
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Basic::Qos.encode(@id, 0, prefetch_count, global))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Qos.encode(@id, 0, prefetch_count, global))
 
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_basic_qos_ok = wait_on_continuations
@@ -618,12 +618,12 @@ module GorgonBunny
     # Redeliver unacknowledged messages
     #
     # @param [Boolean] requeue Should messages be requeued?
-    # @return [AMQ::Protocol::Basic::RecoverOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Basic::RecoverOk] RabbitMQ response
     # @api public
     def basic_recover(requeue)
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Basic::Recover.encode(@id, requeue))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Recover.encode(@id, requeue))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_basic_recover_ok = wait_on_continuations
       end
@@ -672,7 +672,7 @@ module GorgonBunny
     # @api public
     def basic_reject(delivery_tag, requeue)
       raise_if_no_longer_open!
-      @connection.send_frame(AMQ::Protocol::Basic::Reject.encode(@id, delivery_tag, requeue))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Reject.encode(@id, delivery_tag, requeue))
 
       nil
     end
@@ -719,7 +719,7 @@ module GorgonBunny
     # @api public
     def basic_ack(delivery_tag, multiple)
       raise_if_no_longer_open!
-      @connection.send_frame(AMQ::Protocol::Basic::Ack.encode(@id, delivery_tag, multiple))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Ack.encode(@id, delivery_tag, multiple))
 
       nil
     end
@@ -779,7 +779,7 @@ module GorgonBunny
     # @api public
     def basic_nack(delivery_tag, multiple = false, requeue = false)
       raise_if_no_longer_open!
-      @connection.send_frame(AMQ::Protocol::Basic::Nack.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Nack.encode(@id,
           delivery_tag,
           multiple,
           requeue))
@@ -797,7 +797,7 @@ module GorgonBunny
     # @param [Boolean] exclusive (false) Should this consumer be exclusive?
     # @param [Hash] arguments (nil) Optional arguments that may be used by RabbitMQ extensions, etc
     #
-    # @return [AMQ::Protocol::Basic::ConsumeOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Basic::ConsumeOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def basic_consume(queue, consumer_tag = generate_consumer_tag, no_ack = false, exclusive = false, arguments = nil, &block)
@@ -812,11 +812,11 @@ module GorgonBunny
 
       # helps avoid race condition between basic.consume-ok and basic.deliver if there are messages
       # in the queue already. MK.
-      if consumer_tag && consumer_tag.strip != AMQ::Protocol::EMPTY_STRING
+      if consumer_tag && consumer_tag.strip != GorgonAMQ::Protocol::EMPTY_STRING
         add_consumer(queue_name, consumer_tag, no_ack, exclusive, arguments, &block)
       end
 
-      @connection.send_frame(AMQ::Protocol::Basic::Consume.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Consume.encode(@id,
           queue_name,
           consumer_tag,
           false,
@@ -853,7 +853,7 @@ module GorgonBunny
     # @param [GorgonBunny::Consumer] consumer Consumer to register. It should already have queue name, consumer tag
     #                                   and other attributes set.
     #
-    # @return [AMQ::Protocol::Basic::ConsumeOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Basic::ConsumeOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def basic_consume_with(consumer)
@@ -862,11 +862,11 @@ module GorgonBunny
 
       # helps avoid race condition between basic.consume-ok and basic.deliver if there are messages
       # in the queue already. MK.
-      if consumer.consumer_tag && consumer.consumer_tag.strip != AMQ::Protocol::EMPTY_STRING
+      if consumer.consumer_tag && consumer.consumer_tag.strip != GorgonAMQ::Protocol::EMPTY_STRING
         register_consumer(consumer.consumer_tag, consumer)
       end
 
-      @connection.send_frame(AMQ::Protocol::Basic::Consume.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Consume.encode(@id,
           consumer.queue_name,
           consumer.consumer_tag,
           false,
@@ -905,11 +905,11 @@ module GorgonBunny
     #
     # @param [String] consumer_tag Consumer tag (unique identifier) to cancel
     #
-    # @return [AMQ::Protocol::Basic::CancelOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Basic::CancelOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def basic_cancel(consumer_tag)
-      @connection.send_frame(AMQ::Protocol::Basic::Cancel.encode(@id, consumer_tag, false))
+      @connection.send_frame(GorgonAMQ::Protocol::Basic::Cancel.encode(@id, consumer_tag, false))
 
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_basic_cancel_ok = wait_on_continuations
@@ -945,13 +945,13 @@ module GorgonBunny
     # @option opts [Boolean] passive (false)   If true, queue will be checked for existence. If it does not
     #                                          exist, {GorgonBunny::NotFound} will be raised.
     #
-    # @return [AMQ::Protocol::Queue::DeclareOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Queue::DeclareOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def queue_declare(name, opts = {})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Queue::Declare.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Queue::Declare.encode(@id,
           name,
           opts.fetch(:passive, false),
           opts.fetch(:durable, false),
@@ -974,13 +974,13 @@ module GorgonBunny
     # @option opts [Boolean] if_unused (false) Should this queue be deleted only if it has no consumers?
     # @option opts [Boolean] if_empty (false) Should this queue be deleted only if it has no messages?
     #
-    # @return [AMQ::Protocol::Queue::DeleteOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Queue::DeleteOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def queue_delete(name, opts = {})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Queue::Delete.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Queue::Delete.encode(@id,
           name,
           opts[:if_unused],
           opts[:if_empty],
@@ -997,13 +997,13 @@ module GorgonBunny
     #
     # @param [String] name Queue name
     #
-    # @return [AMQ::Protocol::Queue::PurgeOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Queue::PurgeOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def queue_purge(name, opts = {})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Queue::Purge.encode(@id, name, false))
+      @connection.send_frame(GorgonAMQ::Protocol::Queue::Purge.encode(@id, name, false))
 
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_queue_purge_ok = wait_on_continuations
@@ -1022,7 +1022,7 @@ module GorgonBunny
     # @option opts [String] routing_key (nil) Routing key used for binding
     # @option opts [Hash] arguments ({}) Optional arguments
     #
-    # @return [AMQ::Protocol::Queue::BindOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Queue::BindOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @see http://rubybunny.info/articles/bindings.html Bindings guide
     # @api public
@@ -1035,7 +1035,7 @@ module GorgonBunny
                         exchange
                       end
 
-      @connection.send_frame(AMQ::Protocol::Queue::Bind.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Queue::Bind.encode(@id,
           name,
           exchange_name,
           opts[:routing_key],
@@ -1058,7 +1058,7 @@ module GorgonBunny
     # @option opts [String] routing_key (nil) Routing key used for binding
     # @option opts [Hash] arguments ({}) Optional arguments
     #
-    # @return [AMQ::Protocol::Queue::UnbindOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Queue::UnbindOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @see http://rubybunny.info/articles/bindings.html Bindings guide
     # @api public
@@ -1071,7 +1071,7 @@ module GorgonBunny
                         exchange
                       end
 
-      @connection.send_frame(AMQ::Protocol::Queue::Unbind.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Queue::Unbind.encode(@id,
           name,
           exchange_name,
           opts[:routing_key],
@@ -1100,13 +1100,13 @@ module GorgonBunny
     # @option opts [Boolean] passive (false)   If true, exchange will be checked for existence. If it does not
     #                                          exist, {GorgonBunny::NotFound} will be raised.
     #
-    # @return [AMQ::Protocol::Exchange::DeclareOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Exchange::DeclareOk] RabbitMQ response
     # @see http://rubybunny.info/articles/echanges.html Exchanges and Publishing guide
     # @api public
     def exchange_declare(name, type, opts = {})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Exchange::Declare.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Exchange::Declare.encode(@id,
           name,
           type.to_s,
           opts.fetch(:passive, false),
@@ -1130,13 +1130,13 @@ module GorgonBunny
     #
     # @option opts [Boolean] if_unused (false) Should this exchange be deleted only if it is no longer used
     #
-    # @return [AMQ::Protocol::Exchange::DeleteOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Exchange::DeleteOk] RabbitMQ response
     # @see http://rubybunny.info/articles/exchanges.html Exchanges and Publishing guide
     # @api public
     def exchange_delete(name, opts = {})
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Exchange::Delete.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Exchange::Delete.encode(@id,
           name,
           opts[:if_unused],
           false))
@@ -1158,7 +1158,7 @@ module GorgonBunny
     # @option opts [String] routing_key (nil) Routing key used for binding
     # @option opts [Hash] arguments ({}) Optional arguments
     #
-    # @return [AMQ::Protocol::Exchange::BindOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Exchange::BindOk] RabbitMQ response
     # @see http://rubybunny.info/articles/exchanges.html Exchanges and Publishing guide
     # @see http://rubybunny.info/articles/bindings.html Bindings guide
     # @see http://rubybunny.info/articles/extensions.html RabbitMQ Extensions guide
@@ -1178,7 +1178,7 @@ module GorgonBunny
                            destination
                          end
 
-      @connection.send_frame(AMQ::Protocol::Exchange::Bind.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Exchange::Bind.encode(@id,
           destination_name,
           source_name,
           opts[:routing_key],
@@ -1202,7 +1202,7 @@ module GorgonBunny
     # @option opts [String] routing_key (nil) Routing key used for binding
     # @option opts [Hash] arguments ({}) Optional arguments
     #
-    # @return [AMQ::Protocol::Exchange::UnbindOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Exchange::UnbindOk] RabbitMQ response
     # @see http://rubybunny.info/articles/exchanges.html Exchanges and Publishing guide
     # @see http://rubybunny.info/articles/bindings.html Bindings guide
     # @see http://rubybunny.info/articles/extensions.html RabbitMQ Extensions guide
@@ -1222,7 +1222,7 @@ module GorgonBunny
                            destination
                          end
 
-      @connection.send_frame(AMQ::Protocol::Exchange::Unbind.encode(@id,
+      @connection.send_frame(GorgonAMQ::Protocol::Exchange::Unbind.encode(@id,
           destination_name,
           source_name,
           opts[:routing_key],
@@ -1249,13 +1249,13 @@ module GorgonBunny
     # @note Recent (e.g. 2.8.x., 3.x) RabbitMQ will employ TCP/IP-level back pressure on publishers if it detects
     #       that consumers do not keep up with them.
     #
-    # @return [AMQ::Protocol::Channel::FlowOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Channel::FlowOk] RabbitMQ response
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @api public
     def channel_flow(active)
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Channel::Flow.encode(@id, active))
+      @connection.send_frame(GorgonAMQ::Protocol::Channel::Flow.encode(@id, active))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_channel_flow_ok = wait_on_continuations
       end
@@ -1271,12 +1271,12 @@ module GorgonBunny
     # @group Transactions (tx.*)
 
     # Puts the channel into transaction mode (starts a transaction)
-    # @return [AMQ::Protocol::Tx::SelectOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Tx::SelectOk] RabbitMQ response
     # @api public
     def tx_select
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Tx::Select.encode(@id))
+      @connection.send_frame(GorgonAMQ::Protocol::Tx::Select.encode(@id))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_tx_select_ok = wait_on_continuations
       end
@@ -1286,12 +1286,12 @@ module GorgonBunny
     end
 
     # Commits current transaction
-    # @return [AMQ::Protocol::Tx::CommitOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Tx::CommitOk] RabbitMQ response
     # @api public
     def tx_commit
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Tx::Commit.encode(@id))
+      @connection.send_frame(GorgonAMQ::Protocol::Tx::Commit.encode(@id))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_tx_commit_ok = wait_on_continuations
       end
@@ -1301,12 +1301,12 @@ module GorgonBunny
     end
 
     # Rolls back current transaction
-    # @return [AMQ::Protocol::Tx::RollbackOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Tx::RollbackOk] RabbitMQ response
     # @api public
     def tx_rollback
       raise_if_no_longer_open!
 
-      @connection.send_frame(AMQ::Protocol::Tx::Rollback.encode(@id))
+      @connection.send_frame(GorgonAMQ::Protocol::Tx::Rollback.encode(@id))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_tx_rollback_ok = wait_on_continuations
       end
@@ -1328,7 +1328,7 @@ module GorgonBunny
     end
 
     # Enables publisher confirms for the channel.
-    # @return [AMQ::Protocol::Confirm::SelectOk] RabbitMQ response
+    # @return [GorgonAMQ::Protocol::Confirm::SelectOk] RabbitMQ response
     # @see #wait_for_confirms
     # @see #unconfirmed_set
     # @see #nacked_set
@@ -1346,7 +1346,7 @@ module GorgonBunny
 
       @confirms_callback = callback
 
-      @connection.send_frame(AMQ::Protocol::Confirm::Select.encode(@id, false))
+      @connection.send_frame(GorgonAMQ::Protocol::Confirm::Select.encode(@id, false))
       GorgonBunny::Timeout.timeout(read_write_timeout, ClientTimeout) do
         @last_confirm_select_ok = wait_on_continuations
       end
@@ -1515,33 +1515,33 @@ module GorgonBunny
     def handle_method(method)
       @logger.debug "Channel#handle_frame on channel #{@id}: #{method.inspect}"
       case method
-      when AMQ::Protocol::Queue::DeclareOk then
+      when GorgonAMQ::Protocol::Queue::DeclareOk then
         @continuations.push(method)
-      when AMQ::Protocol::Queue::DeleteOk then
+      when GorgonAMQ::Protocol::Queue::DeleteOk then
         @continuations.push(method)
-      when AMQ::Protocol::Queue::PurgeOk then
+      when GorgonAMQ::Protocol::Queue::PurgeOk then
         @continuations.push(method)
-      when AMQ::Protocol::Queue::BindOk then
+      when GorgonAMQ::Protocol::Queue::BindOk then
         @continuations.push(method)
-      when AMQ::Protocol::Queue::UnbindOk then
+      when GorgonAMQ::Protocol::Queue::UnbindOk then
         @continuations.push(method)
-      when AMQ::Protocol::Exchange::BindOk then
+      when GorgonAMQ::Protocol::Exchange::BindOk then
         @continuations.push(method)
-      when AMQ::Protocol::Exchange::UnbindOk then
+      when GorgonAMQ::Protocol::Exchange::UnbindOk then
         @continuations.push(method)
-      when AMQ::Protocol::Exchange::DeclareOk then
+      when GorgonAMQ::Protocol::Exchange::DeclareOk then
         @continuations.push(method)
-      when AMQ::Protocol::Exchange::DeleteOk then
+      when GorgonAMQ::Protocol::Exchange::DeleteOk then
         @continuations.push(method)
-      when AMQ::Protocol::Basic::QosOk then
+      when GorgonAMQ::Protocol::Basic::QosOk then
         @continuations.push(method)
-      when AMQ::Protocol::Basic::RecoverOk then
+      when GorgonAMQ::Protocol::Basic::RecoverOk then
         @continuations.push(method)
-      when AMQ::Protocol::Channel::FlowOk then
+      when GorgonAMQ::Protocol::Channel::FlowOk then
         @continuations.push(method)
-      when AMQ::Protocol::Basic::ConsumeOk then
+      when GorgonAMQ::Protocol::Basic::ConsumeOk then
         @continuations.push(method)
-      when AMQ::Protocol::Basic::Cancel then
+      when GorgonAMQ::Protocol::Basic::Cancel then
         if consumer = @consumers[method.consumer_tag]
           @work_pool.submit do
             begin
@@ -1554,22 +1554,22 @@ module GorgonBunny
         else
           @logger.warn "No consumer for tag #{method.consumer_tag} on channel #{@id}!"
         end
-      when AMQ::Protocol::Basic::CancelOk then
+      when GorgonAMQ::Protocol::Basic::CancelOk then
         @continuations.push(method)
         unregister_consumer(method.consumer_tag)
-      when AMQ::Protocol::Tx::SelectOk, AMQ::Protocol::Tx::CommitOk, AMQ::Protocol::Tx::RollbackOk then
+      when GorgonAMQ::Protocol::Tx::SelectOk, GorgonAMQ::Protocol::Tx::CommitOk, GorgonAMQ::Protocol::Tx::RollbackOk then
         @continuations.push(method)
-      when AMQ::Protocol::Tx::SelectOk then
+      when GorgonAMQ::Protocol::Tx::SelectOk then
         @continuations.push(method)
-      when AMQ::Protocol::Confirm::SelectOk then
+      when GorgonAMQ::Protocol::Confirm::SelectOk then
         @continuations.push(method)
-      when AMQ::Protocol::Basic::Ack then
+      when GorgonAMQ::Protocol::Basic::Ack then
         handle_ack_or_nack(method.delivery_tag, method.multiple, false)
-      when AMQ::Protocol::Basic::Nack then
+      when GorgonAMQ::Protocol::Basic::Nack then
         handle_ack_or_nack(method.delivery_tag, method.multiple, true)
-      when AMQ::Protocol::Channel::Close then
+      when GorgonAMQ::Protocol::Channel::Close then
         closed!
-        @connection.send_frame(AMQ::Protocol::Channel::CloseOk.encode(@id))
+        @connection.send_frame(GorgonAMQ::Protocol::Channel::CloseOk.encode(@id))
 
         # basic.ack, basic.reject, basic.nack. MK.
         if channel_level_exception_after_operation_that_has_no_response?(method)
@@ -1579,7 +1579,7 @@ module GorgonBunny
           @continuations.push(method)
         end
 
-      when AMQ::Protocol::Channel::CloseOk then
+      when GorgonAMQ::Protocol::Channel::CloseOk then
         @continuations.push(method)
       else
         raise "Do not know how to handle #{method.inspect} in GorgonBunny::Channel#handle_method"
@@ -1795,7 +1795,7 @@ module GorgonBunny
     # @private
     def instantiate_channel_level_exception(frame)
       case frame
-      when AMQ::Protocol::Channel::Close then
+      when GorgonAMQ::Protocol::Channel::Close then
         klass = case frame.reply_code
                 when 403 then
                   AccessRefused
@@ -1825,7 +1825,7 @@ module GorgonBunny
 
     # @private
     def raise_if_channel_close!(method)
-      if method && method.is_a?(AMQ::Protocol::Channel::Close)
+      if method && method.is_a?(GorgonAMQ::Protocol::Channel::Close)
         # basic.ack, basic.reject, basic.nack. MK.
         if channel_level_exception_after_operation_that_has_no_response?(method)
           @on_error.call(self, method) if @on_error

@@ -16,8 +16,8 @@ else
   require "gorgon_bunny/concurrent/continuation_queue"
 end
 
-require "amq/protocol/client"
-require "amq/settings"
+require "gorgon_amq/protocol/client"
+require "gorgon_amq/settings"
 
 module GorgonBunny
   # Represents AMQP 0.9.1 connection (to a RabbitMQ node).
@@ -364,7 +364,7 @@ module GorgonBunny
     # because it is running low on memory or disk space (as configured via config file
     # and/or rabbitmqctl).
     #
-    # @yield [AMQ::Protocol::Connection::Blocked] connection.blocked method which provides a reason for blocking
+    # @yield [GorgonAMQ::Protocol::Connection::Blocked] connection.blocked method which provides a reason for blocking
     #
     # @api public
     def on_blocked(&block)
@@ -393,7 +393,7 @@ module GorgonBunny
     # @param [String] uri amqp or amqps URI to parse
     # @return [Hash] Parsed URI as a hash
     def self.parse_uri(uri)
-      AMQ::Settings.parse_amqp_url(uri)
+      GorgonAMQ::Settings.parse_amqp_url(uri)
     end
 
     # Checks if a queue with given name exists.
@@ -447,7 +447,7 @@ module GorgonBunny
       self.register_channel(ch)
 
       @transport_mutex.synchronize do
-        @transport.send_frame(AMQ::Protocol::Channel::Open.encode(n, AMQ::Protocol::EMPTY_STRING))
+        @transport.send_frame(GorgonAMQ::Protocol::Channel::Open.encode(n, GorgonAMQ::Protocol::EMPTY_STRING))
       end
       @last_channel_open_ok = wait_on_continuations
       raise_if_continuation_resulted_in_a_connection_error!
@@ -459,7 +459,7 @@ module GorgonBunny
     def close_channel(ch)
       n = ch.number
 
-      @transport.send_frame(AMQ::Protocol::Channel::Close.encode(n, 200, "Goodbye", 0, 0))
+      @transport.send_frame(GorgonAMQ::Protocol::Channel::Close.encode(n, 200, "Goodbye", 0, 0))
       @last_channel_close_ok = wait_on_continuations
       raise_if_continuation_resulted_in_a_connection_error!
 
@@ -477,7 +477,7 @@ module GorgonBunny
     # @private
     def close_connection(sync = true)
       if @transport.open?
-        @transport.send_frame(AMQ::Protocol::Connection::Close.encode(200, "Goodbye", 0, 0))
+        @transport.send_frame(GorgonAMQ::Protocol::Connection::Close.encode(200, "Goodbye", 0, 0))
 
         maybe_shutdown_heartbeat_sender
         @status   = :not_connected
@@ -499,16 +499,16 @@ module GorgonBunny
     def handle_frame(ch_number, method)
       @logger.debug "Session#handle_frame on #{ch_number}: #{method.inspect}"
       case method
-      when AMQ::Protocol::Channel::OpenOk then
+      when GorgonAMQ::Protocol::Channel::OpenOk then
         @continuations.push(method)
-      when AMQ::Protocol::Channel::CloseOk then
+      when GorgonAMQ::Protocol::Channel::CloseOk then
         @continuations.push(method)
-      when AMQ::Protocol::Connection::Close then
+      when GorgonAMQ::Protocol::Connection::Close then
         @last_connection_error = instantiate_connection_level_exception(method)
         @continuations.push(method)
 
         @origin_thread.raise(@last_connection_error)
-      when AMQ::Protocol::Connection::CloseOk then
+      when GorgonAMQ::Protocol::Connection::CloseOk then
         @last_connection_close_ok = method
         begin
           @continuations.clear
@@ -519,20 +519,20 @@ module GorgonBunny
         ensure
           @continuations.push(:__unblock__)
         end
-      when AMQ::Protocol::Connection::Blocked then
+      when GorgonAMQ::Protocol::Connection::Blocked then
         @blocked = true
         @block_callback.call(method) if @block_callback
-      when AMQ::Protocol::Connection::Unblocked then
+      when GorgonAMQ::Protocol::Connection::Unblocked then
         @blocked = false
         @unblock_callback.call(method) if @unblock_callback
-      when AMQ::Protocol::Channel::Close then
+      when GorgonAMQ::Protocol::Channel::Close then
         begin
           ch = @channels[ch_number]
           ch.handle_method(method)
         ensure
           self.unregister_channel(ch)
         end
-      when AMQ::Protocol::Basic::GetEmpty then
+      when GorgonAMQ::Protocol::Basic::GetEmpty then
         @channels[ch_number].handle_basic_get_empty(method)
       else
         if ch = @channels[ch_number]
@@ -553,11 +553,11 @@ module GorgonBunny
       method = frames.first
 
       case method
-      when AMQ::Protocol::Basic::GetOk then
+      when GorgonAMQ::Protocol::Basic::GetOk then
         @channels[ch_number].handle_basic_get_ok(*frames)
-      when AMQ::Protocol::Basic::GetEmpty then
+      when GorgonAMQ::Protocol::Basic::GetEmpty then
         @channels[ch_number].handle_basic_get_empty(*frames)
-      when AMQ::Protocol::Basic::Return then
+      when GorgonAMQ::Protocol::Basic::Return then
         @channels[ch_number].handle_basic_return(*frames)
       else
         @channels[ch_number].handle_frameset(*frames)
@@ -610,7 +610,7 @@ module GorgonBunny
 
           recover_channels
         end
-      rescue TCPConnectionFailed, AMQ::Protocol::EmptyResponseError => e
+      rescue TCPConnectionFailed, GorgonAMQ::Protocol::EmptyResponseError => e
         @logger.warn "TCP connection failed, reconnecting in 5 seconds"
         sleep @network_recovery_interval
         retry if recoverable_network_failure?(e)
@@ -632,7 +632,7 @@ module GorgonBunny
     # @private
     def instantiate_connection_level_exception(frame)
       case frame
-      when AMQ::Protocol::Connection::Close then
+      when GorgonAMQ::Protocol::Connection::Close then
         klass = case frame.reply_code
                 when 320 then
                   ConnectionForced
@@ -664,9 +664,9 @@ module GorgonBunny
     # @private
     def port_from(options)
       fallback = if options[:tls] || options[:ssl]
-                   AMQ::Protocol::TLS_PORT
+                   GorgonAMQ::Protocol::TLS_PORT
                  else
-                   AMQ::Protocol::DEFAULT_PORT
+                   GorgonAMQ::Protocol::DEFAULT_PORT
                  end
 
       options.fetch(:port, fallback)
@@ -873,14 +873,14 @@ module GorgonBunny
 
     # @private
     def open_connection
-      @transport.send_frame(AMQ::Protocol::Connection::StartOk.encode(@client_properties, @mechanism, self.encode_credentials(username, password), @locale))
+      @transport.send_frame(GorgonAMQ::Protocol::Connection::StartOk.encode(@client_properties, @mechanism, self.encode_credentials(username, password), @locale))
       @logger.debug "Sent connection.start-ok"
 
       frame = begin
                 @transport.read_next_frame
                 # frame timeout means the broker has closed the TCP connection, which it
                 # does per 0.9.1 spec.
-              rescue Errno::ECONNRESET, ClientTimeout, AMQ::Protocol::EmptyResponseError, EOFError, IOError => e
+              rescue Errno::ECONNRESET, ClientTimeout, GorgonAMQ::Protocol::EmptyResponseError, EOFError, IOError => e
                 nil
               end
       if frame.nil?
@@ -890,7 +890,7 @@ module GorgonBunny
       end
 
       response = frame.decode_payload
-      if response.is_a?(AMQ::Protocol::Connection::Close)
+      if response.is_a?(GorgonAMQ::Protocol::Connection::Close)
         @state = :closed
         @logger.error "Authentication with RabbitMQ failed: #{response.reply_code} #{response.reply_text}"
         raise GorgonBunny::AuthenticationFailureError.new(self.user, self.vhost, self.password.size)
@@ -913,16 +913,16 @@ module GorgonBunny
 
       @channel_id_allocator = ChannelIdAllocator.new(@channel_max)
 
-      @transport.send_frame(AMQ::Protocol::Connection::TuneOk.encode(@channel_max, @frame_max, @heartbeat))
+      @transport.send_frame(GorgonAMQ::Protocol::Connection::TuneOk.encode(@channel_max, @frame_max, @heartbeat))
       @logger.debug "Sent connection.tune-ok with heartbeat interval = #{@heartbeat}, frame_max = #{@frame_max}, channel_max = #{@channel_max}"
-      @transport.send_frame(AMQ::Protocol::Connection::Open.encode(self.vhost))
+      @transport.send_frame(GorgonAMQ::Protocol::Connection::Open.encode(self.vhost))
       @logger.debug "Sent connection.open with vhost = #{self.vhost}"
 
       frame2 = begin
                  @transport.read_next_frame
                  # frame timeout means the broker has closed the TCP connection, which it
                  # does per 0.9.1 spec.
-               rescue Errno::ECONNRESET, ClientTimeout, AMQ::Protocol::EmptyResponseError, EOFError => e
+               rescue Errno::ECONNRESET, ClientTimeout, GorgonAMQ::Protocol::EmptyResponseError, EOFError => e
                  nil
                end
       if frame2.nil?
@@ -937,7 +937,7 @@ module GorgonBunny
         initialize_heartbeat_sender
       end
 
-      raise "could not open connection: server did not respond with connection.open-ok" unless connection_open_ok.is_a?(AMQ::Protocol::Connection::OpenOk)
+      raise "could not open connection: server did not respond with connection.open-ok" unless connection_open_ok.is_a?(GorgonAMQ::Protocol::Connection::OpenOk)
     end
 
     def heartbeat_disabled?(val)
@@ -980,7 +980,7 @@ module GorgonBunny
     # Sends AMQ protocol header (also known as preamble).
     # @private
     def send_preamble
-      @transport.write(AMQ::Protocol::PREAMBLE)
+      @transport.write(GorgonAMQ::Protocol::PREAMBLE)
       @logger.debug "Sent protocol preamble"
     end
 

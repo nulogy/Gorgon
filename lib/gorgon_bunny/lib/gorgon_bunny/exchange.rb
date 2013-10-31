@@ -55,7 +55,7 @@ module GorgonBunny
     # @return [Exchange] An instance that corresponds to the default exchange (of type direct).
     # @api public
     def self.default(channel_or_connection)
-      self.new(channel_from(channel_or_connection), :direct, AMQ::Protocol::EMPTY_STRING, :no_declare => true)
+      self.new(channel_from(channel_or_connection), :direct, GorgonAMQ::Protocol::EMPTY_STRING, :no_declare => true)
     end
 
     # @param [GorgonBunny::Channel] channel_or_connection Channel this exchange will use. {GorgonBunny::Session} instances are supported only for
@@ -87,7 +87,7 @@ module GorgonBunny
       @auto_delete      = @options[:auto_delete]
       @arguments        = @options[:arguments]
 
-      declare! unless opts[:no_declare] || predeclared? || (@name == AMQ::Protocol::EMPTY_STRING)
+      declare! unless opts[:no_declare] || predeclared? || (@name == GorgonAMQ::Protocol::EMPTY_STRING)
 
       @channel.register_exchange(self)
     end
@@ -235,7 +235,7 @@ module GorgonBunny
 
     # @return [Boolean] true if this exchange is a pre-defined one (amq.direct, amq.fanout, amq.match and so on)
     def predefined?
-      (@name == AMQ::Protocol::EMPTY_STRING) || !!(@name =~ /^amq\.(direct|fanout|topic|headers|match)/i)
+      (@name == GorgonAMQ::Protocol::EMPTY_STRING) || !!(@name =~ /^amq\.(direct|fanout|topic|headers|match)/i)
     end # predefined?
     alias predeclared? predefined?
 

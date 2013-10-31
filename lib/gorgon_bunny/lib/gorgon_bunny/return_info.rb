@@ -1,5 +1,5 @@
 module GorgonBunny
-  # Wraps AMQ::Protocol::Basic::Return to
+  # Wraps GorgonAMQ::Protocol::Basic::Return to
   # provide access to the delivery properties as immutable hash as
   # well as methods.
   class ReturnInfo

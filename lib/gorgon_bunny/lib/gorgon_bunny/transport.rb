@@ -198,11 +198,11 @@ module GorgonBunny
       #       the socket method return an empty string. We need to log
       #       and handle this better.
       # type, channel, size = begin
-      #                         AMQ::Protocol::Frame.decode_header(header)
-      #                       rescue AMQ::Protocol::EmptyResponseError => e
-      #                         puts "Got AMQ::Protocol::EmptyResponseError, header is #{header.inspect}"
+      #                         GorgonAMQ::Protocol::Frame.decode_header(header)
+      #                       rescue GorgonAMQ::Protocol::EmptyResponseError => e
+      #                         puts "Got GorgonAMQ::Protocol::EmptyResponseError, header is #{header.inspect}"
       #                       end
-      type, channel, size = AMQ::Protocol::Frame.decode_header(header)
+      type, channel, size = GorgonAMQ::Protocol::Frame.decode_header(header)
       payload   = @socket.read_fully(size)
       frame_end = @socket.read_fully(1)
 
@@ -212,8 +212,8 @@ module GorgonBunny
       end
 
       # 2) the size is OK, but the string doesn't end with FINAL_OCTET
-      raise NoFinalOctetError.new if frame_end != AMQ::Protocol::Frame::FINAL_OCTET
-      AMQ::Protocol::Frame.new(type, payload, channel)
+      raise NoFinalOctetError.new if frame_end != GorgonAMQ::Protocol::Frame::FINAL_OCTET
+      GorgonAMQ::Protocol::Frame.new(type, payload, channel)
     end
 
 
@@ -264,7 +264,7 @@ module GorgonBunny
     protected
 
     def tls_enabled?(opts)
-      opts[:tls] || opts[:ssl] || (opts[:port] == AMQ::Protocol::TLS_PORT) || false
+      opts[:tls] || opts[:ssl] || (opts[:port] == GorgonAMQ::Protocol::TLS_PORT) || false
     end
 
     def tls_certificate_path_from(opts)

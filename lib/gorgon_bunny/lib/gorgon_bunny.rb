@@ -1,12 +1,13 @@
 # -*- encoding: utf-8; mode: ruby -*-
 
 $LOAD_PATH.unshift("#{File.dirname(__FILE__)}")
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/../../gorgon_amq-protocol/lib")
 
 require "timeout"
 
 require "gorgon_bunny/version"
-require "amq/protocol/client"
-require "amq/protocol/extensions"
+require "gorgon_amq/protocol/client"
+require "gorgon_amq/protocol/extensions"
 
 require "gorgon_bunny/framing"
 require "gorgon_bunny/exceptions"
@@ -34,7 +35,7 @@ require "gorgon_bunny/consumer"
 # @see http://rubybunny.info
 module GorgonBunny
   # AMQP protocol version GorgonBunny implements
-  PROTOCOL_VERSION = AMQ::Protocol::PROTOCOL_VERSION
+  PROTOCOL_VERSION = GorgonAMQ::Protocol::PROTOCOL_VERSION
 
   #
   # API
@@ -47,7 +48,7 @@ module GorgonBunny
 
   # @return [String] AMQP protocol version GorgonBunny implements
   def self.protocol_version
-    AMQ::Protocol::PROTOCOL_VERSION
+    GorgonAMQ::Protocol::PROTOCOL_VERSION
   end
 
   # Instantiates a new connection. The actual connection network

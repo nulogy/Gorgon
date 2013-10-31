@@ -1,6 +1,6 @@
 require "thread"
-require "amq/protocol/client"
-require "amq/protocol/frame"
+require "gorgon_amq/protocol/client"
+require "gorgon_amq/protocol/frame"
 
 module GorgonBunny
   # Periodically sends heartbeats, keeping track of the last publishing activity.
@@ -63,7 +63,7 @@ module GorgonBunny
 
       if now > (@last_activity_time + @interval)
         @logger.debug "Sending a heartbeat, last activity time: #{@last_activity_time}, interval (s): #{@interval}"
-        @transport.write_without_timeout(AMQ::Protocol::HeartbeatFrame.encode)
+        @transport.write_without_timeout(GorgonAMQ::Protocol::HeartbeatFrame.encode)
       end
     end
   end

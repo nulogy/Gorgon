@@ -35,7 +35,7 @@ module GorgonBunny
     # @see http://rubybunny.info/articles/queues.html Queues and Consumers guide
     # @see http://rubybunny.info/articles/extensions.html RabbitMQ Extensions guide
     # @api public
-    def initialize(channel_or_connection, name = AMQ::Protocol::EMPTY_STRING, opts = {})
+    def initialize(channel_or_connection, name = GorgonAMQ::Protocol::EMPTY_STRING, opts = {})
       # old GorgonBunny versions pass a connection here. In that case,
       # we just use default channel from it. MK.
       @channel          = channel_from(channel_or_connection)
@@ -321,7 +321,7 @@ module GorgonBunny
     def recover_from_network_failure
       if self.server_named?
         old_name = @name.dup
-        @name    = AMQ::Protocol::EMPTY_STRING
+        @name    = GorgonAMQ::Protocol::EMPTY_STRING
 
         @channel.deregister_queue_named(old_name)
       end

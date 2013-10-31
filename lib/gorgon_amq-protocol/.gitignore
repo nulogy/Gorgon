@@ -1,0 +1,15 @@
+/*.gem
+/.rvmrc
+/.ruby-version
+tmp
+*.pyc
+/vendor/bundle
+/vendor/amq-*
+/coverage
+Gemfile.lock
+.rbx/*
+.Apple*
+.bundle/*
+bin/*
+*.bundle
+Makefile

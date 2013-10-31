@@ -142,13 +142,13 @@ module GorgonBunny
   class InconsistentDataError < Exception
   end
 
-  # Raised by adapters when frame does not end with {final octet AMQ::Protocol::Frame::FINAL_OCTET}.
+  # Raised by adapters when frame does not end with {final octet GorgonAMQ::Protocol::Frame::FINAL_OCTET}.
   # This suggest that there is a bug in adapter or AMQ broker implementation.
   #
   # @see https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf AMQP 0.9.1 specification (Section 2.3)
   class NoFinalOctetError < InconsistentDataError
     def initialize
-      super("Frame doesn't end with #{AMQ::Protocol::Frame::FINAL_OCTET} as it must, which means the size is miscalculated.")
+      super("Frame doesn't end with #{GorgonAMQ::Protocol::Frame::FINAL_OCTET} as it must, which means the size is miscalculated.")
     end
   end
 

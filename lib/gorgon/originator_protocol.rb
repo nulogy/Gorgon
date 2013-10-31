@@ -1,3 +1,4 @@
+
 require 'gorgon/job_definition'
 
 require 'amqp'

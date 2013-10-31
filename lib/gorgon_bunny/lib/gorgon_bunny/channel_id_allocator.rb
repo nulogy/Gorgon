@@ -1,6 +1,6 @@
 require "thread"
 require "monitor"
-require "amq/int_allocator"
+require "gorgon_amq/int_allocator"
 
 module GorgonBunny
   # Bitset-based channel id allocator. When channels are closed,
@@ -18,7 +18,7 @@ module GorgonBunny
 
     # @param [Integer] max_channel Max allowed channel id
     def initialize(max_channel = ((1 << 16) - 1))
-      @allocator = AMQ::IntAllocator.new(1, max_channel)
+      @allocator = GorgonAMQ::IntAllocator.new(1, max_channel)
       @mutex     = Monitor.new
     end
 

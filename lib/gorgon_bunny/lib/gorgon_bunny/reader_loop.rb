@@ -34,7 +34,7 @@ module GorgonBunny
         rescue Errno::EBADF => ebadf
           break if @stopping
           # ignored, happens when we loop after the transport has already been closed
-        rescue AMQ::Protocol::EmptyResponseError, IOError, SystemCallError => e
+        rescue GorgonAMQ::Protocol::EmptyResponseError, IOError, SystemCallError => e
           break if @stopping
           log_exception(e)
 
@@ -61,7 +61,7 @@ module GorgonBunny
 
     def run_once
       frame = @transport.read_next_frame
-      return if frame.is_a?(AMQ::Protocol::HeartbeatFrame)
+      return if frame.is_a?(GorgonAMQ::Protocol::HeartbeatFrame)
 
       if !frame.final? || frame.method_class.has_content?
         header   = @transport.read_next_frame

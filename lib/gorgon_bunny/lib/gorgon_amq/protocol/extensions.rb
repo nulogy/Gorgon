@@ -1,5 +1,5 @@
 # @private
-module AMQ
+module GorgonAMQ
   # @private
   module Protocol
     # @private

@@ -1,7 +1,7 @@
 require "gorgon_bunny/versioned_delivery_tag"
 
 module GorgonBunny
-  # Wraps {AMQ::Protocol::Basic::Deliver} to
+  # Wraps {GorgonAMQ::Protocol::Basic::Deliver} to
   # provide access to the delivery properties as immutable hash as
   # well as methods.
   class DeliveryInfo

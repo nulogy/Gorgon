@@ -8,7 +8,7 @@ module GorgonBunny
 
     # @private
     module String
-      class Frame < AMQ::Protocol::Frame
+      class Frame < GorgonAMQ::Protocol::Frame
         def self.decode(string)
           header              = string[HEADER_SLICE]
           type, channel, size = self.decode_header(header)
@@ -16,7 +16,7 @@ module GorgonBunny
           payload             = data[PAYLOAD_SLICE]
           frame_end           = data[-1, 1]
 
-          frame_end.force_encoding(AMQ::Protocol::Frame::FINAL_OCTET.encoding) if ENCODINGS_SUPPORTED
+          frame_end.force_encoding(GorgonAMQ::Protocol::Frame::FINAL_OCTET.encoding) if ENCODINGS_SUPPORTED
 
           # 1) the size is miscalculated
           if payload.bytesize != size
@@ -24,7 +24,7 @@ module GorgonBunny
           end
 
           # 2) the size is OK, but the string doesn't end with FINAL_OCTET
-          raise NoFinalOctetError.new if frame_end != AMQ::Protocol::Frame::FINAL_OCTET
+          raise NoFinalOctetError.new if frame_end != GorgonAMQ::Protocol::Frame::FINAL_OCTET
 
           self.new(type, payload, channel)
         end
@@ -34,7 +34,7 @@ module GorgonBunny
 
     # @private
     module IO
-      class Frame < AMQ::Protocol::Frame
+      class Frame < GorgonAMQ::Protocol::Frame
         def self.decode(io)
           header = io.read(7)
           type, channel, size = self.decode_header(header)
@@ -47,7 +47,7 @@ module GorgonBunny
           end
 
           # 2) the size is OK, but the string doesn't end with FINAL_OCTET
-          raise NoFinalOctetError.new if frame_end != AMQ::Protocol::Frame::FINAL_OCTET
+          raise NoFinalOctetError.new if frame_end != GorgonAMQ::Protocol::Frame::FINAL_OCTET
           self.new(type, payload, channel)
         end # self.from
       end # Frame
