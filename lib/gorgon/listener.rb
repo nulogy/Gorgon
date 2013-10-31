@@ -76,7 +76,7 @@ class Listener
 
   def run_job(payload)
     @job_definition = JobDefinition.new(payload)
-    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name)
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)

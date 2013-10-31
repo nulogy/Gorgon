@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gorgon (0.6.0.rc1)
+    gorgon (0.6.0.rc2)
       amqp (~> 0.9.7)
       awesome_print
       colorize (~> 0.5.8)
