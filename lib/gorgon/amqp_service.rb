@@ -8,8 +8,8 @@ class AmqpQueueDecorator
 
   def pop
     m = @queue.pop
-    p = m[:payload]
-    p == :queue_empty ? nil : p
+    payload = m[2]
+    return payload
   end
 end
 

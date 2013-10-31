@@ -156,8 +156,11 @@ class WorkerManager
   def subscribe_to_originator_queue
 
     originator_watcher = proc do
+      payload = nil
       while true
-        if (payload = @originator_queue.pop[:payload]) != :queue_empty
+        response = @originator_queue.pop
+        if response != [nil, nil, nil]
+          payload = response[2]
           break
         end
         sleep 0.5

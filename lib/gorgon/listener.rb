@@ -50,10 +50,12 @@ class Listener
 
   def poll
     message = @job_queue.pop
-    return false if message[:payload] == :queue_empty
-    log "Received: #{message[:payload]}"
+    return false if message == [nil, nil, nil]
+    log "Received: #{message}"
 
-    handle_request message[:payload]
+    payload = message[2]
+
+    handle_request payload
 
     log "Waiting for more jobs..."
     return true
