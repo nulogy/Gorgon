@@ -9,7 +9,7 @@ class OriginatorLogger
 
   def log_message(payload)
     if payload[:action] == "start"
-      log("Started running '#{payload[:filename]}' at '#{payload[:hostname]}'")
+      log("Started running '#{payload[:filename]}' at '#{payload[:hostname]}:#{payload[:worker_id]}'")
     elsif payload[:action] == "finish"
       print_finish(payload)
     elsif payload[:type] == "crash" || payload[:type] == "exception"
@@ -23,7 +23,7 @@ class OriginatorLogger
   private
 
   def print_finish(payload)
-    msg = "Finished running '#{payload[:filename]}' at '#{payload[:hostname]}'"
+    msg = "Finished running '#{payload[:filename]}' at '#{payload[:hostname]}:#{payload[:worker_id]}'"
     msg << failure_message(payload[:failures]) if payload[:type] == "fail"
     log msg
   end
