@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "test-unit"
   s.add_development_dependency "rspec", '~>2.11.0'
 
-  s.add_runtime_dependency "amqp", '~>0.9.7'
+  s.add_runtime_dependency "amqp", '~> 1.1.0'
   s.add_runtime_dependency "awesome_print"
   s.add_runtime_dependency "open4", '~>1.3.0'
   s.add_runtime_dependency "ruby-progressbar", '~>1.0.1'

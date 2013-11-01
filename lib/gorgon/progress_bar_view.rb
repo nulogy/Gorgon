@@ -137,6 +137,7 @@ private
     result = "#{'Test name'.light_yellow}: #{failure[:test_name]}"
     result << "\n#{failure[:class].red}" if failure[:class]
     result << "\n#{'Message:'.light_yellow} \n\t#{failure[:message]}" if failure[:message]
+    result << "\n"
     result
   end
 end
