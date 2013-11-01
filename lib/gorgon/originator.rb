@@ -51,6 +51,12 @@ class Originator
 
   def publish
     @logger = OriginatorLogger.new configuration[:originator_log_file]
+
+    if files.empty?
+      @logger.log_error "There are no files to test! Quitting."
+      exit 2
+    end
+
     if !@rsync_daemon.start
       @logger.log_error "rsync daemon didn't start!"
       exit 1

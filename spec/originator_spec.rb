@@ -15,6 +15,7 @@ describe Originator do
   before do
     OriginatorLogger.stub(:new).and_return originator_logger
     RsyncDaemon.stub(:new).and_return rsync_daemon
+    Dir.stub(:[]).and_return(["file"])
     @originator = Originator.new
   end
 
@@ -41,6 +42,16 @@ describe Originator do
       rsync_daemon.should_receive(:start)
 
       @originator.publish
+    end
+
+    it "errors and halts when there are no test files" do
+      Dir.stub(:[] => [])
+
+      originator_logger.should_receive(:log_error)
+      OriginatorProtocol.should_not_receive(:new)
+      rsync_daemon.should_not_receive(:start)
+
+      expect { @originator.publish }.to raise_error(SystemExit)
     end
   end
 
