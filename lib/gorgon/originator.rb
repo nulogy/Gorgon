@@ -25,7 +25,7 @@ class Originator
 
       publish
       @logger.log "Originator finished successfully"
-    rescue Exception
+    rescue StandardError
       puts "Unhandled exception in originator:"
       puts $!.message
       puts $!.backtrace.join("\n")
@@ -51,8 +51,12 @@ class Originator
 
   def publish
     @logger = OriginatorLogger.new configuration[:originator_log_file]
+    if !@rsync_daemon.start
+      @logger.log_error "rsync daemon didn't start!"
+      exit 1
+    end
+
     @protocol = OriginatorProtocol.new @logger
-    @rsync_daemon.start
 
     EventMachine.run do
       @logger.log "Connecting..."
