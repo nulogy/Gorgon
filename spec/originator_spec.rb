@@ -47,7 +47,7 @@ describe Originator do
     it "errors and halts when there are no test files" do
       Dir.stub(:[] => [])
 
-      originator_logger.should_receive(:log_error)
+      $stderr.should_receive(:puts)
       OriginatorProtocol.should_not_receive(:new)
       rsync_daemon.should_not_receive(:start)
 

@@ -3,9 +3,10 @@ require 'gorgon/rsync_daemon'
 describe RsyncDaemon do
   before(:each) do
     Kernel.stub(:system => true)
-    Dir.stub(:mktmpdir => "loltmpdir", :pwd => "/lol/hax")
+    Dir.stub(:mkdir => nil, :pwd => "/lol/hax")
     Dir.stub(:chdir).and_yield
     File.stub(:write => 100, :read => "12345")
+    FileUtils.stub(:remove_entry_secure => nil)
     @r = RsyncDaemon.new
   end
 
@@ -15,9 +16,9 @@ describe RsyncDaemon do
     @r.start
   end
 
-  it "creates a temporary directory for the configuration and pid files" do
-    Dir.should_receive(:mktmpdir).with("gorgon").and_return("loltmpdir")
-    Dir.should_receive(:chdir).with("loltmpdir")
+  it "creates a directory in temporary dir for the configuration and pid files" do
+    Dir.should_receive(:mkdir).with(RsyncDaemon::RSYNC_DIR_NAME)
+    Dir.should_receive(:chdir).with(RsyncDaemon::RSYNC_DIR_NAME)
 
     @r.start
   end
