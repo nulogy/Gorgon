@@ -32,7 +32,7 @@ class AmqpService
   def start_worker file_queue_name, reply_exchange_name
     GorgonBunny.run @connection_config do |b|
       queue = b.queue(file_queue_name, :auto_delete => true)
-      exchange = b.exchange(reply_exchange_name, :auto_delete => true)
+      exchange = b.exchange(reply_exchange_name, :auto_delete => true, :type => :fanout)
       yield AmqpQueueDecorator.new(queue), AmqpExchangeDecorator.new(exchange)
     end
   end

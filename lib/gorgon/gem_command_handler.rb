@@ -40,8 +40,7 @@ class GemCommandHandler
 
   # TODO: factors this out to a class
   def publish_to reply_exchange_name, message
-    reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true
-)
+    reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true, :type => :fanout)
     reply_exchange.publish(Yajl::Encoder.encode(message.merge(:hostname => Socket.gethostname)))
   end
 end

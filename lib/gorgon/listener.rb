@@ -76,7 +76,7 @@ class Listener
 
   def run_job(payload)
     @job_definition = JobDefinition.new(payload)
-    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true, :type => :fanout)
 
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.source_tree_path, @job_definition.sync_exclude)
@@ -166,7 +166,7 @@ class Listener
   end
 
   def publish_to reply_exchange_name, message
-    reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true)
+    reply_exchange = @bunny.exchange(reply_exchange_name, :auto_delete => true, :type => :fanout)
 
     log "Sending #{message}"
     reply_exchange.publish(Yajl::Encoder.encode(message))

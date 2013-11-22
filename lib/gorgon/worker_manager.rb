@@ -58,7 +58,7 @@ class WorkerManager
   def connect
     @bunny = GorgonBunny.new(@config[:connection])
     @bunny.start
-    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
+    @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true, :type => :fanout)
 
     @originator_queue = @bunny.queue("", :exclusive => true, :auto_delete => true)
     exchange = @bunny.exchange("gorgon.worker_managers", :type => :fanout)

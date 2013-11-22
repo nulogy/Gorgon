@@ -45,7 +45,7 @@ describe OriginatorProtocol do
 
     it "opens a reply exchange and binds reply queue to it" do
       UUIDTools::UUID.stub!(:timestamp_create).and_return 1
-      channel.should_receive(:direct).with("reply_exchange_1", :auto_delete => true)
+      channel.should_receive(:fanout).with("reply_exchange_1", :auto_delete => true)
       queue.should_receive(:bind).with(exchange)
       @originator_p.connect @conn_information
     end
