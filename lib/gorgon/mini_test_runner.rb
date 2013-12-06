@@ -4,6 +4,8 @@ class MiniTestUnitRunner < MiniTest::Unit
   def puts(*args);  end
   def print(*args); end
   def status(io = output);  end
+  def before_test(*args); end
+  def after_test(*args); end
 end
 
 class MiniTestRunner
