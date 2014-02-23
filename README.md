@@ -1,6 +1,8 @@
 Gorgon
 =====================
 
+[![Code Climate](https://codeclimate.com/repos/52fe375ae30ba05ab2018c4b/badges/967fbf3b79e48ece4405/gpa.png)](https://codeclimate.com/repos/52fe375ae30ba05ab2018c4b/feed)
+
 About
 ---------------------
 
