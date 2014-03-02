@@ -80,6 +80,19 @@ describe Originator do
       @originator.publish
       @originator.cancel_job
     end
+
+    it 'finishes cancelling process even when cancelling steps fail' do
+      protocol.should_receive(:cancel_job).and_raise StandardError
+      JobState.stub!(:new).and_return job_state
+      job_state.should_receive(:cancel).and_raise StandardError
+      protocol.should_receive(:disconnect).and_raise StandardError
+      rsync_daemon.should_receive(:stop).and_raise StandardError
+
+      expect {
+        @originator.publish
+        @originator.cancel_job
+      }.to raise_error StandardError
+    end
   end
 
   describe "#cleanup_if_job_complete" do

@@ -45,13 +45,13 @@ class OriginatorProtocol
 
   def cancel_job
     @file_queue.purge if @file_queue
-    @channel.fanout("gorgon.worker_managers").publish(cancel_message)
+    @channel.fanout("gorgon.worker_managers").publish(cancel_message) if @channel
     @logger.log "Cancel Message sent"
   end
 
   def disconnect
     cleanup_queues_and_exchange
-    @connection.disconnect
+    @connection.disconnect if @connection
   end
 
   private

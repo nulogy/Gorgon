@@ -31,7 +31,7 @@ class Originator
       puts $!.backtrace.join("\n")
       puts "----------------------------------"
       puts "Now attempting to cancel the job."
-      @logger.log_error "Unhandled Exception!"
+      @logger.log_error "Unhandled Exception!" if @logger
       cancel_job
     end
   end
@@ -42,11 +42,21 @@ class Originator
   end
 
   def cancel_job
-    @protocol.cancel_job
-    @job_state.cancel
+    @protocol.cancel_job if @protocol
+  ensure
+    cancel_job_step_2
+  end
 
-    @protocol.disconnect
-    @rsync_daemon.stop
+  def cancel_job_step_2
+    @job_state.cancel if @job_state
+  ensure
+    cancel_job_step_3
+  end
+
+  def cancel_job_step_3
+    @protocol.disconnect if @protocol
+  ensure
+    @rsync_daemon.stop if @rsync_daemon
   end
 
   def publish
