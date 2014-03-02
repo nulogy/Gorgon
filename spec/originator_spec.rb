@@ -60,38 +60,17 @@ describe Originator do
       stub_methods
     end
 
-    it "call JobState#cancel" do
+    it 'tells ShutdownManager to cancel_job' do
+      shutdown_manager = double('ShutdownManager')
       JobState.stub!(:new).and_return job_state
-      job_state.should_receive(:cancel)
-      @originator.publish
-      @originator.cancel_job
-    end
 
-    it "tells @protocol to cancel job and disconnect" do
-      protocol.should_receive(:cancel_job)
-      protocol.should_receive(:disconnect)
-      @originator.publish
-      @originator.cancel_job
-    end
-
-    it "stops the rsync daemon" do
-      rsync_daemon.should_receive(:stop)
+      ShutdownManager.should_receive(:new).
+          with(hash_including(protocol: protocol, job_state: job_state, rsync_daemon: rsync_daemon)).
+          and_return(shutdown_manager)
+      shutdown_manager.should_receive(:cancel_job)
 
       @originator.publish
       @originator.cancel_job
-    end
-
-    it 'finishes cancelling process even when cancelling steps fail' do
-      protocol.should_receive(:cancel_job).and_raise StandardError
-      JobState.stub!(:new).and_return job_state
-      job_state.should_receive(:cancel).and_raise StandardError
-      protocol.should_receive(:disconnect).and_raise StandardError
-      rsync_daemon.should_receive(:stop).and_raise StandardError
-
-      expect {
-        @originator.publish
-        @originator.cancel_job
-      }.to raise_error StandardError
     end
   end
 
@@ -134,7 +113,7 @@ describe Originator do
     end
 
     it "calls JobState#file_started if payload[:action] is 'start'" do
-      payload = Yajl::Parser.new(:symbolize_keys => true).parse(start_payload)
+      Yajl::Parser.new(:symbolize_keys => true).parse(start_payload)
       job_state.should_receive(:file_started)
       @originator.handle_reply(start_payload)
     end

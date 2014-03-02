@@ -5,6 +5,7 @@ require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
 require 'gorgon/rsync_daemon'
+require 'gorgon/shutdown_manager.rb'
 
 require 'awesome_print'
 require 'etc'
@@ -36,27 +37,15 @@ class Originator
     end
   end
 
+  def cancel_job
+    ShutdownManager.new(protocol: @protocol,
+                        job_state: @job_state,
+                        rsync_daemon: @rsync_daemon).cancel_job
+  end
+
   def ctrl_c
     puts "\nCtrl-C received! Just wait a moment while I clean up..."
     cancel_job
-  end
-
-  def cancel_job
-    @protocol.cancel_job if @protocol
-  ensure
-    cancel_job_step_2
-  end
-
-  def cancel_job_step_2
-    @job_state.cancel if @job_state
-  ensure
-    cancel_job_step_3
-  end
-
-  def cancel_job_step_3
-    @protocol.disconnect if @protocol
-  ensure
-    @rsync_daemon.stop if @rsync_daemon
   end
 
   def publish
