@@ -1,13 +1,15 @@
 require "logger"
 
 module GLogger
+  SIZE_1_MB = 1048576
+
   def initialize_logger log_file
     return unless log_file
     @logger =
       if log_file == "-"
         Logger.new($stdout)
       else
-        Logger.new(log_file)
+        Logger.new(log_file, 1, SIZE_1_MB)
       end
     @logger.datetime_format = "%Y-%m-%d %H:%M:%S "
   end
