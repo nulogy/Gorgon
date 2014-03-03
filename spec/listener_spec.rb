@@ -38,7 +38,7 @@ describe Listener do
       end
 
       it "should use 'log_file' from the configuration as the log file" do
-        Logger.should_receive(:new).with('listener.log')
+        Logger.should_receive(:new).with('listener.log', anything, anything)
         Listener.new
       end
 
