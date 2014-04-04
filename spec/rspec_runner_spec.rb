@@ -7,12 +7,12 @@ describe RspecRunner do
   it {should respond_to(:runner).with(0).argument}
 
   describe "#run_file" do
-    let(:configuration) { double('Configuration', include_or_extend_modules: ['modules'],
-                                 :include_or_extend_modules= => nil) }
+    let(:configuration) { double('Configuration') }
 
     before do
       RSpec::Core::Runner.stub(:run)
-      RSpec.stub(configuration: configuration)
+      RSpec.stub(configuration: configuration,
+                 instance_variable_set: nil)
     end
 
     it "uses Rspec runner to run filename and uses the correct options" do
@@ -39,7 +39,8 @@ describe RspecRunner do
     # since configuration is reset on each run
     # https://github.com/rspec/rspec-core/issues/621
     it 'restore initial rspec configuration' do
-      RSpec.configuration.should_receive(:include_or_extend_modules=).with(['modules'])
+      RSpec.should_receive(:instance_variable_set).
+          with(:@configuration, configuration)
       RspecRunner.run_file "file"
     end
   end

@@ -30,9 +30,9 @@ class RspecRunner
     private
 
     def keep_config_modules
-      config_modules = RSpec.configuration.include_or_extend_modules
+      orig_configuration = ::RSpec.configuration.clone
       yield
-      RSpec.configuration.include_or_extend_modules = config_modules
+      ::RSpec.instance_variable_set(:@configuration, orig_configuration)
     end
   end
 end
