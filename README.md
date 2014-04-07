@@ -11,7 +11,6 @@ Gorgon provides a method for distributing the workload of running ruby test suit
 Installing Gorgon
 -----------------
 1. `sudo apt-get install rabbitmq-server`
-1. When you run gorgon, every listener will use rsync to pull the directory tree from origin; therefore, you need passwordless ssh login from every listener to origin (even if origin and listener are on the same host). Follow [these steps](http://linuxconfig.org/Passwordless_ssh).
 1. cd to your project
 1. `gem install gorgon`
 1. if using rails, `gorgon init rails` will create initial files for a typical rails project. Otherwise, you can use `gorgon init`
