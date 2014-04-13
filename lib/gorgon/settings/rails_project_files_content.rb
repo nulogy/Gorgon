@@ -21,9 +21,7 @@ module Settings
                     {name: :after_creating_workers, file_name: "after_creating_workers.rb",
                       content: after_creating_workers_content},
                     {name: :before_start, file_name: "before_start.rb",
-                      content: before_start_content},
-                    {name: :after_complete, file_name: "after_complete.rb",
-                      content: after_complete_content}]
+                      content: before_start_content}]
     end
 
     def get_app_subdir
@@ -69,12 +67,27 @@ if status.exitstatus != 0
   raise "ERROR: 'rake db:setup' failed.\n#{stderr.read}\n#{stdout.read}"
 end
 
-require File.expand_path('../../test_helper', __FILE__)
+spec_helper_file = File.expand_path('../../spec_helper', __FILE__)
+test_helper_file = File.expand_path('../../test_helper', __FILE__)
+
+require spec_helper_file if File.exist?(spec_helper_file)
+require test_helper_file if File.exist?(test_helper_file)
 CONTENT
     end
 
     def after_creating_workers_content
-      after_complete_content
+      <<-'CONTENT'
+require 'rake'
+load './Rakefile'
+
+begin
+  if Rails.env = 'remote_test'
+    Rake::Task['db:drop'].execute
+  end
+rescue Exception => ex
+  puts "Error dropping test database:\n  #{ex}"
+end
+      CONTENT
     end
 
     def before_start_content
@@ -89,21 +102,6 @@ begin
   Rake::Task['db:reset'].invoke
 end
 
-CONTENT
-    end
-
-    def after_complete_content
-      <<-'CONTENT'
-require 'rake'
-load './Rakefile'
-
-begin
-  if Rails.env = 'remote_test'
-    Rake::Task['db:drop'].execute
-  end
-rescue Exception => ex
-  puts "Error dropping test database:\n  #{ex}"
-end
 CONTENT
     end
   end
