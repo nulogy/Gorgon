@@ -39,26 +39,26 @@ module Settings
     end
 
     def after_sync_content
-      <<-CONTENT
+      <<-'CONTENT'
 require 'bundler'
 require 'open4'
 
 Bundler.with_clean_env do
   BUNDLE_LOG_FILE||="/tmp/gorgon-bundle-install.log "
 
-  pid, stdin, stdout, stderr = Open4::popen4 "bundle install > \#\{BUNDLE_LOG_FILE\} 2>&1 "
+  pid, stdin, stdout, stderr = Open4::popen4 "bundle install > #{BUNDLE_LOG_FILE} 2>&1 "
 
   ignore, status = Process.waitpid2 pid
 
   if status.exitstatus != 0
-    raise "ERROR: 'bundle install' failed.\n\#\{stderr.read\}"
+    raise "ERROR: 'bundle install' failed.\n#{stderr.read}"
   end
 end
 CONTENT
     end
 
     def before_creating_workers_content
-      <<-CONTENT
+      <<-'CONTENT'
 ENV["TEST_ENV_NUMBER"] = Process.pid.to_s
 ENV["RAILS_ENV"] = 'remote_test'
 
@@ -78,7 +78,7 @@ CONTENT
     end
 
     def before_start_content
-      <<-CONTENT
+      <<-'CONTENT'
 require 'rake'
 load './Rakefile'
 
@@ -93,7 +93,7 @@ CONTENT
     end
 
     def after_complete_content
-      <<-CONTENT
+      <<-'CONTENT'
 require 'rake'
 load './Rakefile'
 
@@ -102,7 +102,7 @@ begin
     Rake::Task['db:drop'].execute
   end
 rescue Exception => ex
-  puts "Error dropping test database:\n  \#\{ex\}"
+  puts "Error dropping test database:\n  #{ex}"
 end
 CONTENT
     end
