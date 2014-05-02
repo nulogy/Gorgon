@@ -153,7 +153,10 @@ class Originator
   private
 
   def source_tree_path
-    "rsync://#{file_server_host}:43434/src"
+    hostname = Socket.gethostname
+    source_code_root = File.basename(Dir.pwd)
+
+    "rsync://#{file_server_host}:43434/src/#{hostname}_#{source_code_root}"
   end
 
   def file_server_host

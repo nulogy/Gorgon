@@ -9,6 +9,7 @@ describe RsyncDaemon do
     Dir.stub(:chdir).and_yield
     File.stub(:write => 100, :read => "12345", :directory? => true)
     FileUtils.stub(:remove_entry_secure => nil)
+    TCPServer.stub(:new => double('TCPServer', :close => nil))
     @r = RsyncDaemon
   end
 
