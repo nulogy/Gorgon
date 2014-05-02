@@ -5,7 +5,7 @@ class SourceTreeSyncer
   attr_reader :sys_command, :output, :errors
 
   SYS_COMMAND = 'rsync'
-  OPTS = "-azr --timeout=5"
+  OPTS = "-azr --timeout=5 --delete"
   EXCLUDE_OPT = "--exclude"
 
   def initialize source_tree_path
@@ -19,17 +19,17 @@ class SourceTreeSyncer
     @tempdir = Dir.mktmpdir("gorgon")
     Dir.chdir(@tempdir)
 
-    exclude_opt = build_exclude_opt
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{exclude_opt} #{@source_tree_path}/ ."
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{build_exclude_opt} #{@source_tree_path}/ ."
 
-    pid, stdin, stdout, stderr = Open4::popen4 @sys_command
-    stdin.close
+    execute_command
+  end
 
-    ignore, status = Process.waitpid2 pid
+  def push
+    return if blank_source_tree_path?
 
-    @output, @errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
+    @sys_command = "#{SYS_COMMAND} #{OPTS} #{build_exclude_opt} . #{@source_tree_path}"
 
-    @exitstatus = status.exitstatus
+    execute_command
   end
 
   def success?
@@ -41,6 +41,17 @@ class SourceTreeSyncer
   end
 
   private
+
+  def execute_command
+    pid, stdin, stdout, stderr = Open4::popen4 @sys_command
+    stdin.close
+
+    ignore, status = Process.waitpid2 pid
+
+    @output, @errors = [stdout, stderr].map { |p| begin p.read ensure p.close end }
+
+    @exitstatus = status.exitstatus
+  end
 
   def blank_source_tree_path?
     if @source_tree_path.nil?

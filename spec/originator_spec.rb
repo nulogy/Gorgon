@@ -5,16 +5,17 @@ describe Originator do
                        :publish_job => nil, :receive_payloads => nil, :cancel_job => nil,
                        :disconnect => nil)}
 
-  let(:configuration){ {:job => {}, :files => ["some/file"]}}
+  let(:configuration){ {:job => {}, :files => ["some/file"], :file_server => {:host => 'host-name'}}}
   let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil,
                         :add_observer => nil)}
   let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
   let(:originator_logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
-  let(:rsync_daemon) { stub("Rsync Daemon", :start => true, :stop => true)}
+  let(:source_tree_syncer) { stub("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
+                                  :sys_command => 'command')}
 
   before do
     OriginatorLogger.stub(:new).and_return originator_logger
-    RsyncDaemon.stub(:new).and_return rsync_daemon
+    SourceTreeSyncer.stub(:new).and_return source_tree_syncer
     Dir.stub(:[]).and_return(["file"])
     @originator = Originator.new
   end
@@ -38,8 +39,9 @@ describe Originator do
       @originator.publish
     end
 
-    it "starts the rsync daemon" do
-      rsync_daemon.should_receive(:start)
+    it "pushes source code" do
+      source_tree_syncer.should_receive(:push)
+      source_tree_syncer.should_receive(:success?).and_return true
 
       @originator.publish
     end
@@ -49,7 +51,7 @@ describe Originator do
 
       $stderr.should_receive(:puts)
       OriginatorProtocol.should_not_receive(:new)
-      rsync_daemon.should_not_receive(:start)
+      source_tree_syncer.should_not_receive(:push)
 
       expect { @originator.publish }.to raise_error(SystemExit)
     end
@@ -65,7 +67,7 @@ describe Originator do
       JobState.stub!(:new).and_return job_state
 
       ShutdownManager.should_receive(:new).
-          with(hash_including(protocol: protocol, job_state: job_state, rsync_daemon: rsync_daemon)).
+          with(hash_including(protocol: protocol, job_state: job_state)).
           and_return(shutdown_manager)
       shutdown_manager.should_receive(:cancel_job)
 
@@ -89,13 +91,6 @@ describe Originator do
     it "disconnect if job is complete" do
       job_state.stub!(:is_job_complete?).and_return true
       protocol.should_receive(:disconnect)
-      @originator.cleanup_if_job_complete
-    end
-
-    it "stops the rsync daemon" do
-      job_state.stub!(:is_job_complete?).and_return true
-      rsync_daemon.should_receive(:stop)
-
       @originator.cleanup_if_job_complete
     end
   end
@@ -134,10 +129,6 @@ describe Originator do
   end
 
   describe "#job_definition" do
-    before do
-      UDPSocket.any_instance.stub(:connect)
-    end
-
     it "returns a JobDefinition object" do
       @originator.stub!(:configuration).and_return configuration
       job_definition = JobDefinition.new
@@ -146,9 +137,11 @@ describe Originator do
     end
 
     it "builds source_tree_path if it was not specified in the configuration" do
-      @originator.stub!(:configuration).and_return({:job => {}})
-      UDPSocket.any_instance.stub(:addr).and_return(["1.1.1.1"])
-      @originator.job_definition.source_tree_path.should == "rsync://1.1.1.1:43434/src"
+      @originator.stub!(:configuration).and_return(configuration.merge(:file_server => {:host => 'host-name'}))
+      Socket.stub(:gethostname => 'my-host')
+      Dir.stub(:pwd => 'dir')
+
+      @originator.job_definition.source_tree_path.should == "rsync://host-name:43434/src/my-host_dir"
     end
 
     it "returns source_tree_path specified in configuration if it is present" do

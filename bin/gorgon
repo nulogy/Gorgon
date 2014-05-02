@@ -1,6 +1,7 @@
 require "rubygems"
 require 'gorgon/originator'
 require 'gorgon/listener'
+require 'gorgon/rsync_daemon'
 require 'gorgon/worker_manager'
 require 'gorgon/ping_service'
 require 'gorgon/gem_service'
@@ -18,6 +19,18 @@ end
 def listen
   l = Listener.new
   l.listen
+end
+
+def start_rsync_daemon
+  puts "Starting rsync daemon..."
+  exit 1 unless RsyncDaemon.start ARGV[1]
+  puts "Rsync Daemon is running. Use 'gorgon stop_rsync' to kill it."
+end
+
+def stop_rsync_daemon
+  puts "Stopping rsync daemon..."
+  exit 1 unless RsyncDaemon.stop
+  puts "Done"
 end
 
 def manage_workers
@@ -53,6 +66,8 @@ def usage
   puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
   puts "\tinit [rails] - create initial files for current project"
   puts "\tinstall_listener - runs gorgon listener as a daemon process"
+  puts "\tstart_rsync <directory> - start rsync daemon. Run this command in File Server"
+  puts "\tstop_rsync - stop rsync daemon."
   puts "\tgem command [options...] - execute the gem command on every listener and shutdown listener. e.g. 'gorgon gem install --version 1.0.0'"
 end
 
@@ -65,6 +80,10 @@ when "start"
   start
 when "listen"
   listen
+when "start_rsync"
+  start_rsync_daemon
+when "stop_rsync"
+  stop_rsync_daemon
 when "manage_workers"
   manage_workers
 when "ping"

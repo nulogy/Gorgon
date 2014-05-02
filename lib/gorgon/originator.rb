@@ -4,7 +4,7 @@ require 'gorgon/job_state'
 require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
-require 'gorgon/rsync_daemon'
+require 'gorgon/source_tree_syncer'
 require 'gorgon/shutdown_manager.rb'
 
 require 'awesome_print'
@@ -16,7 +16,6 @@ class Originator
 
   def initialize
     @configuration = nil
-    @rsync_daemon = RsyncDaemon.new
   end
 
   def originate
@@ -39,8 +38,7 @@ class Originator
 
   def cancel_job
     ShutdownManager.new(protocol: @protocol,
-                        job_state: @job_state,
-                        rsync_daemon: @rsync_daemon).cancel_job
+                        job_state: @job_state).cancel_job
   end
 
   def ctrl_c
@@ -56,10 +54,7 @@ class Originator
       exit 2
     end
 
-    if !@rsync_daemon.start
-      @logger.log_error "rsync daemon didn't start!"
-      exit 1
-    end
+    push_source_code
 
     @protocol = OriginatorProtocol.new @logger
 
@@ -81,11 +76,24 @@ class Originator
     end
   end
 
+  def push_source_code
+    syncer = SourceTreeSyncer.new(source_tree_path)
+    syncer.exclude = configuration[:sync_exclude]
+    syncer.push
+    if syncer.success?
+      @logger.log "Command '#{syncer.sys_command}' completed successfully."
+    else
+      $stderr.puts "Command '#{syncer.sys_command}' failed!"
+      $stderr.puts "Stdout:\n#{syncer.output}"
+      $stderr.puts "Stderr:\n#{syncer.errors}"
+      exit 1
+    end
+  end
+
   def cleanup_if_job_complete
     if @job_state.is_job_complete?
       @logger.log "Job is done"
       @protocol.disconnect
-      @rsync_daemon.stop
     end
   end
 
@@ -137,22 +145,24 @@ class Originator
   def job_definition
     job_config = configuration[:job]
     if !job_config.has_key?(:source_tree_path)
-      job_config[:source_tree_path] = "rsync://#{local_ip_addr}:43434/src"
+      job_config[:source_tree_path] = source_tree_path
     end
     JobDefinition.new(configuration[:job])
   end
 
   private
 
-  def local_ip_addr
-    orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true  # turn off reverse DNS resolution temporarily
+  def source_tree_path
+    hostname = Socket.gethostname
+    source_code_root = File.basename(Dir.pwd)
 
-    UDPSocket.open do |s|
-      s.connect '64.59.144.16', 1
-      s.addr.last
-    end
-  ensure
-    Socket.do_not_reverse_lookup = orig
+    "rsync://#{file_server_host}:43434/src/#{hostname}_#{source_code_root}"
+  end
+
+  def file_server_host
+    file_server = configuration[:file_server]
+    raise 'Please, provide file_server configuration.' if file_server.nil?
+    configuration[:file_server][:host]
   end
 
   def configuration

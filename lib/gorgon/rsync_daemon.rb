@@ -6,37 +6,33 @@ class RsyncDaemon
   RSYNC_PORT = 43434
   PID_FILE = 'rsync.pid'
 
-  def initialize
-    @project_directory = Dir.pwd
-    @started = false
-  end
-
-  def start
-    return if @started
+  def self.start(directory_bucket)
+    if directory_bucket.nil? || !File.directory?(directory_bucket)
+      $stderr.puts "Please, expecify a valid directory."
+      return false
+    end
 
     if !port_available?
       puts port_busy_msg
       return false
     end
-    
+
     Dir.mkdir(RSYNC_DIR_NAME)
-    success = nil
+    success = false
     Dir.chdir(RSYNC_DIR_NAME) do
-      File.write("rsyncd.conf", rsyncd_config_string(@project_directory))
+      File.write("rsyncd.conf", rsyncd_config_string(directory_bucket))
 
       success = Kernel.system("rsync --daemon --config rsyncd.conf")
     end
 
-    if success
-      @started = true
-      return true
-    else
-      return false
-    end
+    success
   end
 
-  def stop
-    return unless @started
+  def self.stop
+    if !File.directory?(RSYNC_DIR_NAME)
+      puts "ERROR: Directory '#{RSYNC_DIR_NAME}' doesn't exists. Maybe rsync daemon is not running!"
+      return false
+    end
 
     success = nil
     Dir.chdir(RSYNC_DIR_NAME) do
@@ -45,7 +41,6 @@ class RsyncDaemon
     end
 
     if success
-      @started = false
       FileUtils::remove_entry_secure(RSYNC_DIR_NAME)
       return true
     else
@@ -55,19 +50,19 @@ class RsyncDaemon
 
   private
 
-  def rsyncd_config_string(shared_dir)
+  def self.rsyncd_config_string(directory_bucket)
     return <<-EOF
 port = #{RSYNC_PORT}
 pid file = #{PID_FILE}
 
 [src]
-  path = #{@project_directory}
-  read only = true
+  path = #{directory_bucket}
+  read only = false
   use chroot = false
 EOF
   end
 
-  def port_available?
+  def self.port_available?
     begin
       s = TCPServer.new('localhost', RSYNC_PORT)
       s.close
@@ -77,7 +72,7 @@ EOF
     end
   end
 
-  def port_busy_msg
+  def self.port_busy_msg
 <<-MSG
   ERROR: port #{RSYNC_PORT} is being used. Maybe another rsync daemon is running.
   Kill pid in #{RSYNC_DIR_NAME}/#{PID_FILE} or check no other process is using that port."
