@@ -3,6 +3,7 @@ require 'gorgon/source_tree_syncer'
 describe SourceTreeSyncer.new("") do
   it { should respond_to :exclude= }
   it { should respond_to :sync }
+  it { should respond_to :push }
   it { should respond_to :sys_command }
   it { should respond_to :remove_temp_dir }
   it { should respond_to :success? }

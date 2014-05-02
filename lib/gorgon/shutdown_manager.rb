@@ -3,7 +3,6 @@ class ShutdownManager
   def initialize(args)
     @protocol = args.fetch(:protocol)
     @job_state = args.fetch(:job_state)
-    @rsync_daemon = args.fetch(:rsync_daemon)
   end
 
   def cancel_job
@@ -22,11 +21,5 @@ class ShutdownManager
 
   def disconnect_protocol
     @protocol.disconnect if @protocol
-  ensure
-    stop_rsync_daemon
-  end
-
-  def stop_rsync_daemon
-    @rsync_daemon.stop if @rsync_daemon
   end
 end
