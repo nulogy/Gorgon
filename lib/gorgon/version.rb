@@ -1,3 +1,3 @@
 module Gorgon
-  VERSION = "0.7.0.rc2"
+  VERSION = "0.7.0.rc3"
 end
