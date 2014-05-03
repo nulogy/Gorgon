@@ -57,7 +57,8 @@ class PingService
   end
 
   def print_summary
-    puts "\n#{@listeners.size} host(s) responded."
+    worker_slots = @listeners.inject(0) { |sum, l| sum + l[:worker_slots] }
+    puts "\n#{@listeners.size} host(s) responded using a total of #{worker_slots} worker(s)."
   end
 
   def on_disconnect
