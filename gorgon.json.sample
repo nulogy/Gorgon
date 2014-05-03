@@ -3,6 +3,10 @@
     "host": "localhost"
   },
 
+  "file_server": {
+    "host": "localhost"
+  },
+
   "job": {
     "sync_exclude": [
         "tmp",
