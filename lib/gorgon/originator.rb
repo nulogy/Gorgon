@@ -78,7 +78,7 @@ class Originator
 
   def push_source_code
     syncer = SourceTreeSyncer.new(source_tree_path)
-    syncer.exclude = configuration[:sync_exclude]
+    syncer.exclude = configuration[:job][:sync_exclude]
     syncer.push
     if syncer.success?
       @logger.log "Command '#{syncer.sys_command}' completed successfully."
