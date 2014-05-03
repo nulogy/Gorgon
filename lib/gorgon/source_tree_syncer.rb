@@ -71,7 +71,7 @@ class SourceTreeSyncer
   def build_exclude_opt
     return "" if @exclude.nil? or @exclude.empty?
 
-    @exclude.unshift("")
-    @exclude.join(" #{EXCLUDE_OPT} ")
+    exclude = [""] + @exclude
+    exclude.join(" #{EXCLUDE_OPT} ")
   end
 end
