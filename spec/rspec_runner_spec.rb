@@ -11,8 +11,7 @@ describe RspecRunner do
 
     before do
       RSpec::Core::Runner.stub(:run)
-      RSpec.stub(configuration: configuration,
-                 instance_variable_set: nil)
+      RspecRunner.stub(:keep_config_modules).and_yield
     end
 
     it "uses Rspec runner to run filename and uses the correct options" do
@@ -30,18 +29,10 @@ describe RspecRunner do
     end
 
     it "parses the output of the Runner and returns it" do
-      str_io = stub("StringIO", :rewind => nil, :read => :content)
-      StringIO.stub!(:new).and_return(str_io)
+      str_io = double("StringIO", :rewind => nil, :read => :content)
+      StringIO.stub(:new).and_return(str_io)
       Yajl::Parser.any_instance.should_receive(:parse).with(:content).and_return :result
       RspecRunner.run_file("file").should == :result
-    end
-
-    # since configuration is reset on each run
-    # https://github.com/rspec/rspec-core/issues/621
-    it 'restore initial rspec configuration' do
-      RSpec.should_receive(:instance_variable_set).
-          with(:@configuration, configuration)
-      RspecRunner.run_file "file"
     end
   end
 
