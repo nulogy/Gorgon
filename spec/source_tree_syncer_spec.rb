@@ -10,10 +10,10 @@ describe SourceTreeSyncer.new("") do
   it { should respond_to :output }
   it { should respond_to :errors }
 
-  let(:stdin) { stub("IO object", :close => nil)}
-  let(:stdout) { stub("IO object", :read => nil, :close => nil)}
-  let(:stderr) { stub("IO object", :read => nil, :close => nil)}
-  let(:status) { stub("Process Status", :exitstatus => 0)}
+  let(:stdin) { double("IO object", :close => nil)}
+  let(:stdout) { double("IO object", :read => nil, :close => nil)}
+  let(:stderr) { double("IO object", :read => nil, :close => nil)}
+  let(:status) { double("Process Status", :exitstatus => 0)}
 
   before do
     @syncer = SourceTreeSyncer.new "path/to/source"
@@ -112,11 +112,11 @@ describe SourceTreeSyncer.new("") do
   private
 
   def stub_utilities_methods
-    Dir.stub!(:mktmpdir).and_return("tmp/dir")
-    Dir.stub!(:chdir)
-    Open4.stub!(:popen4).and_return([1, stdin, stdout, stderr])
-    Process.stub!(:waitpid2).and_return([nil, status])
-    FileUtils.stub!(:remove_entry_secure)
-    @syncer.stub!(:system)
+    Dir.stub(:mktmpdir).and_return("tmp/dir")
+    Dir.stub(:chdir)
+    Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
+    Process.stub(:waitpid2).and_return([nil, status])
+    FileUtils.stub(:remove_entry_secure)
+    @syncer.stub(:system)
   end
 end

@@ -1,8 +1,8 @@
 require 'gorgon/pipe_forker'
 
 describe PipeForker do
-  let(:io_pipe) { stub("IO object", :close => nil)}
-  let(:pipe) {stub("Pipe", :write => io_pipe)}
+  let(:io_pipe) { double("IO object", :close => nil)}
+  let(:pipe) {double("Pipe", :write => io_pipe)}
 
   let(:container_class) do
     Class.new do
@@ -11,10 +11,10 @@ describe PipeForker do
   end
 
   before do
-    IO.stub!(:pipe).and_return([io_pipe, io_pipe])
-    STDIN.stub!(:reopen)
-    container_class.stub!(:fork).and_yield.and_return(1)
-    container_class.stub!(:exit)
+    IO.stub(:pipe).and_return([io_pipe, io_pipe])
+    STDIN.stub(:reopen)
+    container_class.stub(:fork).and_yield.and_return(1)
+    container_class.stub(:exit)
   end
 
   describe ".pipe_fork" do

@@ -6,7 +6,7 @@ describe JobState do
       :type => "pass", :failures => []}
   }
 
-  let (:host_state){ stub("Host State", :file_started => nil, :file_finished => nil)}
+  let (:host_state){ double("Host State", :file_started => nil, :file_finished => nil)}
 
   subject { JobState.new 5 }
   it { should respond_to :failed_files_count }
@@ -62,14 +62,14 @@ describe JobState do
     end
 
     it "doesn't create a new HostState object if this is not the first file started by 'hostname'" do
-      HostState.stub!(:new).and_return host_state
+      HostState.stub(:new).and_return host_state
       @job_state.file_started(payload)
       HostState.should_not_receive(:new)
       @job_state.file_started(payload)
     end
 
     it "calls #file_started on HostState object representing 'hostname'" do
-      HostState.stub!(:new).and_return host_state
+      HostState.stub(:new).and_return host_state
       host_state.should_receive(:file_started).with("worker_id", "file_name")
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
@@ -85,7 +85,7 @@ describe JobState do
 
   describe "#file_finished" do
     before do
-      HostState.stub!(:new).and_return host_state
+      HostState.stub(:new).and_return host_state
       @job_state.file_started payload
     end
 
@@ -124,7 +124,7 @@ describe JobState do
     end
 
     it "tells to the proper HostState object that a file finished in that host" do
-      HostState.stub!(:new).and_return host_state
+      HostState.stub(:new).and_return host_state
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
                                 :filename => "file_name"})

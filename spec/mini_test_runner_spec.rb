@@ -7,7 +7,7 @@ describe MiniTestRunner do
 
   describe "#run_file" do
 
-    let(:runner) {stub("MiniTestUnitRunner", :run => nil, :report => ["report"])}
+    let(:runner) {double("MiniTestUnitRunner", :run => nil, :report => ["report"])}
     before do
       Object.stub(:load)
       MiniTestUnitRunner.stub(:new).and_return(runner)

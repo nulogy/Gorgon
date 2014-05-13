@@ -1,20 +1,20 @@
 require 'gorgon/worker_manager'
 
 describe WorkerManager do
-  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
-  let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :delete => nil,
+  let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
+  let(:queue) { double("Queue", :bind => nil, :subscribe => nil, :delete => nil,
                      :pop => {:payload => :queue_empty}) }
-  let(:bunny) { stub("GorgonBunny", :start => nil, :exchange => exchange,
+  let(:bunny) { double("GorgonBunny", :start => nil, :exchange => exchange,
                      :queue => queue, :stop => nil) }
   before do
-    STDIN.stub!(:read).and_return "{}"
-    STDOUT.stub!(:reopen)
-    STDERR.stub!(:reopen)
-    STDOUT.stub!(:sync)
-    STDERR.stub!(:sync)
-    GorgonBunny.stub!(:new).and_return(bunny)
-    Configuration.stub!(:load_configuration_from_file).and_return({})
-    EventMachine.stub!(:run).and_yield
+    STDIN.stub(:read).and_return "{}"
+    STDOUT.stub(:reopen)
+    STDERR.stub(:reopen)
+    STDOUT.stub(:sync)
+    STDERR.stub(:sync)
+    GorgonBunny.stub(:new).and_return(bunny)
+    Configuration.stub(:load_configuration_from_file).and_return({})
+    EventMachine.stub(:run).and_yield
   end
 
   describe ".build" do

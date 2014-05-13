@@ -1,17 +1,17 @@
 require 'gorgon/gem_command_handler'
 
 describe GemCommandHandler do
-  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
-  let(:bunny) { stub("GorgonBunny", :exchange => exchange, :stop => nil) }
+  let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
+  let(:bunny) { double("GorgonBunny", :exchange => exchange, :stop => nil) }
 
   let(:payload) {
       {:type => :update, :reply_exchange_name => "name",
                                          :body => {:gem_command => "cmd"}}
   }
-  let(:stdin) { stub("IO object", :close => nil)}
-  let(:stdout) { stub("IO object", :read => "output", :close => nil)}
-  let(:stderr) { stub("IO object", :read => "errors", :close => nil)}
-  let(:status) { stub("Process Status", :exitstatus => 0)}
+  let(:stdin) { double("IO object", :close => nil)}
+  let(:stdout) { double("IO object", :read => "output", :close => nil)}
+  let(:stderr) { double("IO object", :read => "errors", :close => nil)}
+  let(:status) { double("Process Status", :exitstatus => 0)}
 
   describe "#handle" do
     before do
@@ -76,9 +76,9 @@ describe GemCommandHandler do
   end
 
   def stub_methods
-    Open4.stub!(:popen4).and_return([1, stdin, stdout, stderr])
-    Process.stub!(:waitpid2).and_return([nil, status])
-    Yajl::Encoder.stub!(:encode).and_return :json_msg
-    @handler.stub!(:exit)
+    Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
+    Process.stub(:waitpid2).and_return([nil, status])
+    Yajl::Encoder.stub(:encode).and_return :json_msg
+    @handler.stub(:exit)
   end
 end

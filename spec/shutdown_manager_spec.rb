@@ -1,9 +1,9 @@
 require 'gorgon/shutdown_manager'
 
 describe ShutdownManager do
-  let(:protocol){ stub("Originator Protocol", :cancel_job => nil, :disconnect => nil)}
+  let(:protocol){ double("Originator Protocol", :cancel_job => nil, :disconnect => nil)}
 
-  let(:job_state){ stub("JobState", cancel: nil)}
+  let(:job_state){ double("JobState", cancel: nil)}
 
   describe '#cancel_job' do
     it "call JobState#cancel" do

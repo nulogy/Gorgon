@@ -1,17 +1,17 @@
 require 'gorgon/originator_protocol'
 
 describe OriginatorProtocol do
-  let(:connection) { stub("Connection", :disconnect => nil, :on_closed => nil)}
-  let(:queue) { stub("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
+  let(:connection) { double("Connection", :disconnect => nil, :on_closed => nil)}
+  let(:queue) { double("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
                      :delete => nil) }
-  let(:exchange) { stub("Exchange", :publish => nil, :name => "exchange", :delete => nil) }
-  let(:channel) { stub("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
+  let(:exchange) { double("Exchange", :publish => nil, :name => "exchange", :delete => nil) }
+  let(:channel) { double("Channel", :queue => queue, :direct => exchange, :fanout => exchange,
                        :default_exchange => exchange) }
-  let(:logger){ stub("Logger", :log => nil)}
+  let(:logger){ double("Logger", :log => nil)}
 
   before do
-    AMQP.stub!(:connect).and_return connection
-    AMQP::Channel.stub!(:new).and_return channel
+    AMQP.stub(:connect).and_return connection
+    AMQP::Channel.stub(:new).and_return channel
     @originator_p = OriginatorProtocol.new logger
     @conn_information = {:host => "host"}
   end
@@ -38,13 +38,13 @@ describe OriginatorProtocol do
     end
 
     it "opens a reply and exchange queue" do
-      UUIDTools::UUID.stub!(:timestamp_create).and_return 1
+      UUIDTools::UUID.stub(:timestamp_create).and_return 1
       channel.should_receive(:queue).once.with("reply_queue_1", :auto_delete => true)
       @originator_p.connect @conn_information
     end
 
     it "opens a reply exchange and binds reply queue to it" do
-      UUIDTools::UUID.stub!(:timestamp_create).and_return 1
+      UUIDTools::UUID.stub(:timestamp_create).and_return 1
       channel.should_receive(:direct).with("reply_exchange_1", :auto_delete => true)
       queue.should_receive(:bind).with(exchange)
       @originator_p.connect @conn_information

@@ -1,16 +1,16 @@
 require 'gorgon/originator'
 
 describe Originator do
-  let(:protocol){ stub("Originator Protocol", :connect => nil, :publish_files => nil,
+  let(:protocol){ double("Originator Protocol", :connect => nil, :publish_files => nil,
                        :publish_job => nil, :receive_payloads => nil, :cancel_job => nil,
                        :disconnect => nil)}
 
   let(:configuration){ {:job => {}, :files => ["some/file"], :file_server => {:host => 'host-name'}}}
-  let(:job_state){ stub("JobState", :is_job_complete? => false, :file_finished => nil,
+  let(:job_state){ double("JobState", :is_job_complete? => false, :file_finished => nil,
                         :add_observer => nil)}
-  let(:progress_bar_view){ stub("Progress Bar View", :show => nil)}
-  let(:originator_logger){ stub("Originator Logger", :log => nil, :log_message => nil)}
-  let(:source_tree_syncer) { stub("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
+  let(:progress_bar_view){ double("Progress Bar View", :show => nil)}
+  let(:originator_logger){ double("Originator Logger", :log => nil, :log_message => nil)}
+  let(:source_tree_syncer) { double("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
                                   :sys_command => 'command')}
 
   before do
@@ -26,14 +26,14 @@ describe Originator do
     end
 
     it "creates a JobState instance and passes total files" do
-      @originator.stub!(:files).and_return ["a file", "other file"]
+      @originator.stub(:files).and_return ["a file", "other file"]
       JobState.should_receive(:new).with(2).and_return job_state
 
       @originator.publish
     end
 
     it "creates a ProgressBarView and show" do
-      JobState.stub!(:new).and_return job_state
+      JobState.stub(:new).and_return job_state
       ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
       progress_bar_view.should_receive(:show)
       @originator.publish
@@ -64,7 +64,7 @@ describe Originator do
 
     it 'tells ShutdownManager to cancel_job' do
       shutdown_manager = double('ShutdownManager')
-      JobState.stub!(:new).and_return job_state
+      JobState.stub(:new).and_return job_state
 
       ShutdownManager.should_receive(:new).
           with(hash_including(protocol: protocol, job_state: job_state)).
@@ -79,7 +79,7 @@ describe Originator do
   describe "#cleanup_if_job_complete" do
     before do
       stub_methods
-      JobState.stub!(:new).and_return job_state
+      JobState.stub(:new).and_return job_state
       @originator.publish
     end
 
@@ -89,7 +89,7 @@ describe Originator do
     end
 
     it "disconnect if job is complete" do
-      job_state.stub!(:is_job_complete?).and_return true
+      job_state.stub(:is_job_complete?).and_return true
       protocol.should_receive(:disconnect)
       @originator.cleanup_if_job_complete
     end
@@ -98,7 +98,7 @@ describe Originator do
   describe "#handle_reply" do
     before do
       stub_methods
-      JobState.stub!(:new).and_return job_state
+      JobState.stub(:new).and_return job_state
       @originator.publish
     end
 
@@ -130,14 +130,14 @@ describe Originator do
 
   describe "#job_definition" do
     it "returns a JobDefinition object" do
-      @originator.stub!(:configuration).and_return configuration
+      @originator.stub(:configuration).and_return configuration
       job_definition = JobDefinition.new
       JobDefinition.should_receive(:new).and_return job_definition
       @originator.job_definition.should equal job_definition
     end
 
     it "builds source_tree_path if it was not specified in the configuration" do
-      @originator.stub!(:configuration).and_return(configuration.merge(:file_server => {:host => 'host-name'}))
+      @originator.stub(:configuration).and_return(configuration.merge(:file_server => {:host => 'host-name'}))
       Socket.stub(:gethostname => 'my-host')
       Dir.stub(:pwd => 'dir')
 
@@ -145,7 +145,7 @@ describe Originator do
     end
 
     it "returns source_tree_path specified in configuration if it is present" do
-      @originator.stub!(:configuration).and_return({:job => {:source_tree_path => "login@host:path/to/dir"}})
+      @originator.stub(:configuration).and_return({:job => {:source_tree_path => "login@host:path/to/dir"}})
       @originator.job_definition.source_tree_path.should == "login@host:path/to/dir"
     end
   end
@@ -153,12 +153,12 @@ describe Originator do
   private
 
   def stub_methods
-    EventMachine.stub!(:run).and_yield
-    ProgressBarView.stub!(:new).and_return progress_bar_view
-    OriginatorProtocol.stub!(:new).and_return protocol
-    @originator.stub!(:configuration).and_return configuration
-    @originator.stub!(:connection_information).and_return 'host'
-    @originator.stub!(:job_definition).and_return JobDefinition.new
+    EventMachine.stub(:run).and_yield
+    ProgressBarView.stub(:new).and_return progress_bar_view
+    OriginatorProtocol.stub(:new).and_return protocol
+    @originator.stub(:configuration).and_return configuration
+    @originator.stub(:connection_information).and_return 'host'
+    @originator.stub(:job_definition).and_return JobDefinition.new
   end
 
   def start_payload

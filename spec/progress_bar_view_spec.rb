@@ -28,7 +28,7 @@ describe ProgressBarView do
   end
 
   describe "#update" do
-    let(:progress_bar) { stub("Progress Bar", :title= => nil, :progress= => nil, :format => nil,
+    let(:progress_bar) { double("Progress Bar", :title= => nil, :progress= => nil, :format => nil,
                               :finished? => false)}
     let(:payload) {
       { :filename => "path/file.rb",
@@ -37,11 +37,11 @@ describe ProgressBarView do
     }
 
     before do
-      ProgressBar.stub!(:create).and_return progress_bar
+      ProgressBar.stub(:create).and_return progress_bar
       @job_state = JobState.new 2
-      @job_state.stub!(:state).and_return :running
+      @job_state.stub(:state).and_return :running
       @progress_bar_view = ProgressBarView.new @job_state
-      $stdout.stub!(:write)
+      $stdout.stub(:write)
       @progress_bar_view.show
     end
 
@@ -74,8 +74,8 @@ describe ProgressBarView do
 
     it "prints failures and finish progress_bar when job is done" do
       @progress_bar_view.update
-      @job_state.stub!(:each_failed_test).and_yield(payload)
-      @job_state.stub!(:is_job_complete?).and_return :true
+      @job_state.stub(:each_failed_test).and_yield(payload)
+      @job_state.stub(:is_job_complete?).and_return :true
       $stdout.should_receive(:write).with(/Failure messages/)
       @progress_bar_view.update
     end
@@ -83,11 +83,11 @@ describe ProgressBarView do
     context "when job is cancelled" do
       before do
         @progress_bar_view.update
-        @job_state.stub!(:is_job_cancelled?).and_return :true
+        @job_state.stub(:is_job_cancelled?).and_return :true
       end
 
       it "prints failures and finish progress_bar when job is cancelled" do
-        @job_state.stub!(:each_failed_test).and_yield(payload)
+        @job_state.stub(:each_failed_test).and_yield(payload)
         $stdout.should_receive(:write).with(/Failure messages/)
         @progress_bar_view.update
       end
@@ -103,7 +103,7 @@ describe ProgressBarView do
       let(:crash_message) {{:type => "crash", :hostname => "host",
           :stdout => "some output", :stderr => "some errors"}}
       it "prints info about crash in standard error" do
-        $stderr.stub!(:write)
+        $stderr.stub(:write)
         $stderr.should_receive(:write).with(/crash.*host/i)
         $stderr.should_receive(:write).with(/some output/i)
         $stderr.should_receive(:write).with(/some errors/i)

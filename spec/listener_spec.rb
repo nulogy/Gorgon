@@ -2,10 +2,10 @@ require 'gorgon/listener'
 
 describe Listener do
   let(:connection_information) { double }
-  let(:queue) { stub("GorgonBunny Queue", :bind => nil) }
-  let(:exchange) { stub("GorgonBunny Exchange", :publish => nil) }
-  let(:bunny) { stub("GorgonBunny", :start => nil, :queue => queue, :exchange => exchange) }
-  let(:logger) { stub("Logger", :info => true, :datetime_format= => "")}
+  let(:queue) { double("GorgonBunny Queue", :bind => nil) }
+  let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
+  let(:bunny) { double("GorgonBunny", :start => nil, :queue => queue, :exchange => exchange) }
+  let(:logger) { double("Logger", :info => true, :datetime_format= => "")}
 
   before do
     Logger.stub(:new).and_return(logger)
@@ -138,7 +138,7 @@ describe Listener do
         let(:ping_payload) { [nil, nil, Yajl::Encoder.encode({:type => "ping", :reply_exchange_name => "name", :body => {}}) ] }
 
         before do
-          queue.stub!(:pop => ping_payload)
+          queue.stub(:pop => ping_payload)
           listener.stub(:configuration).and_return({:worker_slots => 3})
        end
 
@@ -160,10 +160,10 @@ describe Listener do
               :body => {:command => command}}
         }
 
-        let(:gem_command_handler) { stub("GemCommandHandler", :handle => nil)  }
+        let(:gem_command_handler) { double("GemCommandHandler", :handle => nil)  }
         let(:configuration) { {:worker_slots => 3} }
         before do
-          queue.stub!(:pop => [nil, nil, Yajl::Encoder.encode(payload)])
+          queue.stub(:pop => [nil, nil, Yajl::Encoder.encode(payload)])
           listener.stub(:configuration).and_return(configuration)
         end
 
@@ -181,14 +181,14 @@ describe Listener do
           :sync_exclude => ["log"], :callbacks => {:a_callback => "path/to/callback"}
         }}
 
-      let(:syncer) { stub("SourceTreeSyncer", :sync => nil, :exclude= => nil, :success? => true,
+      let(:syncer) { double("SourceTreeSyncer", :sync => nil, :exclude= => nil, :success? => true,
                           :output => "some output", :errors => "some errors",
                           :remove_temp_dir => nil, :sys_command => "rsync ...")}
-      let(:process_status) { stub("Process Status", :exitstatus => 0)}
-      let(:callback_handler) { stub("Callback Handler", :after_sync => nil) }
-      let(:stdin) { stub("IO object", :write => nil, :close => nil)}
-      let(:stdout) { stub("IO object", :read => nil, :close => nil)}
-      let(:stderr) { stub("IO object", :read => nil, :close => nil)}
+      let(:process_status) { double("Process Status", :exitstatus => 0)}
+      let(:callback_handler) { double("Callback Handler", :after_sync => nil) }
+      let(:stdin) { double("IO object", :write => nil, :close => nil)}
+      let(:stdout) { double("IO object", :read => nil, :close => nil)}
+      let(:stderr) { double("IO object", :read => nil, :close => nil)}
 
       before do
         stub_classes
@@ -205,9 +205,9 @@ describe Listener do
 
       context "syncer#sync fails" do
         before do
-          syncer.stub!(:success?).and_return false
-          syncer.stub!(:output).and_return "some output"
-          syncer.stub!(:errors).and_return "some errors"
+          syncer.stub(:success?).and_return false
+          syncer.stub(:output).and_return "some output"
+          syncer.stub(:errors).and_return "some errors"
         end
 
         it "aborts current job" do
@@ -254,11 +254,11 @@ describe Listener do
     private
 
     def stub_classes
-      SourceTreeSyncer.stub!(:new).and_return syncer
-      CallbackHandler.stub!(:new).and_return callback_handler
-      Open4.stub!(:popen4).and_return([1, stdin, stdout, stderr])
-      Process.stub!(:waitpid2).and_return([0, process_status])
-      Socket.stub!(:gethostname).and_return("hostname")
+      SourceTreeSyncer.stub(:new).and_return syncer
+      CallbackHandler.stub(:new).and_return callback_handler
+      Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
+      Process.stub(:waitpid2).and_return([0, process_status])
+      Socket.stub(:gethostname).and_return("hostname")
     end
   end
 end
