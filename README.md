@@ -1,6 +1,7 @@
 Gorgon
 =====================
 
+[![Gem Version](https://badge.fury.io/rb/gorgon.png)](https://rubygems.org/gems/gorgon)
 [![Code Climate](https://codeclimate.com/github/Fitzsimmons/Gorgon.png)](https://codeclimate.com/github/Fitzsimmons/Gorgon)
 
 About
