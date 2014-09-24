@@ -5,6 +5,7 @@ module Settings
     def initialize
       super
       @amqp_host = FilesContent.get_amqp_host
+      @file_server_host = FilesContent.get_file_server_host
       @sync_exclude = [".git", ".rvmrc","tmp","log","doc"]
       @originator_log_file = 'log/gorgon-originator.log'
       create_callbacks

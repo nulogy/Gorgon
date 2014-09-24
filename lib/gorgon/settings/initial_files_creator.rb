@@ -22,6 +22,7 @@ module Settings
     end
 
     private
+
     def self.create_gorgon_json content
       if File.exist? GORGON_JSON_FILE
         puts "gorgo.json exists. Skipping..."
@@ -30,6 +31,7 @@ module Settings
 
       config = {
         connection: {host: content.amqp_host},
+        file_server: {host: content.file_server_host},
         job: {
           sync_exclude: content.sync_exclude
         },

@@ -1,6 +1,6 @@
 module Settings
   class FilesContent
-    attr_accessor :amqp_host, :sync_exclude, :files, :originator_log_file,
+    attr_accessor :amqp_host, :file_server_host, :sync_exclude, :files, :originator_log_file,
       :callbacks, :callbacks_dir
 
     TEST_UNIT_GLOB = "test/**/*_test.rb"
@@ -12,15 +12,22 @@ module Settings
       @files << FilesContent::RSPEC_GLOB if Dir.exist?('spec')
     end
 
-    DEFAULT_AMQP_HOST = 'localhost'
+    DEFAULT_HOST = 'localhost'
     def self.get_amqp_host
-      puts "AMQP host (default '#{DEFAULT_AMQP_HOST}')? "
+      puts "AMQP host (default '#{DEFAULT_HOST}')? "
+      return get_input_or_default(DEFAULT_HOST)
+    end
+
+    def self.get_file_server_host
+      puts "File Server host (default '#{DEFAULT_HOST}')? "
+      return get_input_or_default(DEFAULT_HOST)
+    end
+
+    private
+
+    def self.get_input_or_default(default)
       input = $stdin.gets.chomp
-      if input == ""
-        return DEFAULT_AMQP_HOST
-      else
-        return input
-      end
+      (input == '') ? default : input
     end
   end
 end
