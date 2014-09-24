@@ -160,8 +160,13 @@ class Originator
   end
 
   def file_server_host
-    file_server = configuration[:file_server]
-    raise 'Please, provide file_server configuration.' if file_server.nil?
+    if configuration[:file_server].nil?
+      raise <<-MSG
+        Missing file_server configuration.
+        See https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample for a sample configuration
+MSG
+    end
+
     configuration[:file_server][:host]
   end
 

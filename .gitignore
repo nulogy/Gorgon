@@ -11,3 +11,4 @@ pkg
 .rbenv-version
 *.log
 *.json
+.rspec
