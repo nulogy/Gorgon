@@ -68,8 +68,8 @@ if status.exitstatus != 0
   raise "ERROR: 'rake db:setup' failed.\n#{stderr.read}\n#{stdout.read}"
 end
 
-spec_helper_file = File.expand_path('../../spec_helper', __FILE__)
-test_helper_file = File.expand_path('../../test_helper', __FILE__)
+spec_helper_file = File.expand_path('../../spec_helper.rb', __FILE__)
+test_helper_file = File.expand_path('../../test_helper.rb', __FILE__)
 
 require spec_helper_file if File.exist?(spec_helper_file)
 require test_helper_file if File.exist?(test_helper_file)
