@@ -20,7 +20,7 @@ describe WorkerManager do
   describe ".build" do
     it "should load_configuration_from_file" do
       STDIN.should_receive(:read).and_return '{"source_tree_path":"path/to/source",
-             "sync_exclude":["log"]}'
+             "sync":{"exclude":["log"]}}'
 
       Configuration.should_receive(:load_configuration_from_file).with("file.json").and_return({})
 

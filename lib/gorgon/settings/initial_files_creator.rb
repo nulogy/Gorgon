@@ -33,7 +33,9 @@ module Settings
         connection: {host: content.amqp_host},
         file_server: {host: content.file_server_host},
         job: {
-          sync_exclude: content.sync_exclude
+          sync: {
+            exclude: content.sync_exclude
+          }
         },
         files: content.files
       }

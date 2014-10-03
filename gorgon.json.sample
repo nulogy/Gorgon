@@ -8,13 +8,18 @@
   },
 
   "job": {
-    "sync_exclude": [
+    "sync": {
+      "exclude": [
+        ".git",
+        ".rvmrc",
         "tmp",
         "log",
-        "doc",
-        ".git",
-        ".rvmrc"
-    ],
+        "doc"
+      ],
+
+      "rsync_transport": "ssh" // or "native"
+    },
+
     "callbacks": {
         "before_start": "test/gorgon_callbacks/before_start_callback.rb",
         "after_complete": "test/gorgon_callbacks/after_complete.rb",
