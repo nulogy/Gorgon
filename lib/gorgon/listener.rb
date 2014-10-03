@@ -119,8 +119,7 @@ class Listener
 
   def copy_source_tree(sync_configuration)
     log "Downloading source tree to temp directory..."
-    @syncer = SourceTreeSyncer.new sync_configuration[:source_tree_path]
-    @syncer.exclude = sync_configuration[:exclude]
+    @syncer = SourceTreeSyncer.new sync_configuration
     @syncer.sync
     if @syncer.success?
       log "Command '#{@syncer.sys_command}' completed successfully."

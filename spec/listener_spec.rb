@@ -195,8 +195,9 @@ describe Listener do
       end
 
       it "copy source tree" do
-        SourceTreeSyncer.should_receive(:new).once.with("path/to/source").and_return syncer
-        syncer.should_receive(:exclude=).with(["log"])
+        SourceTreeSyncer.should_receive(:new).once.
+          with(source_tree_path: "path/to/source", exclude: ["log"]).
+          and_return(syncer)
         syncer.should_receive(:sync)
         syncer.should_receive(:success?).and_return(true)
         @listener.run_job(payload)

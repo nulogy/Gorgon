@@ -1,16 +1,17 @@
 require 'open4'
 
 class SourceTreeSyncer
-  attr_accessor :exclude
   attr_reader :sys_command, :output, :errors
 
   SYS_COMMAND = 'rsync'
-  OPTS = "-azr --timeout=5 --delete"
-  EXCLUDE_OPT = "--exclude"
 
-  def initialize source_tree_path
-    @source_tree_path = source_tree_path
-    @exclude = []
+  OPTS = '-azr --timeout=5 --delete'
+
+  EXCLUDE_OPT = '--exclude'
+
+  def initialize(sync_config)
+    @source_tree_path = sync_config[:source_tree_path] if sync_config
+    @exclude = sync_config[:exclude] if sync_config
   end
 
   def sync

@@ -1,7 +1,6 @@
 require 'gorgon/source_tree_syncer'
 
-describe SourceTreeSyncer.new("") do
-  it { should respond_to :exclude= }
+describe SourceTreeSyncer.new(source_tree_path: "") do
   it { should respond_to :sync }
   it { should respond_to :push }
   it { should respond_to :sys_command }
@@ -16,7 +15,7 @@ describe SourceTreeSyncer.new("") do
   let(:status) { double("Process Status", :exitstatus => 0)}
 
   before do
-    @syncer = SourceTreeSyncer.new "path/to/source"
+    @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source")
     stub_utilities_methods
   end
 
@@ -25,11 +24,12 @@ describe SourceTreeSyncer.new("") do
       Dir.should_receive(:mktmpdir).and_return("tmp/dir")
       Dir.should_receive(:chdir).with("tmp/dir")
       @syncer.sync
+      expect(@syncer.success?).to be_true, "Syncer error: #{@syncer.errors}"
     end
 
     context "invalid source_tree_path" do
       it "gives error if source_tree_path is empty string" do
-        syncer = SourceTreeSyncer.new "  "
+        syncer = SourceTreeSyncer.new(source_tree_path: "  ")
         Dir.should_not_receive(:mktmpdir)
         syncer.sync
         syncer.success?.should be_false
@@ -53,7 +53,7 @@ describe SourceTreeSyncer.new("") do
       end
 
       it "exclude files when they are specified" do
-        @syncer.exclude = ["log", ".git"]
+        @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source", exclude: ["log", ".git"])
         Open4.should_receive(:popen4).with(/--exclude log --exclude .git/)
         @syncer.sync
       end
@@ -98,7 +98,7 @@ describe SourceTreeSyncer.new("") do
 
   describe "#remove_temp_dir" do
     before do
-      @syncer = SourceTreeSyncer.new "path/to/source"
+      @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source")
       stub_utilities_methods
       @syncer.sync
     end
