@@ -177,8 +177,7 @@ describe Listener do
 
     describe "#run_job" do
       let(:payload) {{
-          :source_tree_path => "path/to/source",
-          :sync => {:exclude => ["log"]}, :callbacks => {:a_callback => "path/to/callback"}
+          :sync => {:source_tree_path => "path/to/source", :exclude => ["log"]}, :callbacks => {:a_callback => "path/to/callback"}
         }}
 
       let(:syncer) { double("SourceTreeSyncer", :sync => nil, :exclude= => nil, :success? => true,

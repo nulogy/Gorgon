@@ -79,7 +79,7 @@ class Listener
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
-    copy_source_tree(@job_definition.source_tree_path, @job_definition.sync[:exclude])
+    copy_source_tree(@job_definition.sync[:source_tree_path], @job_definition.sync[:exclude])
 
     if !@syncer.success? || !run_after_sync
       clean_up

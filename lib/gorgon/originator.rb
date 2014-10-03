@@ -144,9 +144,8 @@ class Originator
 
   def job_definition
     job_config = configuration[:job]
-    if !job_config.has_key?(:source_tree_path)
-      job_config[:source_tree_path] = source_tree_path
-    end
+    job_config[:sync] = {} unless job_config.has_key?(:sync)
+    job_config[:sync][:source_tree_path] = source_tree_path unless job_config[:sync].has_key?(:source_tree_path)
     JobDefinition.new(configuration[:job])
   end
 

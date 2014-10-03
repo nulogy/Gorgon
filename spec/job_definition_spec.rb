@@ -12,7 +12,6 @@ describe JobDefinition do
         :type => "job_definition",
         :file_queue_name => "string 1",
         :reply_exchange_name => "string 2",
-        :source_tree_path => "string 3",
         :sync => {:exclude => "string 4"},
         :callbacks => {}
       }

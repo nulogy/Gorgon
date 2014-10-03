@@ -141,12 +141,12 @@ describe Originator do
       Socket.stub(:gethostname => 'my-host')
       Dir.stub(:pwd => 'dir')
 
-      @originator.job_definition.source_tree_path.should == "rsync://host-name:43434/src/my-host_dir"
+      @originator.job_definition.sync[:source_tree_path].should == "rsync://host-name:43434/src/my-host_dir"
     end
 
     it "returns source_tree_path specified in configuration if it is present" do
-      @originator.stub(:configuration).and_return({:job => {:source_tree_path => "login@host:path/to/dir"}})
-      @originator.job_definition.source_tree_path.should == "login@host:path/to/dir"
+      @originator.stub(:configuration).and_return({:job => {:sync => {:source_tree_path => "login@host:path/to/dir"}}})
+      @originator.job_definition.sync[:source_tree_path].should == "login@host:path/to/dir"
     end
   end
 
