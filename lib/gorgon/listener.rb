@@ -79,7 +79,7 @@ class Listener
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
     @callback_handler = CallbackHandler.new(@job_definition.callbacks)
-    copy_source_tree(@job_definition.sync[:source_tree_path], @job_definition.sync[:exclude])
+    copy_source_tree(@job_definition.sync)
 
     if !@syncer.success? || !run_after_sync
       clean_up
@@ -117,10 +117,10 @@ class Listener
     true
   end
 
-  def copy_source_tree source_tree_path, exclude
+  def copy_source_tree(sync_configuration)
     log "Downloading source tree to temp directory..."
-    @syncer = SourceTreeSyncer.new source_tree_path
-    @syncer.exclude = exclude
+    @syncer = SourceTreeSyncer.new sync_configuration[:source_tree_path]
+    @syncer.exclude = sync_configuration[:exclude]
     @syncer.sync
     if @syncer.success?
       log "Command '#{@syncer.sys_command}' completed successfully."
