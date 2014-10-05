@@ -77,8 +77,7 @@ class Originator
   end
 
   def push_source_code
-    exclude = configuration[:job].fetch(:sync, {exclude: []}).fetch(:exclude)
-    syncer = SourceTreeSyncer.new(source_tree_path: source_tree_path, exclude: exclude)
+    syncer = SourceTreeSyncer.new(sync_configuration)
     syncer.push
     if syncer.success?
       @logger.log "Command '#{syncer.sys_command}' completed successfully."
@@ -150,6 +149,12 @@ class Originator
   end
 
   private
+
+  def sync_configuration
+    configuration[:job].
+      fetch(:sync, {}).
+      merge(source_tree_path: source_tree_path)
+  end
 
   def source_tree_path
     hostname = Socket.gethostname
