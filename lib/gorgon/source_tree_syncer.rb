@@ -1,26 +1,32 @@
 require 'open4'
 
 class SourceTreeSyncer
+  RSYNC_TRANSPORT_SSH = 'ssh'
+  RSYNC_TRANSPORT_ANONYMOUS = 'anonymous'
+
   attr_reader :sys_command, :output, :errors
 
   SYS_COMMAND = 'rsync'
-
   OPTS = '-azr --timeout=5 --delete'
-
+  RSH_OPTS = 'ssh -o NumberOfPasswordPrompts=0 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i gorgon.pem'
   EXCLUDE_OPT = '--exclude'
 
   def initialize(sync_config)
-    @source_tree_path = sync_config[:source_tree_path] if sync_config
-    @exclude = sync_config[:exclude] if sync_config
+    if sync_config
+      @source_tree_path = sync_config[:source_tree_path]
+      @exclude = sync_config[:exclude]
+      @rsync_transport = sync_config[:rsync_transport]
+    end
   end
 
+  # MY_NOTE: rename sync to pull
   def sync
     return if blank_source_tree_path?
 
     @tempdir = Dir.mktmpdir("gorgon")
     Dir.chdir(@tempdir)
 
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{build_exclude_opt} #{@source_tree_path}/ ."
+    @sys_command = "#{SYS_COMMAND} #{rsync_options} #{@source_tree_path}/ ."
 
     execute_command
   end
@@ -28,7 +34,7 @@ class SourceTreeSyncer
   def push
     return if blank_source_tree_path?
 
-    @sys_command = "#{SYS_COMMAND} #{OPTS} #{build_exclude_opt} . #{@source_tree_path}"
+    @sys_command = "#{SYS_COMMAND} #{rsync_options} . #{@source_tree_path}"
 
     execute_command
   end
@@ -69,7 +75,15 @@ class SourceTreeSyncer
     end
   end
 
-  def build_exclude_opt
+  def rsync_options
+    if @rsync_transport == RSYNC_TRANSPORT_SSH
+      "#{OPTS} #{exclude_options} --rsh='#{RSH_OPTS}'"
+    else
+      "#{OPTS} #{exclude_options}"
+    end
+  end
+
+  def exclude_options
     return "" if @exclude.nil? or @exclude.empty?
 
     exclude = [""] + @exclude

@@ -35,6 +35,7 @@ module Settings
         job: {
           sync: {
             exclude: content.sync_exclude
+            # MY_NOTE: add rsync_transport config
           }
         },
         files: content.files

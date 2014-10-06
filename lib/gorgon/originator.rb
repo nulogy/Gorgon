@@ -142,9 +142,10 @@ class Originator
   end
 
   def job_definition
+    # MY_NOTE: remove duplication. Use sync_configuration
     job_config = configuration[:job]
     job_config[:sync] = {} unless job_config.has_key?(:sync)
-    job_config[:sync][:source_tree_path] = source_tree_path unless job_config[:sync].has_key?(:source_tree_path)
+    job_config[:sync][:source_tree_path] = source_tree_path(job_config[:sync])
     JobDefinition.new(configuration[:job])
   end
 
@@ -153,14 +154,19 @@ class Originator
   def sync_configuration
     configuration[:job].
       fetch(:sync, {}).
-      merge(source_tree_path: source_tree_path)
+      merge(source_tree_path: source_tree_path(configuration[:job][:sync])
+    )
   end
 
-  def source_tree_path
+  def source_tree_path(sync_config)
     hostname = Socket.gethostname
     source_code_root = File.basename(Dir.pwd)
 
-    "rsync://#{file_server_host}:43434/src/#{hostname}_#{source_code_root}"
+    if sync_config && sync_config[:rsync_transport] == SourceTreeSyncer::RSYNC_TRANSPORT_SSH
+      "#{file_server_host}:/tmp/#{hostname}_#{source_code_root}"
+    else
+      "rsync://#{file_server_host}:43434/src/#{hostname}_#{source_code_root}"
+    end
   end
 
   def file_server_host

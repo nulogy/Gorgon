@@ -136,7 +136,7 @@ describe Originator do
       @originator.job_definition.should equal job_definition
     end
 
-    it "builds source_tree_path if it was not specified in the configuration" do
+    it "builds anonymous source_tree_path if it was not specified in the configuration" do
       @originator.stub(:configuration).and_return(configuration.merge(:file_server => {:host => 'host-name'}))
       Socket.stub(:gethostname => 'my-host')
       Dir.stub(:pwd => 'dir')
@@ -144,9 +144,15 @@ describe Originator do
       @originator.job_definition.sync[:source_tree_path].should == "rsync://host-name:43434/src/my-host_dir"
     end
 
-    it "returns source_tree_path specified in configuration if it is present" do
-      @originator.stub(:configuration).and_return({:job => {:sync => {:source_tree_path => "login@host:path/to/dir"}}})
-      @originator.job_definition.sync[:source_tree_path].should == "login@host:path/to/dir"
+    it "builds ssh source_tree_path if using ssh rsync transport" do
+      @originator.stub(:configuration).and_return(configuration.merge(
+        :file_server => {:host => 'host-name'},
+        :job => { :sync => { :rsync_transport => 'ssh'}}
+      ))
+      Socket.stub(:gethostname => 'my-host')
+      Dir.stub(:pwd => 'dir')
+
+      @originator.job_definition.sync[:source_tree_path].should == "host-name:/tmp/my-host_dir"
     end
   end
 

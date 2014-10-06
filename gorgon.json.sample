@@ -17,7 +17,7 @@
         "doc"
       ],
 
-      "rsync_transport": "ssh" // or "native"
+      "rsync_transport": "ssh" // or "anonymous"
     },
 
     "callbacks": {
