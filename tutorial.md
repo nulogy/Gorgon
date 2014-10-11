@@ -54,32 +54,39 @@ Run `rspec` and make sure all tests pass.
 
 7. Create config/environments/remote_test.rb file. This file can be just a copy of config/environments/test.rb
 
-  `cp config/environments/test.rb config/environments/remote_test.rb`
+  ```bash
+  cp config/environments/test.rb config/environments/remote_test.rb
+  ```
 
 ### Run Gorgon Listener
 
 1. Download a listener configuration sample:
 
-  `wget https://raw.githubusercontent.com/Fitzsimmons/Gorgon/master/gorgon_listener.json.sample`
- 
-  `mv gorgon_listener.json.sample gorgon_listener.json`
+  ```bash
+  wget https://raw.githubusercontent.com/Fitzsimmons/Gorgon/master/gorgon_listener.json.sample
+  mv gorgon_listener.json.sample gorgon_listener.json
+  ```
 
 2. Start listener
 
-  `gorgon listen`
+  ```bash
+  gorgon listen
+  ```
 
 ### Run File Server
 
-  `mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test`
-
-  `gorgon start_rsync ~/.gorgon/file_dir`
-
+  ```bash
+  mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test`
+  gorgon start_rsync ~/.gorgon/file_dir
+  ```
 
 ### Run Gorgon
 
 Now, you are ready to run Gorgon. 
 
-  `gorgon`
+  ```bash
+  gorgon
+  ```
 
 ### Result
 
