@@ -76,7 +76,7 @@ Run `rspec` and make sure all tests pass.
 ### Run File Server
 
   ```bash
-  mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test`
+  mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test
   gorgon start_rsync ~/.gorgon/file_dir
   ```
 
