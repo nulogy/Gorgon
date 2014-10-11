@@ -6,11 +6,13 @@ This is an example on how to setup [Gorgon](https://github.com/Fitzsimmons/Gorgo
 
 First, let's clone and setup the sample Rails app.
 
-1. `git clone git@github.com:arturopie/sample_app-1.git`
-1. `cd sample_app-1/`
-1. `bundle`
-1. `rake db:setup`
-2. `rake db:test:prepare`
+```bash
+git clone git@github.com:arturopie/sample_app-1.git
+cd sample_app-1/
+bundle
+rake db:setup
+rake db:test:prepare
+```
 
 Run `rspec` and make sure all tests pass.
 
