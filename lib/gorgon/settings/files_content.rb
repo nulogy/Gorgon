@@ -14,12 +14,12 @@ module Settings
 
     DEFAULT_HOST = 'localhost'
     def self.get_amqp_host
-      puts "AMQP host (default '#{DEFAULT_HOST}')? "
+      puts "What's the AMQP host name? (leave blank to use '#{DEFAULT_HOST}') "
       return get_input_or_default(DEFAULT_HOST)
     end
 
     def self.get_file_server_host
-      puts "File Server host (default '#{DEFAULT_HOST}')? "
+      puts "What's the File Server host name? (leave blank to use '#{DEFAULT_HOST}') "
       return get_input_or_default(DEFAULT_HOST)
     end
 
