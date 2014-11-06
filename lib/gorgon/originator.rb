@@ -37,8 +37,7 @@ class Originator
   end
 
   def cancel_job
-    ShutdownManager.new(protocol: @protocol,
-                        job_state: @job_state).cancel_job
+    ShutdownManager.new(protocol: @protocol, job_state: @job_state).cancel_job
   end
 
   def ctrl_c
