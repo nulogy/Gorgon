@@ -163,7 +163,7 @@ class Originator
     source_code_root = File.basename(Dir.pwd)
 
     if sync_config && sync_config[:rsync_transport] == SourceTreeSyncer::RSYNC_TRANSPORT_SSH
-      "#{file_server_host}:/tmp/#{hostname}_#{source_code_root}"
+      "#{file_server_host}:#{hostname}_#{source_code_root}"
     else
       "rsync://#{file_server_host}:43434/src/#{hostname}_#{source_code_root}"
     end

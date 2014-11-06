@@ -152,7 +152,7 @@ describe Originator do
       Socket.stub(:gethostname => 'my-host')
       Dir.stub(:pwd => 'dir')
 
-      @originator.job_definition.sync[:source_tree_path].should == "host-name:/tmp/my-host_dir"
+      @originator.job_definition.sync[:source_tree_path].should == "host-name:my-host_dir"
     end
   end
 
