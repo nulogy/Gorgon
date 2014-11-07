@@ -174,12 +174,11 @@ class Listener
     reply_exchange.publish(Yajl::Encoder.encode(message))
   end
 
-  # MY_NOTE: Test this
   def job_queue_name
     if configuration[:connection] && configuration[:connection][:job_queue_name]
       configuration[:connection][:job_queue_name]
     else
-      return 'gorgon.jobs'
+      'gorgon.jobs'
     end
   end
 
