@@ -1,9 +1,10 @@
-require 'gorgon/callback_handler'
+require 'gorgon'
 
 describe CallbackHandler do
 
   let(:config) {
     {
+      :temp_callbacks => "callback_file.rb",
       :before_start => "some/file.rb",
       :after_complete => "some/other/file.rb",
       :before_creating_workers => "callbacks/before_creating_workers_file.rb",
@@ -11,6 +12,9 @@ describe CallbackHandler do
       :after_creating_workers => "callbacks/after_creating_workers.rb"
     }
   }
+  before do
+    CallbackHandler.any_instance.stub(:load)
+  end
 
   it "calls before hook" do
     handler = CallbackHandler.new(config)
@@ -90,5 +94,27 @@ describe CallbackHandler do
     handler.should_not_receive(:load)
 
     handler.after_creating_workers
+  end
+
+  it "loads callback file" do
+    CallbackHandler.any_instance.should_receive(:load).with config[:temp_callbacks]
+
+    CallbackHandler.new(config)
+  end
+
+  it "does not load callback file if it's not specified" do
+    CallbackHandler.any_instance.should_not_receive(:load)
+
+    CallbackHandler.new({})
+  end
+
+  context "#before_job_starts" do
+    let(:callback_handler) { CallbackHandler.new(config) }
+
+    it "delegates to Gorgon.callbacks.before_job_starts" do
+      Gorgon.callbacks.should_receive(:before_job_starts)
+
+      callback_handler.before_job_starts
+    end
   end
 end

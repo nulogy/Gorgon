@@ -1,6 +1,11 @@
 class CallbackHandler
   def initialize(config)
     @config = config || {}
+    load(@config[:temp_callbacks]) if @config[:temp_callbacks]
+  end
+
+  def before_job_starts
+    Gorgon.callbacks.before_job_starts
   end
 
   def before_start

@@ -1,3 +1,4 @@
+require 'gorgon'
 require 'gorgon/originator_protocol'
 require 'gorgon/configuration'
 require 'gorgon/job_state'
@@ -5,7 +6,8 @@ require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
 require 'gorgon/source_tree_syncer'
-require 'gorgon/shutdown_manager.rb'
+require 'gorgon/shutdown_manager'
+require 'gorgon/callback_handler'
 
 require 'awesome_print'
 require 'etc'
@@ -54,12 +56,8 @@ class Originator
     end
 
     # MY_NOTE: Test & refactor this
-    callback_file = configuration[:job][:callbacks2]
-    job_queue_name = nil
-    if callback_file
-      load(callback_file)
-      job_queue_name = Gorgon.callbacks.before_start
-    end
+    callback_handler = CallbackHandler.new(configuration[:job][:callbacks])
+    job_queue_name = callback_handler.before_job_starts
 
     push_source_code
 
