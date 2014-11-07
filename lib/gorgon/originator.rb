@@ -55,8 +55,7 @@ class Originator
       exit 2
     end
 
-    # MY_NOTE: Test & refactor this
-    callback_handler = CallbackHandler.new(configuration[:job][:callbacks])
+    # MY_NOTE: change it to expect to return a config hash. then merge into the configuration
     job_queue_name = callback_handler.before_job_starts
 
     push_source_code
@@ -79,6 +78,10 @@ class Originator
         handle_reply(payload)
       end
     end
+  end
+
+  def callback_handler
+    @callback_handler ||= CallbackHandler.new(configuration[:job][:callbacks])
   end
 
   def push_source_code
