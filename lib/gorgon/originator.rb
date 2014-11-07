@@ -154,7 +154,7 @@ class Originator
   end
 
   def job_definition
-    # MY_NOTE: remove duplication. Use sync_configuration
+    # TODO: remove duplication. Use sync_configuration
     job_config = configuration[:job]
     job_config[:sync] = {} unless job_config.has_key?(:sync)
     job_config[:sync][:source_tree_path] = source_tree_path(job_config[:sync])
