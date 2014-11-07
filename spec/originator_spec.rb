@@ -20,7 +20,7 @@ describe Originator do
     @originator = Originator.new
   end
 
-  describe "#publish_job" do
+  describe "#publish" do
     before do
       stub_methods
     end
@@ -54,6 +54,18 @@ describe Originator do
       source_tree_syncer.should_not_receive(:push)
 
       expect { @originator.publish }.to raise_error(SystemExit)
+    end
+
+    it "calls before_job_starts callback" do
+      CallbackHandler.any_instance.should_receive(:before_job_starts)
+      @originator.publish
+    end
+
+    it "uses results of before_job_starts callback as job_queue_name" do
+      CallbackHandler.any_instance.stub(:before_job_starts).and_return('my-queue')
+      OriginatorProtocol.should_receive(:new).with(anything, 'my-queue')
+
+      @originator.publish
     end
   end
 
