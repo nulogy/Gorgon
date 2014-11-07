@@ -7,6 +7,7 @@ require "gorgon/version"
 require "gorgon/worker_manager"
 require "gorgon/crash_reporter"
 require "gorgon/gem_command_handler"
+require 'gorgon/originator_protocol'
 
 require "yajl"
 require "gorgon_bunny/lib/gorgon_bunny"
@@ -175,9 +176,7 @@ class Listener
   end
 
   def job_queue_name
-    name = "gorgon.jobs"
-    name += ".#{configuration[:job_id]}" if configuration[:job_id]
-    name
+    OriginatorProtocol.job_queue_name(configuration[:job_id])
   end
 
   def connection_information

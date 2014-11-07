@@ -6,9 +6,16 @@ require 'uuidtools'
 
 class OriginatorProtocol
   def initialize(logger, job_id=nil)
-    @job_queue_name = 'gorgon.jobs'
-    @job_queue_name += ".#{job_id}" if job_id
+    @job_queue_name = OriginatorProtocol.job_queue_name(job_id)
     @logger = logger
+  end
+
+  def self.job_queue_name(job_id)
+    if job_id
+      "gorgon.jobs.#{job_id}"
+    else
+      'gorgon.jobs'
+    end
   end
 
   def connect connection_information, options={}
