@@ -108,13 +108,18 @@ describe CallbackHandler do
     CallbackHandler.new({})
   end
 
-  context "#before_job_starts" do
-    let(:callback_handler) { CallbackHandler.new(config) }
 
-    it "delegates to Gorgon.callbacks.before_job_starts" do
-      Gorgon.callbacks.should_receive(:before_job_starts)
+  # MY_NOTE: remove these tests. It mimics implementation
+  let(:callback_handler) { CallbackHandler.new(config) }
+  it "#before_job_starts delegates to Gorgon.callbacks.before_job_starts" do
+    Gorgon.callbacks.should_receive(:before_job_starts)
 
-      callback_handler.before_job_starts
-    end
+    callback_handler.before_job_starts
+  end
+
+  it "#after_job_finishes delegates to Gorgon.callbacks.after_job_finishes" do
+    Gorgon.callbacks.should_receive(:after_job_finishes)
+
+    callback_handler.after_job_finishes
   end
 end

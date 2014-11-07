@@ -67,6 +67,12 @@ describe Originator do
 
       @originator.publish
     end
+
+    it "calls after_job_finishes callback" do
+      CallbackHandler.any_instance.should_receive(:after_job_finishes)
+
+      @originator.publish
+    end
   end
 
   describe "#cancel_job" do

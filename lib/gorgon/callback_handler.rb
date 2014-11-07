@@ -8,6 +8,10 @@ class CallbackHandler
     Gorgon.callbacks.before_job_starts
   end
 
+  def after_job_finishes
+    Gorgon.callbacks.after_job_finishes
+  end
+
   def before_start
     load_callback(:before_start)
   end

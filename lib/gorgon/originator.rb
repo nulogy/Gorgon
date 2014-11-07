@@ -69,6 +69,8 @@ class Originator
         handle_reply(payload)
       end
     end
+
+    callback_handler.after_job_finishes
   end
 
   def publish_files_and_job
