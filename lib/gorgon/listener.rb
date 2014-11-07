@@ -78,7 +78,6 @@ class Listener
     @job_definition = JobDefinition.new(payload)
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
-    @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.sync)
 
     if !@syncer.success? || !run_after_sync
@@ -100,7 +99,7 @@ class Listener
   def run_after_sync
     log "Running after_sync callback..."
     begin
-      @callback_handler.after_sync
+      callback_handler.after_sync
     rescue Exception => e
       log_error "Exception raised when running after_sync callback_handler. Please, check your script in #{@job_definition.callbacks[:after_sync]}:"
       log_error e.message
@@ -115,6 +114,10 @@ class Listener
       return false
     end
     true
+  end
+
+  def callback_handler
+    @callback_handler ||= CallbackHandler.new(@job_definition.callbacks)
   end
 
   def copy_source_tree(sync_configuration)
