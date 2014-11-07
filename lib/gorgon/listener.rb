@@ -175,11 +175,9 @@ class Listener
   end
 
   def job_queue_name
-    if configuration[:connection] && configuration[:connection][:job_queue_name]
-      configuration[:connection][:job_queue_name]
-    else
-      'gorgon.jobs'
-    end
+    name = "gorgon.jobs"
+    name += ".#{configuration[:job_id]}" if configuration[:job_id]
+    name
   end
 
   def connection_information

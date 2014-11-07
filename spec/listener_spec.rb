@@ -88,9 +88,9 @@ describe Listener do
         listener.initialize_personal_job_queue
       end
 
-      it "uses job_queue_name from configuration" do
-        Listener.any_instance.stub(:configuration).and_return(:connection => {:job_queue_name => "a-queue"})
-        bunny.should_receive(:exchange).with("a-queue", anything).and_return(exchange)
+      it "build job_queue_name using job_id from configuration" do
+        Listener.any_instance.stub(:configuration).and_return(:job_id => 'job5')
+        bunny.should_receive(:exchange).with('gorgon.jobs.job5', anything).and_return(exchange)
         listener.initialize_personal_job_queue
       end
 
