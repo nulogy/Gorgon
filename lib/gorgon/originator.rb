@@ -63,21 +63,25 @@ class Originator
     @protocol = OriginatorProtocol.new(@logger, job_queue_name)
 
     EventMachine.run do
-      @logger.log "Connecting..."
-      @protocol.connect connection_information, :on_closed => method(:on_disconnect)
-
-      @logger.log "Publishing files..."
-      @protocol.publish_files files
-      create_job_state_and_observers
-
-      @logger.log "Publishing Job..."
-      @protocol.publish_job job_definition
-      @logger.log "Job Published"
+      publish_files_and_job
 
       @protocol.receive_payloads do |payload|
         handle_reply(payload)
       end
     end
+  end
+
+  def publish_files_and_job
+    @logger.log "Connecting..."
+    @protocol.connect connection_information, :on_closed => method(:on_disconnect)
+
+    @logger.log "Publishing files..."
+    @protocol.publish_files files
+    create_job_state_and_observers
+
+    @logger.log "Publishing Job..."
+    @protocol.publish_job job_definition
+    @logger.log "Job Published"
   end
 
   def callback_handler
@@ -132,7 +136,7 @@ class Originator
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
-    failures_printer = FailuresPrinter.new @job_state
+    FailuresPrinter.new @job_state
   end
 
   def on_disconnect
