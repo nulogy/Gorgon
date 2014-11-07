@@ -61,9 +61,9 @@ describe Originator do
       @originator.publish
     end
 
-    it "uses results of before_job_starts callback as job_queue_name" do
-      CallbackHandler.any_instance.stub(:before_job_starts).and_return('my-queue')
-      OriginatorProtocol.should_receive(:new).with(anything, 'my-queue')
+    it "uses results of before_job_starts callback to build a job_queue_name" do
+      CallbackHandler.any_instance.stub(:before_job_starts).and_return('job_1')
+      OriginatorProtocol.should_receive(:new).with(anything, 'job_1')
 
       @originator.publish
     end

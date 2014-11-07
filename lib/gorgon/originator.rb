@@ -55,12 +55,11 @@ class Originator
       exit 2
     end
 
-    # MY_NOTE: change it to expect to return a config hash. then merge into the configuration
-    job_queue_name = callback_handler.before_job_starts
+    job_id = callback_handler.before_job_starts
 
     push_source_code
 
-    @protocol = OriginatorProtocol.new(@logger, job_queue_name)
+    @protocol = OriginatorProtocol.new(@logger, job_id)
 
     EventMachine.run do
       publish_files_and_job

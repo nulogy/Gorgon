@@ -67,8 +67,7 @@ describe OriginatorProtocol do
 
   describe "#publish_job" do
     before do
-      @originator_p.connect @conn_information
-      @originator_p.publish_files []
+      connect_and_publish_files(@originator_p)
     end
 
     it "add queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
@@ -79,6 +78,14 @@ describe OriginatorProtocol do
 
       exchange.should_receive(:publish).with(exp_job_definition.to_json)
       @originator_p.publish_job JobDefinition.new
+    end
+
+    it "uses job_id in job_queue_name, if specified" do
+      originator_p = connect_and_publish_files(OriginatorProtocol.new(logger, "job1"))
+
+      channel.should_receive(:fanout).with("gorgon.jobs.job1")
+
+      originator_p.publish_job JobDefinition.new
     end
   end
 
@@ -149,5 +156,11 @@ describe OriginatorProtocol do
       connection.should_receive(:disconnect)
       @originator_p.disconnect
     end
+  end
+
+  def connect_and_publish_files(originator_p)
+    originator_p.connect @conn_information
+    originator_p.publish_files []
+    originator_p
   end
 end
