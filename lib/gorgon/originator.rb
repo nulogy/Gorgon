@@ -53,9 +53,17 @@ class Originator
       exit 2
     end
 
+    # MY_NOTE: Test & refactor this
+    callback_file = configuration[:job][:callbacks2]
+    job_queue_name = nil
+    if callback_file
+      load(callback_file)
+      job_queue_name = Gorgon.callbacks.before_start
+    end
+
     push_source_code
 
-    @protocol = OriginatorProtocol.new @logger
+    @protocol = OriginatorProtocol.new(@logger, job_queue_name)
 
     EventMachine.run do
       @logger.log "Connecting..."

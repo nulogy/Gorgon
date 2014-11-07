@@ -5,7 +5,8 @@ require 'amqp'
 require 'uuidtools'
 
 class OriginatorProtocol
-  def initialize logger
+  def initialize(logger, job_queue_name="gorgon.jobs")
+    @job_queue_name = job_queue_name
     @logger = logger
   end
 
@@ -28,13 +29,13 @@ class OriginatorProtocol
     job_definition.file_queue_name = @file_queue.name
     job_definition.reply_exchange_name = @reply_exchange.name
 
-    @channel.fanout("gorgon.jobs").publish(job_definition.to_json)
+    @channel.fanout(@job_queue_name).publish(job_definition.to_json)
   end
 
   def send_message_to_listeners type, body={}
     # TODO: we probably want to use a different exchange for this type of messages
     message = {:type => type, :reply_exchange_name => @reply_exchange.name, :body => body}
-    @channel.fanout("gorgon.jobs").publish(Yajl::Encoder.encode(message))
+    @channel.fanout(@job_queue_name).publish(Yajl::Encoder.encode(message))
   end
 
   def receive_payloads

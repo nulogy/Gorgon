@@ -1,4 +1,5 @@
 require "rubygems"
+require 'gorgon'
 require 'gorgon/originator'
 require 'gorgon/listener'
 require 'gorgon/rsync_daemon'

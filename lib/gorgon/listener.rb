@@ -44,7 +44,7 @@ class Listener
 
   def initialize_personal_job_queue
     @job_queue = @bunny.queue("", :exclusive => true)
-    exchange = @bunny.exchange("gorgon.jobs", :type => :fanout)
+    exchange = @bunny.exchange(job_queue_name, :type => :fanout)
     @job_queue.bind(exchange)
   end
 
@@ -169,6 +169,15 @@ class Listener
 
     log "Sending #{message}"
     reply_exchange.publish(Yajl::Encoder.encode(message))
+  end
+
+  # MY_NOTE: Test this
+  def job_queue_name
+    if configuration[:connection] && configuration[:connection][:job_queue_name]
+      configuration[:connection][:job_queue_name]
+    else
+      return 'gorgon.jobs'
+    end
   end
 
   def connection_information
