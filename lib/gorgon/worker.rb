@@ -85,6 +85,7 @@ class Worker
     begin
       log "Running before_start callback..."
       register_trap_ints        # do it before calling before_start callback!
+      # MY_NOTE: Rename this callback so it is more specific, like before_jobs_start
       @callback_handler.before_start
       @cleaned = false
 
@@ -109,6 +110,7 @@ class Worker
   def clean_up
     return if @cleaned
     log "Running after_complete callback"
+    # MY_NOTE: Rename this callback to be more specific
     @callback_handler.after_complete
     @cleaned = true
   end

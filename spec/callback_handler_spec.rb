@@ -107,4 +107,18 @@ describe CallbackHandler do
 
     CallbackHandler.new({})
   end
+
+  context "#before_job_starts" do
+    it "returns value from callbacks#before_job_starts if it's a string" do
+      handler = CallbackHandler.new(config)
+      Gorgon.callbacks.stub(:before_job_starts).and_return('my_job_id')
+      expect(handler.before_job_starts).to eq('my_job_id')
+    end
+
+    it "returns nil if callbacks#before_job_starts did not return a string" do
+      handler = CallbackHandler.new(config)
+      Gorgon.callbacks.stub(:before_job_starts).and_return(Object.new)
+      expect(handler.before_job_starts).to eq(nil)
+    end
+  end
 end

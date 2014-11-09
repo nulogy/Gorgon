@@ -5,7 +5,8 @@ class CallbackHandler
   end
 
   def before_job_starts
-    Gorgon.callbacks.before_job_starts
+    job_id = Gorgon.callbacks.before_job_starts
+    return job_id if job_id.is_a?(String)
   end
 
   def after_job_finishes
