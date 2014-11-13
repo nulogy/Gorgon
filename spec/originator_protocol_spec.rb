@@ -80,10 +80,10 @@ describe OriginatorProtocol do
       @originator_p.publish_job JobDefinition.new
     end
 
-    it "uses job_id in job_queue_name, if specified" do
-      originator_p = connect_and_publish_files(OriginatorProtocol.new(logger, "job1"))
+    it "uses cluster_id in job_queue_name, when it is specified" do
+      originator_p = connect_and_publish_files(OriginatorProtocol.new(logger, "cluster1"))
 
-      channel.should_receive(:fanout).with("gorgon.jobs.job1")
+      channel.should_receive(:fanout).with("gorgon.jobs.cluster1")
 
       originator_p.publish_job JobDefinition.new
     end

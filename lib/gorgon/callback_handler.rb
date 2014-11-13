@@ -5,9 +5,9 @@ class CallbackHandler
     load(@config[:temp_callbacks]) if @config[:temp_callbacks]
   end
 
-  def before_job_starts
-    job_id = Gorgon.callbacks.before_job_starts
-    return job_id if job_id.is_a?(String)
+  def before_originate
+    cluster_id = Gorgon.callbacks.before_originate
+    return cluster_id if cluster_id.is_a?(String)
   end
 
   def after_sync

@@ -5,14 +5,14 @@ require 'amqp'
 require 'uuidtools'
 
 class OriginatorProtocol
-  def initialize(logger, job_id=nil)
-    @job_queue_name = OriginatorProtocol.job_queue_name(job_id)
+  def initialize(logger, cluster_id=nil)
+    @job_queue_name = OriginatorProtocol.job_queue_name(cluster_id)
     @logger = logger
   end
 
-  def self.job_queue_name(job_id)
-    if job_id
-      "gorgon.jobs.#{job_id}"
+  def self.job_queue_name(cluster_id)
+    if cluster_id
+      "gorgon.jobs.#{cluster_id}"
     else
       'gorgon.jobs'
     end

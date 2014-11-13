@@ -55,11 +55,11 @@ class Originator
       exit 2
     end
 
-    job_id = callback_handler.before_job_starts
+    cluster_id = callback_handler.before_originate
 
     push_source_code
 
-    @protocol = OriginatorProtocol.new(@logger, job_id)
+    @protocol = OriginatorProtocol.new(@logger, cluster_id)
 
     EventMachine.run do
       publish_files_and_job

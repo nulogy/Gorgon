@@ -89,8 +89,8 @@ describe Listener do
       end
 
       it "build job_queue_name using job_id from configuration" do
-        Listener.any_instance.stub(:configuration).and_return(:job_id => 'job5')
-        bunny.should_receive(:exchange).with('gorgon.jobs.job5', anything).and_return(exchange)
+        Listener.any_instance.stub(:configuration).and_return(:cluster_id => 'cluster5')
+        bunny.should_receive(:exchange).with('gorgon.jobs.cluster5', anything).and_return(exchange)
         listener.initialize_personal_job_queue
       end
 

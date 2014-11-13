@@ -56,13 +56,13 @@ describe Originator do
       expect { @originator.publish }.to raise_error(SystemExit)
     end
 
-    it "calls before_job_starts callback" do
-      CallbackHandler.any_instance.should_receive(:before_job_starts)
+    it "calls before_originate callback" do
+      CallbackHandler.any_instance.should_receive(:before_originate)
       @originator.publish
     end
 
-    it "uses results of before_job_starts callback to build a job_queue_name" do
-      CallbackHandler.any_instance.stub(:before_job_starts).and_return('job_1')
+    it "uses results of before_originate callback to build a job_queue_name" do
+      CallbackHandler.any_instance.stub(:before_originate).and_return('job_1')
       OriginatorProtocol.should_receive(:new).with(anything, 'job_1')
 
       @originator.publish

@@ -3,7 +3,7 @@ module Gorgon
     # MY_NOTE: Document all callbacks
 
     # @return job Id. Job Id is used to identify the job queue in Rabbit
-    def before_job_starts
+    def before_originate
     end
 
     def after_sync

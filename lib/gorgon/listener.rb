@@ -148,7 +148,7 @@ class Listener
     stdin.write(@job_definition.to_json)
     stdin.close
 
-    ignore, status = Process.waitpid2 pid
+    _, status = Process.waitpid2 pid
     log "Worker Manager #{pid} finished"
 
     if status.exitstatus != 0
@@ -176,7 +176,7 @@ class Listener
   end
 
   def job_queue_name
-    OriginatorProtocol.job_queue_name(configuration[:job_id])
+    OriginatorProtocol.job_queue_name(configuration.fetch(:cluster_id, nil))
   end
 
   def connection_information
