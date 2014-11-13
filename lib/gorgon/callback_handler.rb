@@ -1,6 +1,7 @@
 class CallbackHandler
   def initialize(config)
     @config = config || {}
+    # MY_NOTE: Rename temp_callbacks after legacy callbacks use new way
     load(@config[:temp_callbacks]) if @config[:temp_callbacks]
   end
 
@@ -9,37 +10,28 @@ class CallbackHandler
     return job_id if job_id.is_a?(String)
   end
 
-  def after_job_finishes
-    Gorgon.callbacks.after_job_finishes
-  end
-
-  def before_start
-    load_callback(:before_start)
-  end
-
-  def after_complete
-    load_callback(:after_complete)
+  def after_sync
+    Gorgon.callbacks.after_sync
   end
 
   def before_creating_workers
-    load_callback(:before_creating_workers)
+    Gorgon.callbacks.before_creating_workers
   end
 
-  def after_sync
-    load_callback(:after_sync)
+  def before_start
+    Gorgon.callbacks.before_start
   end
 
   def after_creating_workers
-    load_callback(:after_creating_workers)
+    Gorgon.callbacks.after_creating_workers
   end
 
-  def before_originate
-    load_callback(:before_originate)
+  def after_complete
+    Gorgon.callbacks.after_complete
   end
 
-  private
-
-  def load_callback(name)
-    load(@config[name]) if @config[name]
+  def after_job_finishes
+    Gorgon.callbacks.after_job_finishes
+>>>>>>> WIP
   end
 end
