@@ -1,3 +1,3 @@
 module Gorgon
-  VERSION = "0.8.0.beta"
+  VERSION = "0.8.0"
 end
