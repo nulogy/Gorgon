@@ -1,8 +1,7 @@
 class CallbackHandler
   def initialize(config)
     @config = config || {}
-    # MY_NOTE: Rename temp_callbacks after legacy callbacks use new way
-    load(@config[:temp_callbacks]) if @config[:temp_callbacks]
+    load(@config[:callbacks_class_file]) if @config[:callbacks_class_file]
   end
 
   def before_originate

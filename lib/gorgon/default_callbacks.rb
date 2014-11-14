@@ -2,7 +2,7 @@ module Gorgon
   class DefaultCallbacks
     # MY_NOTE: Document all callbacks
 
-    # @return job Id. Job Id is used to identify the job queue in Rabbit
+    # @return cluster id. Cluster id is used to identify the queue in RabbitMQ
     def before_originate
     end
 
