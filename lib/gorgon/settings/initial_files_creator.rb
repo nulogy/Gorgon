@@ -25,7 +25,7 @@ module Settings
 
     def self.create_gorgon_json content
       if File.exist? GORGON_JSON_FILE
-        puts "gorgo.json exists. Skipping..."
+        puts "#{GORGON_JSON_FILE} exists. Skipping..."
         return
       end
 
@@ -34,8 +34,8 @@ module Settings
         file_server: {host: content.file_server_host},
         job: {
           sync: {
-            exclude: content.sync_exclude
-            # TODO: add rsync_transport config
+            exclude: content.sync_exclude,
+            rsync_transport: "ssh"
           }
         },
         files: content.files
@@ -45,12 +45,11 @@ module Settings
       config[:originator_log_file] = log_file if log_file
 
       if content.callbacks
-        create_callback_files(content)
+        create_callback_file(content)
 
-        config[:job][:callbacks] = content.callbacks.inject({}) do |callbacks, e|
-          callbacks[e[:name]] = "#{content.callbacks_dir}/#{e[:file_name]}"
-          callbacks
-        end
+        config[:job][:callbacks] = {
+          callbacks_class_file: content.callbacks[:file_name]
+        }
       end
 
       puts "Creating #{GORGON_JSON_FILE}..."
@@ -59,23 +58,17 @@ module Settings
       end
     end
 
-    def self.create_callback_files content
-      FileUtils.mkdir_p content.callbacks_dir
-      content.callbacks.each do |callback|
-        create_callback_file content.callbacks_dir, callback
-      end
-    end
-
-    def self.create_callback_file dir, callback
-      file_path = "#{dir}/#{callback[:file_name]}"
+    def self.create_callback_file(content)
+      file_path = content.callbacks[:file_name]
       if File.exist? file_path
         puts "#{file_path} already exists. Skipping..."
         return
       end
 
       puts "Creating #{file_path}..."
+      FileUtils.mkdir_p(File.dirname(file_path))
       File.open(file_path, 'w') do |f|
-        f.write callback[:content]
+        f.write content.callbacks[:file_content]
       end
     end
   end
