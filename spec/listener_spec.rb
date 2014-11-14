@@ -88,7 +88,13 @@ describe Listener do
         listener.initialize_personal_job_queue
       end
 
-      it "binds the exchange to the queue" do
+      it "build job_queue_name using job_id from configuration" do
+        Listener.any_instance.stub(:configuration).and_return(:cluster_id => 'cluster5')
+        bunny.should_receive(:exchange).with('gorgon.jobs.cluster5', anything).and_return(exchange)
+        listener.initialize_personal_job_queue
+      end
+
+      it "binds the exchange to the queue. Uses gorgon.jobs if there is no job_queue_name in configuration" do
         bunny.should_receive(:exchange).with("gorgon.jobs", :type => :fanout).and_return(exchange)
         queue.should_receive(:bind).with(exchange)
         listener.initialize_personal_job_queue

@@ -1,3 +1,4 @@
+require 'gorgon'
 require 'gorgon/originator_protocol'
 require 'gorgon/configuration'
 require 'gorgon/job_state'
@@ -5,7 +6,8 @@ require 'gorgon/progress_bar_view'
 require 'gorgon/originator_logger'
 require 'gorgon/failures_printer'
 require 'gorgon/source_tree_syncer'
-require 'gorgon/shutdown_manager.rb'
+require 'gorgon/shutdown_manager'
+require 'gorgon/callback_handler'
 
 require 'awesome_print'
 require 'etc'
@@ -53,26 +55,38 @@ class Originator
       exit 2
     end
 
+    cluster_id = callback_handler.before_originate
+
     push_source_code
 
-    @protocol = OriginatorProtocol.new @logger
+    @protocol = OriginatorProtocol.new(@logger, cluster_id)
 
     EventMachine.run do
-      @logger.log "Connecting..."
-      @protocol.connect connection_information, :on_closed => method(:on_disconnect)
-
-      @logger.log "Publishing files..."
-      @protocol.publish_files files
-      create_job_state_and_observers
-
-      @logger.log "Publishing Job..."
-      @protocol.publish_job job_definition
-      @logger.log "Job Published"
+      publish_files_and_job
 
       @protocol.receive_payloads do |payload|
         handle_reply(payload)
       end
     end
+
+    callback_handler.after_job_finishes
+  end
+
+  def publish_files_and_job
+    @logger.log "Connecting..."
+    @protocol.connect connection_information, :on_closed => method(:on_disconnect)
+
+    @logger.log "Publishing files..."
+    @protocol.publish_files files
+    create_job_state_and_observers
+
+    @logger.log "Publishing Job..."
+    @protocol.publish_job job_definition
+    @logger.log "Job Published"
+  end
+
+  def callback_handler
+    @callback_handler ||= CallbackHandler.new(configuration[:job][:callbacks])
   end
 
   def push_source_code
@@ -123,7 +137,7 @@ class Originator
     @job_state = JobState.new files.count
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
-    failures_printer = FailuresPrinter.new @job_state
+    FailuresPrinter.new @job_state
   end
 
   def on_disconnect
@@ -141,7 +155,7 @@ class Originator
   end
 
   def job_definition
-    # MY_NOTE: remove duplication. Use sync_configuration
+    # TODO: remove duplication. Use sync_configuration
     job_config = configuration[:job]
     job_config[:sync] = {} unless job_config.has_key?(:sync)
     job_config[:sync][:source_tree_path] = source_tree_path(job_config[:sync])

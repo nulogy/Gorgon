@@ -7,6 +7,7 @@ require "gorgon/version"
 require "gorgon/worker_manager"
 require "gorgon/crash_reporter"
 require "gorgon/gem_command_handler"
+require 'gorgon/originator_protocol'
 
 require "yajl"
 require "gorgon_bunny/lib/gorgon_bunny"
@@ -44,7 +45,7 @@ class Listener
 
   def initialize_personal_job_queue
     @job_queue = @bunny.queue("", :exclusive => true)
-    exchange = @bunny.exchange("gorgon.jobs", :type => :fanout)
+    exchange = @bunny.exchange(job_queue_name, :type => :fanout)
     @job_queue.bind(exchange)
   end
 
@@ -78,7 +79,6 @@ class Listener
     @job_definition = JobDefinition.new(payload)
     @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
-    @callback_handler = CallbackHandler.new(@job_definition.callbacks)
     copy_source_tree(@job_definition.sync)
 
     if !@syncer.success? || !run_after_sync
@@ -100,7 +100,7 @@ class Listener
   def run_after_sync
     log "Running after_sync callback..."
     begin
-      @callback_handler.after_sync
+      callback_handler.after_sync
     rescue Exception => e
       log_error "Exception raised when running after_sync callback_handler. Please, check your script in #{@job_definition.callbacks[:after_sync]}:"
       log_error e.message
@@ -115,6 +115,10 @@ class Listener
       return false
     end
     true
+  end
+
+  def callback_handler
+    @callback_handler ||= CallbackHandler.new(@job_definition.callbacks)
   end
 
   def copy_source_tree(sync_configuration)
@@ -144,7 +148,7 @@ class Listener
     stdin.write(@job_definition.to_json)
     stdin.close
 
-    ignore, status = Process.waitpid2 pid
+    _, status = Process.waitpid2 pid
     log "Worker Manager #{pid} finished"
 
     if status.exitstatus != 0
@@ -169,6 +173,10 @@ class Listener
 
     log "Sending #{message}"
     reply_exchange.publish(Yajl::Encoder.encode(message))
+  end
+
+  def job_queue_name
+    OriginatorProtocol.job_queue_name(configuration.fetch(:cluster_id, nil))
   end
 
   def connection_information

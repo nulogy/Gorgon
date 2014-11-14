@@ -1,94 +1,39 @@
-require 'gorgon/callback_handler'
+require 'gorgon'
 
 describe CallbackHandler do
 
   let(:config) {
     {
-      :before_start => "some/file.rb",
-      :after_complete => "some/other/file.rb",
-      :before_creating_workers => "callbacks/before_creating_workers_file.rb",
-      :after_sync => "callbacks/after_sync_file.rb",
-      :after_creating_workers => "callbacks/after_creating_workers.rb"
+      :callbacks_class_file => "callback_file.rb"
     }
   }
-
-  it "calls before hook" do
-    handler = CallbackHandler.new(config)
-
-    handler.should_receive(:load).with("some/file.rb")
-
-    handler.before_start
+  before do
+    CallbackHandler.any_instance.stub(:load)
   end
 
-  it "does not attempt to load the before start script when before_start is not defined" do
-    handler = CallbackHandler.new({})
+  it "loads callback file" do
+    CallbackHandler.any_instance.should_receive(:load).with config[:callbacks_class_file]
 
-    handler.should_not_receive(:load)
-
-    handler.before_start
+    CallbackHandler.new(config)
   end
 
-  it "calls after hook" do
-    handler = CallbackHandler.new(config)
+  it "does not load callback file if it's not specified" do
+    CallbackHandler.any_instance.should_not_receive(:load)
 
-    handler.should_receive(:load).with("some/other/file.rb")
-
-    handler.after_complete
+    CallbackHandler.new({})
   end
 
-  it "does not attempt to load the after complete script when before_start is not defined" do
-    handler = CallbackHandler.new({})
+  context "#before_originate" do
+    it "returns value from callbacks#before_originate if it's a string" do
+      handler = CallbackHandler.new(config)
+      Gorgon.callbacks.stub(:before_originate).and_return('my_job_id')
+      expect(handler.before_originate).to eq('my_job_id')
+    end
 
-    handler.should_not_receive(:load)
-
-    handler.after_complete
-  end
-
-  it "calls before fork hook" do
-    handler = CallbackHandler.new(config)
-
-    handler.should_receive(:load).with("callbacks/before_creating_workers_file.rb")
-
-    handler.before_creating_workers
-  end
-
-  it "does not attempt to load the before creating workers script when before_creating_workers is not defined" do
-    handler = CallbackHandler.new({})
-
-    handler.should_not_receive(:load)
-
-    handler.before_creating_workers
-  end
-
-  it "calls after sync hook" do
-    handler = CallbackHandler.new(config)
-
-    handler.should_receive(:load).with("callbacks/after_sync_file.rb")
-
-    handler.after_sync
-  end
-
-  it "does not attempt to load the after-sync script when after_sync is not defined" do
-    handler = CallbackHandler.new({})
-
-    handler.should_not_receive(:load)
-
-    handler.after_sync
-  end
-
-  it "calls the after creating workers hook" do
-    handler = CallbackHandler.new(config)
-
-    handler.should_receive(:load).with("callbacks/after_creating_workers.rb")
-
-    handler.after_creating_workers
-  end
-
-  it "does not attempt to load the after creating workers hook when after_creating_workers is not defined" do
-    handler = CallbackHandler.new({})
-
-    handler.should_not_receive(:load)
-
-    handler.after_creating_workers
+    it "returns nil if callbacks#before_originate did not return a string" do
+      handler = CallbackHandler.new(config)
+      Gorgon.callbacks.stub(:before_originate).and_return(Object.new)
+      expect(handler.before_originate).to eq(nil)
+    end
   end
 end

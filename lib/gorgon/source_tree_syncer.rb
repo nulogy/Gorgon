@@ -19,7 +19,7 @@ class SourceTreeSyncer
     end
   end
 
-  # MY_NOTE: rename sync to pull
+  # TODO: rename sync to pull
   def sync
     return if blank_source_tree_path?
 
