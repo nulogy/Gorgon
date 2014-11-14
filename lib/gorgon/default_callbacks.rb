@@ -1,7 +1,5 @@
 module Gorgon
   class DefaultCallbacks
-    # MY_NOTE: Document all callbacks
-
     # @return cluster id. Cluster id is used to identify the queue in RabbitMQ
     def before_originate
     end
