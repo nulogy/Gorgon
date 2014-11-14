@@ -21,7 +21,7 @@ Run `rspec` and make sure all tests pass.
 
 1. Install [RabbitMQ](https://www.rabbitmq.com/download.html).
 
-2. Add Gorgon to the Gemfile: `gem 'gorgon', '0.7.1'`
+2. Add Gorgon to the Gemfile: `gem 'gorgon', '0.8.1'`
 
 3. `bundle`
 
@@ -71,13 +71,6 @@ Run `rspec` and make sure all tests pass.
 
   ```bash
   gorgon listen
-  ```
-
-### Run File Server
-
-  ```bash
-  mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test
-  gorgon start_rsync ~/.gorgon/file_dir
   ```
 
 ### Run Gorgon
