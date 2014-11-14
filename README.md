@@ -26,14 +26,10 @@ Gotchas
 
 Also note that the steps in the tutorial are **not** meant to work on every project, they will only give you initial settings. You will probably have to modify the following files:
 * gorgon.json
-* test/gorgon_callbacks/after\_sync.rb
-* test/gorgon_callbacks/before\_creating\_workers.rb
-* test/gorgon_callbacks/after\_creating\_workers.rb
-* test/gorgon_callbacks/before\_start.rb
-* test/gorgon_callbacks/after\_complete.rb
-* ~/.gorgon/gorgon_listener.json
+* {test, spec}/gorgon_callbacks/gorgon_callbacks.rb
+* gorgon_listener.json (located in your project root or in ~/.gorgon/)
 
-If you modify ~/.gorgon/gorgon_listener.json, make sure you restart the listener by running `sudo restart gorgon`
+If you modify ~/.gorgon/gorgon_listener.json, make sure you restart the listener.
 
 Configuration
 ---------------------
@@ -42,13 +38,14 @@ Configuration
 This file contains project-specific settings for gorgon, such as:
 
 * The connection information for AMQP
-* Information about how clients can rsync the working directory (optional)
+* The connection information for File Server
+* Information about how clients can rsync the working directory (optional). See more info [here](/rsync_transport.md) 
 * Files that can be excluded by rsync
-* Files containing Ruby code to be used as callbacks
+* Callback file containing Ruby code to be used as callbacks
 * A glob for generating the list of test files
 * The file used for Originator's logs
 
-See [gorgon.json example](/gorgon.json.sample) for more details.
+See [gorgon.json example](/gorgon.json.sample) for an example file.
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:

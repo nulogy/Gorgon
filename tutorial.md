@@ -21,7 +21,7 @@ Run `rspec` and make sure all tests pass.
 
 1. Install [RabbitMQ](https://www.rabbitmq.com/download.html).
 
-2. Add Gorgon to the Gemfile: `gem 'gorgon', '0.7.1'`
+2. Add Gorgon to the Gemfile: `gem 'gorgon', '0.8.1'`
 
 3. `bundle`
 
@@ -58,6 +58,11 @@ Run `rspec` and make sure all tests pass.
   cp config/environments/test.rb config/environments/remote_test.rb
   ```
 
+### Setting up SSH access
+
+In this tutorial, we are using [SSH Transport](/rsync_transport.md) to move source code files. This requires you to have SSH access without password to File Server (in this case, to localhost). 
+To check if you have SSH access without password, running ```ssh localhost``` should not ask for a password. If it asks for a password, follow [these steps](http://www.linuxproblem.org/art_9.html) to setup passwordless SSH access.
+
 ### Run Gorgon Listener
 
 1. Download a listener configuration sample:
@@ -71,13 +76,6 @@ Run `rspec` and make sure all tests pass.
 
   ```bash
   gorgon listen
-  ```
-
-### Run File Server
-
-  ```bash
-  mkdir -p ~/.gorgon/file_dir             # here is where gorgon will push files under test
-  gorgon start_rsync ~/.gorgon/file_dir
   ```
 
 ### Run Gorgon

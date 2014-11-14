@@ -12,3 +12,5 @@ These steps will guarantee that the listener is always running and it will start
 1. `sudo start gorgon`
 1. open ’/etc/init/gorgon.conf’ and add `start on runlevel [2345]` at the top of the file
 1. Check if listener is running: Run `tail /tmp/gorgon-remote.log` and the last line should say “Waiting for jobs…”
+
+If you modify ~/.gorgon/gorgon_listener.json, make sure you restart the listener by running `sudo restart gorgon`

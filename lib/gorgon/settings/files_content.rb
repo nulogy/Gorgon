@@ -1,7 +1,7 @@
 module Settings
   class FilesContent
     attr_accessor :amqp_host, :file_server_host, :sync_exclude, :files, :originator_log_file,
-      :callbacks, :callbacks_dir
+      :callbacks
 
     TEST_UNIT_GLOB = "test/**/*_test.rb"
     RSPEC_GLOB = "spec/**/*_spec.rb"
