@@ -58,6 +58,11 @@ Run `rspec` and make sure all tests pass.
   cp config/environments/test.rb config/environments/remote_test.rb
   ```
 
+### Setting up SSH access
+
+In this tutorial, we are using [SSH Transport](/rsync_transport.md) to move source code files. This requires you to have SSH access without password to File Server (in this case, to localhost). 
+To check if you have SSH access without password, running ```ssh localhost``` should not ask for a password. If it asks for a password, follow [these steps](http://www.linuxproblem.org/art_9.html) to setup passwordless SSH access.
+
 ### Run Gorgon Listener
 
 1. Download a listener configuration sample:
