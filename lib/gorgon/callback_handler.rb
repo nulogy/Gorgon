@@ -31,6 +31,5 @@ class CallbackHandler
 
   def after_job_finishes
     Gorgon.callbacks.after_job_finishes
->>>>>>> WIP
   end
 end
