@@ -4,7 +4,7 @@ describe CallbackHandler do
 
   let(:config) {
     {
-      :temp_callbacks => "callback_file.rb"
+      :callbacks_class_file => "callback_file.rb"
     }
   }
   before do
@@ -12,7 +12,7 @@ describe CallbackHandler do
   end
 
   it "loads callback file" do
-    CallbackHandler.any_instance.should_receive(:load).with config[:temp_callbacks]
+    CallbackHandler.any_instance.should_receive(:load).with config[:callbacks_class_file]
 
     CallbackHandler.new(config)
   end
