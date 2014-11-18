@@ -1,6 +1,6 @@
 # Gorgon Setup Tutorial
 
-This is an example on how to setup [Gorgon](https://github.com/Fitzsimmons/Gorgon). For this tutorial, we will use a version of a Rails app from [Ruby on Rails Tutorial](https://www.railstutorial.org/) by Michael Hartl.
+This is an example on how to setup [Gorgon](https://github.com/nulogy/Gorgon). For this tutorial, we will use a version of a Rails app from [Ruby on Rails Tutorial](https://www.railstutorial.org/) by Michael Hartl.
 
 ### Setup the sample Rails app
 
@@ -68,7 +68,7 @@ To check if you have SSH access without password, running ```ssh localhost``` sh
 1. Download a listener configuration sample:
 
   ```bash
-  wget https://raw.githubusercontent.com/Fitzsimmons/Gorgon/master/gorgon_listener.json.sample
+  wget https://raw.githubusercontent.com/nulogy/Gorgon/master/gorgon_listener.json.sample
   mv gorgon_listener.json.sample gorgon_listener.json
   ```
 
