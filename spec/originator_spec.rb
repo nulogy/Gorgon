@@ -2,16 +2,17 @@ require 'gorgon/originator'
 
 describe Originator do
   let(:protocol){ double("Originator Protocol", :connect => nil, :publish_files => nil,
-                       :publish_job => nil, :receive_payloads => nil, :cancel_job => nil,
-                       :disconnect => nil)}
+    :publish_job_to_all => nil, :publish_job_to_one => nil, :receive_payloads => nil, :cancel_job => nil,
+    :disconnect => nil, :receive_new_listener_notifications => nil)}
 
   let(:configuration){ {:job => {}, :files => ["some/file"], :file_server => {:host => 'host-name'}}}
   let(:job_state){ double("JobState", :is_job_complete? => false, :file_finished => nil,
-                        :add_observer => nil)}
+    :add_observer => nil)}
   let(:progress_bar_view){ double("Progress Bar View", :show => nil)}
   let(:originator_logger){ double("Originator Logger", :log => nil, :log_message => nil)}
   let(:source_tree_syncer) { double("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
-                                  :sys_command => 'command')}
+    :sys_command => 'command')}
+  let(:job_definition){ JobDefinition.new }
 
   before do
     OriginatorLogger.stub(:new).and_return originator_logger
@@ -146,6 +147,15 @@ describe Originator do
     end
   end
 
+  describe "#handle_new_listener_notification" do
+    it "re-publishes the job definition directly to the queue specified by the notification" do
+      stub_methods
+
+      protocol.should_receive(:publish_job_to_one).with(job_definition, 'abcd1234')
+      @originator.handle_new_listener_notification({:listener_queue_name => 'abcd1234'}.to_json)
+    end
+  end
+
   describe "#job_definition" do
     it "returns a JobDefinition object" do
       @originator.stub(:configuration).and_return configuration
@@ -182,7 +192,7 @@ describe Originator do
     OriginatorProtocol.stub(:new).and_return protocol
     @originator.stub(:configuration).and_return configuration
     @originator.stub(:connection_information).and_return 'host'
-    @originator.stub(:job_definition).and_return JobDefinition.new
+    @originator.stub(:job_definition).and_return job_definition
   end
 
   def start_payload
