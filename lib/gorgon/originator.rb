@@ -69,7 +69,7 @@ class Originator
       end
 
       @protocol.receive_new_listener_notifications do |payload|
-        handle_new_listener(payload)
+        handle_new_listener_notification(payload)
       end
     end
 

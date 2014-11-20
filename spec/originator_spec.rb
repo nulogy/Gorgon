@@ -150,6 +150,7 @@ describe Originator do
   describe "#handle_new_listener_notification" do
     it "re-publishes the job definition directly to the queue specified by the notification" do
       stub_methods
+      @originator.publish
 
       protocol.should_receive(:publish_job_to_one).with(job_definition, 'abcd1234')
       @originator.handle_new_listener_notification({:listener_queue_name => 'abcd1234'}.to_json)

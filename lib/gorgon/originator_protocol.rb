@@ -107,6 +107,7 @@ class OriginatorProtocol
     @reply_queue.delete if @reply_queue
     @file_queue.delete if @file_queue
     @reply_exchange.delete if @reply_exchange
+    @originator_queue.delete if @originator_queue
   end
 
   def cancel_message
