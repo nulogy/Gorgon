@@ -65,19 +65,19 @@ describe OriginatorProtocol do
     end
   end
 
-  describe "#publish_job" do
+  describe "#publish_job_to_all" do
     before do
       connect_and_publish_files(@originator_p)
     end
 
-    it "add queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
+    it "adds queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
       channel.should_receive(:fanout).with("gorgon.jobs")
-      exp_job_definition = JobDefinition.new
-      exp_job_definition.file_queue_name = "queue"
-      exp_job_definition.reply_exchange_name = "exchange"
+      expected_job_definition = JobDefinition.new
+      expected_job_definition.file_queue_name = "queue"
+      expected_job_definition.reply_exchange_name = "exchange"
 
-      exchange.should_receive(:publish).with(exp_job_definition.to_json)
-      @originator_p.publish_job JobDefinition.new
+      exchange.should_receive(:publish).with(expected_job_definition.to_json)
+      @originator_p.publish_job_to_all JobDefinition.new
     end
 
     it "uses cluster_id in job_queue_name, when it is specified" do
@@ -85,7 +85,24 @@ describe OriginatorProtocol do
 
       channel.should_receive(:fanout).with("gorgon.jobs.cluster1")
 
-      originator_p.publish_job JobDefinition.new
+      originator_p.publish_job_to_all JobDefinition.new
+    end
+  end
+
+  describe "#publish_job_to_one" do
+    before do
+      connect_and_publish_files(@originator_p)
+    end
+
+    it "publishes the job to the specified listener queue" do
+      expected_listener_queue_name = "abcd1234"
+      expected_job_definition = JobDefinition.new
+      expected_job_definition.file_queue_name = "queue"
+      expected_job_definition.reply_exchange_name = "exchange"
+
+      exchange.should_receive(:publish).with(expected_job_definition.to_json, {:routing_key => expected_listener_queue_name})
+
+      @originator_p.publish_job_to_one(JobDefinition.new, expected_listener_queue_name)
     end
   end
 

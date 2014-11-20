@@ -2,7 +2,7 @@ require 'gorgon/listener'
 
 describe Listener do
   let(:connection_information) { double }
-  let(:queue) { double("GorgonBunny Queue", :bind => nil) }
+  let(:queue) { double("GorgonBunny Queue", :bind => nil, :name => "some supposedly unique string") }
   let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
   let(:bunny) { double("GorgonBunny", :start => nil, :queue => queue, :exchange => exchange) }
   let(:logger) { double("Logger", :info => true, :datetime_format= => "")}
@@ -12,23 +12,6 @@ describe Listener do
     GorgonBunny.stub(:new).and_return(bunny)
     Listener.any_instance.stub(:configuration => {})
     Listener.any_instance.stub(:connection_information => connection_information)
-  end
-
-  describe "initialization" do
-
-    before do
-      Listener.any_instance.stub(:connect => nil, :initialize_personal_job_queue => nil)
-    end
-
-    it "connects" do
-      Listener.any_instance.should_receive(:connect)
-      Listener.new
-    end
-
-    it "initializes the personal job queue" do
-      Listener.any_instance.should_receive(:initialize_personal_job_queue)
-      Listener.new
-    end
   end
 
   describe "logging to a file" do
@@ -84,20 +67,33 @@ describe Listener do
 
     describe "#initialize_personal_job_queue" do
       it "creates the job queue" do
-        bunny.should_receive(:queue).with("", :exclusive => true)
+        UUIDTools::UUID.stub(:timestamp_create => "abcd1234")
+
+        bunny.should_receive(:queue).with("job_queue_abcd1234", :auto_delete => true)
         listener.initialize_personal_job_queue
       end
 
-      it "build job_queue_name using job_id from configuration" do
+      it "builds job_exchange_name using cluster_id from configuration" do
         Listener.any_instance.stub(:configuration).and_return(:cluster_id => 'cluster5')
         bunny.should_receive(:exchange).with('gorgon.jobs.cluster5', anything).and_return(exchange)
         listener.initialize_personal_job_queue
       end
 
-      it "binds the exchange to the queue. Uses gorgon.jobs if there is no job_queue_name in configuration" do
+      it "binds the exchange to the queue. Uses gorgon.jobs if there is no job_exchange_name in configuration" do
         bunny.should_receive(:exchange).with("gorgon.jobs", :type => :fanout).and_return(exchange)
         queue.should_receive(:bind).with(exchange)
         listener.initialize_personal_job_queue
+      end
+    end
+
+    describe "#announce_readiness_to_originators" do
+      it "publishes data to the originator exchange" do
+        originator_exchange = double
+
+        bunny.should_receive(:exchange).with("gorgon.originators", :type => :fanout).and_return(originator_exchange)
+        originator_exchange.should_receive(:publish).with({:listener_queue_name => "some supposedly unique string"}.to_json)
+
+        listener.announce_readiness_to_originators
       end
     end
 
