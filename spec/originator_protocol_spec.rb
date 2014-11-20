@@ -164,7 +164,7 @@ describe OriginatorProtocol do
 
     it "deletes reply_exchange and reply and file queues" do
       @originator_p.publish_files []
-      queue.should_receive(:delete).twice
+      queue.should_receive(:delete).exactly(3).times
       exchange.should_receive(:delete)
       @originator_p.disconnect
     end
