@@ -1,3 +1,5 @@
+require 'gorgon/runtime_recorder'
+
 module Gorgon
   class DefaultCallbacks
     # @return cluster id. Cluster id is used to identify the queue in RabbitMQ
@@ -20,6 +22,7 @@ module Gorgon
     end
 
     def after_job_finishes
+      RuntimeRecorder.write_records_to_file!
     end
   end
 end

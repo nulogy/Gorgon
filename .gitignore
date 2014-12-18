@@ -12,3 +12,5 @@ pkg
 *.log
 *.json
 .rspec
+
+*.gem

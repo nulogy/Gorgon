@@ -8,6 +8,7 @@ require 'gorgon/failures_printer'
 require 'gorgon/source_tree_syncer'
 require 'gorgon/shutdown_manager'
 require 'gorgon/callback_handler'
+require 'gorgon/runtime_recorder'
 
 require 'awesome_print'
 require 'etc'
@@ -115,6 +116,7 @@ class Originator
     # at some point this will probably need to be fancy polymorphic type based responses, or at least a nice switch statement
     if payload[:action] == "finish"
       @job_state.file_finished payload
+      RuntimeRecorder.record(payload[:filename], payload[:runtime], @logger)
     elsif payload[:action] == "start"
       @job_state.file_started payload
     elsif payload[:type] == "crash"
@@ -149,9 +151,11 @@ class Originator
   end
 
   def files
-    @files ||= configuration[:files].reduce([]) do |memo, obj|
+    return @files unless @files.nil?
+    current_files = configuration[:files].reduce([]) do |memo, obj|
       memo.concat(Dir[obj])
     end.uniq
+    @files = RuntimeRecorder.sorted_files(current_files)
   end
 
   def job_definition
