@@ -11,9 +11,8 @@ module RuntimeRecorder
     @records
   end
 
-  def self.record(filename, runtime, logger=nil)
+  def self.record(filename, runtime)
     @records[filename] = runtime
-    logger.log "Runtime Records: #{@records.to_s}" unless logger.nil?
   end
 
   def self.recorded_specs_list_file
