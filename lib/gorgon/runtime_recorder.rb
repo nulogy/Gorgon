@@ -16,6 +16,7 @@ module RuntimeRecorder
   end
 
   def self.recorded_specs_list_file
+    return "" unless File.file?("gorgon.json")
     @recorded_specs_list_file ||= Configuration.load_configuration_from_file("gorgon.json")[:recorded_specs_list_file]
     @recorded_specs_list_file ||= "" # return "" if no file is specified
   end
