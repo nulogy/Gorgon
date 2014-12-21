@@ -116,7 +116,7 @@ class Originator
     # at some point this will probably need to be fancy polymorphic type based responses, or at least a nice switch statement
     if payload[:action] == "finish"
       @job_state.file_finished payload
-      RuntimeRecorder.record(payload[:filename], payload[:runtime])
+      RuntimeRecorder.record!(payload[:filename], payload[:runtime])
     elsif payload[:action] == "start"
       @job_state.file_started payload
     elsif payload[:type] == "crash"

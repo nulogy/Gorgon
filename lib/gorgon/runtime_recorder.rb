@@ -11,14 +11,17 @@ module RuntimeRecorder
     @records
   end
 
-  def self.record(filename, runtime)
+  def self.clear_records!
+    @records = {}
+  end
+
+  def self.record!(filename, runtime)
     @records[filename] = runtime
   end
 
-  def self.recorded_specs_list_file
+  def self.recorded_specs_list_file # returns filename
     return "" unless File.file?("gorgon.json")
-    @recorded_specs_list_file ||= Configuration.load_configuration_from_file("gorgon.json")[:recorded_specs_list_file]
-    @recorded_specs_list_file ||= "" # return "" if no file is specified
+    @recorded_specs_list_file ||= Configuration.load_configuration_from_file("gorgon.json")[:recorded_specs_list_file] || ""
   end
 
   def self.make_directories!
@@ -29,10 +32,9 @@ module RuntimeRecorder
   def self.write_records_to_file!
     return if self.recorded_specs_list_file.nil? || self.recorded_specs_list_file.empty?
     self.make_directories!
-    file = open(self.recorded_specs_list_file, 'w')
-    file.truncate 0
-    file.write self.records.sort_by{|k, v| -1*v}.map{|k, v| "#{k}#{DIVIDER}#{v.to_s}"}.join("\n")
-    file.close
+    File.open(self.recorded_specs_list_file, 'w') do |file|
+      file.write self.records.sort_by{|k, v| -1*v}.map{|k, v| "#{k}#{DIVIDER}#{v.to_s}"}.join("\n")
+    end
   end
 
   def self.recorded_files
