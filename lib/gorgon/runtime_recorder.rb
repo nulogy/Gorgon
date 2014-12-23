@@ -10,7 +10,7 @@ class RuntimeRecorder
     @runtime_filename = runtime_filename || ""
   end
 
-  def update payload={}
+  def update payload
     @records[payload[:filename]] = payload[:runtime] if payload[:action] == "finish"
     self.write_records_to_file if @job_state.is_job_complete?
   end

@@ -12,7 +12,8 @@ class RuntimeFileReader
                    else
                      json = File.new(@runtime_filename, 'r')
                      parser = Yajl::Parser.new
-                     parser.parse(json).keys
+                     hash = parser.parse(json) unless json.nil?
+                     hash.nil? ? [] : hash.keys
                    end
   end
 
