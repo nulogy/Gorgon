@@ -32,7 +32,7 @@ describe RuntimeFileReader do
     end
 
     it "should include new files at the end" do
-      current_spec_files = "new_a.rb", "old_b.rb", "old_a.rb", "new_b.rb", "old_c.rb"
+      current_spec_files = ["new_a.rb", "old_b.rb", "old_a.rb", "new_b.rb", "old_c.rb"]
       sorted_files = @runtime_file_reader.sorted_files(current_spec_files)
       sorted_files.first(sorted_files.size-2).should == old_files
       sorted_files.last(2).should == ["new_a.rb", "new_b.rb"]
