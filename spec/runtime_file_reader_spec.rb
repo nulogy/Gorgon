@@ -39,7 +39,7 @@ describe RuntimeFileReader do
     end
 
     it "should remove old files that are not in current files" do
-      current_spec_files = "new_a.rb", "old_a.rb", "old_c.rb"
+      current_spec_files = ["new_a.rb", "old_a.rb", "old_c.rb"]
       sorted_files = @runtime_file_reader.sorted_files(current_spec_files)
       sorted_files.first(2).should == ["old_a.rb", "old_c.rb"]
       sorted_files.last(1).should == ["new_a.rb"]
