@@ -9,6 +9,7 @@ require 'gorgon/source_tree_syncer'
 require 'gorgon/shutdown_manager'
 require 'gorgon/callback_handler'
 require 'gorgon/runtime_recorder'
+require 'gorgon/runtime_file_reader'
 
 require 'awesome_print'
 require 'etc'
@@ -116,7 +117,6 @@ class Originator
     # at some point this will probably need to be fancy polymorphic type based responses, or at least a nice switch statement
     if payload[:action] == "finish"
       @job_state.file_finished payload
-      RuntimeRecorder.record!(payload[:filename], payload[:runtime])
     elsif payload[:action] == "start"
       @job_state.file_started payload
     elsif payload[:type] == "crash"
@@ -137,6 +137,7 @@ class Originator
 
   def create_job_state_and_observers
     @job_state = JobState.new files.count
+    RuntimeRecorder.new @job_state, configuration[:runtime_file]
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
     FailuresPrinter.new @job_state
@@ -155,7 +156,8 @@ class Originator
     current_files = configuration[:files].reduce([]) do |memo, obj|
       memo.concat(Dir[obj])
     end.uniq
-    @files = RuntimeRecorder.sorted_files(current_files)
+    runtime_file_reader = RuntimeFileReader.new configuration[:runtime_file]
+    @files = runtime_file_reader.sorted_files(current_files)
   end
 
   def job_definition

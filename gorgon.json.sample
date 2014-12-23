@@ -30,6 +30,6 @@
       "test/functional/**/*_test.rb",
       "test/integration/**/*_test.rb"
   ],
-  "recorded_specs_list_file": "tmp/recorded_specs_list.txt",
+  "runtime_file": "tmp/recorded_specs_list.txt",
   "originator_log_file": "log/gorgon-orginator.log"
 }

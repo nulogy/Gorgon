@@ -6,7 +6,7 @@ describe RuntimeRecorder do
     let (:file_for_recording){ "file_for_recording.rb" }
 
     it "should not write if no file is given" do
-      RuntimeRecorder.stub(:recorded_specs_list_file).and_return("")
+      RuntimeRecorder.stub(:runtime_file).and_return("")
       record_values
       file = mock('file')
       File.should_not_receive(:open).with("", "w").and_yield(file)
@@ -16,7 +16,7 @@ describe RuntimeRecorder do
     end
 
     it "should write to the given file" do
-      RuntimeRecorder.stub(:recorded_specs_list_file).and_return(file_for_recording)
+      RuntimeRecorder.stub(:runtime_file).and_return(file_for_recording)
       record_values
       file = mock('file')
       File.should_receive(:open).with(file_for_recording, "w").and_yield(file)
