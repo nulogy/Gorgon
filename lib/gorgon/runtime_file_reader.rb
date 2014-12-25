@@ -10,10 +10,11 @@ class RuntimeFileReader
     @old_files ||= unless File.file?(@runtime_filename)
                      []
                    else
-                     json = File.new(@runtime_filename, 'r')
-                     parser = Yajl::Parser.new
-                     hash = parser.parse(json) unless json.nil?
-                     hash.nil? ? [] : hash.keys
+                     File.open(@runtime_filename, 'r') do |f|
+                       parser = Yajl::Parser.new
+                       hash = parser.parse(f)
+                       hash.nil? ? [] : hash.keys
+                     end
                    end
   end
 

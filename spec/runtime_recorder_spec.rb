@@ -11,7 +11,7 @@ describe RuntimeRecorder do
       job_state = JobState.new 1
       job_state.should_receive(:add_observer)
       runtime_recorder = RuntimeRecorder.new job_state, runtime_filename
-      runtime_recorder.records.should == {}
+      expect(runtime_recorder.records).to eq({})
     end
   end
 
@@ -24,15 +24,15 @@ describe RuntimeRecorder do
     end
 
     it "should record if a file finished" do
-      @runtime_recorder.records.empty?.should == true
+      expect(@runtime_recorder.records).to be_empty
       @runtime_recorder.update(payload)
       @runtime_recorder.records = { "file_spec.rb" => 1.23 }
     end
 
     it "should not record if a file is not finished" do
-      @runtime_recorder.records.empty?.should == true
+      expect(@runtime_recorder.records).to be_empty
       @runtime_recorder.update(payload.merge({action:"not_finish"}))
-      @runtime_recorder.records.empty?.should == true
+      expect(@runtime_recorder.records).to be_empty
     end
 
     it "should write to the file if job is completed" do
