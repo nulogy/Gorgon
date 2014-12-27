@@ -8,6 +8,8 @@ require 'gorgon/failures_printer'
 require 'gorgon/source_tree_syncer'
 require 'gorgon/shutdown_manager'
 require 'gorgon/callback_handler'
+require 'gorgon/runtime_recorder'
+require 'gorgon/runtime_file_reader'
 
 require 'awesome_print'
 require 'etc'
@@ -135,6 +137,7 @@ class Originator
 
   def create_job_state_and_observers
     @job_state = JobState.new files.count
+    RuntimeRecorder.new @job_state, configuration[:runtime_file]
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
     FailuresPrinter.new @job_state
@@ -149,9 +152,12 @@ class Originator
   end
 
   def files
-    @files ||= configuration[:files].reduce([]) do |memo, obj|
+    return @files unless @files.nil?
+    current_files = configuration[:files].reduce([]) do |memo, obj|
       memo.concat(Dir[obj])
     end.uniq
+    runtime_file_reader = RuntimeFileReader.new configuration[:runtime_file]
+    @files = runtime_file_reader.sorted_files(current_files)
   end
 
   def job_definition

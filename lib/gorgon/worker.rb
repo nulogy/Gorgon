@@ -7,6 +7,7 @@ require 'gorgon/job_definition'
 require "uuidtools"
 require "awesome_print"
 require "socket"
+require "benchmark"
 
 module TestRunner
   def self.run_file filename, test_runner
@@ -92,9 +93,12 @@ class Worker
       @amqp.start_worker @file_queue_name, @reply_exchange_name do |queue, exchange|
         while filename = queue.pop
           exchange.publish make_start_message(filename)
-          log "Running '#{filename}'"
-          test_results = run_file(filename)
-          exchange.publish make_finish_message(filename, test_results)
+          log "Running '#{filename}' with Worker: #{@worker_id}"
+          test_results = nil # needed so run_file() inside the Benchmark will use this
+          runtime = Benchmark.realtime do
+            test_results = run_file(filename)
+          end
+          exchange.publish make_finish_message(filename, test_results, runtime)
         end
       end
     rescue Exception => e
@@ -142,11 +146,11 @@ class Worker
   end
 
   def make_start_message(filename)
-    {:action => :start, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}
+    {action: :start, hostname: Socket.gethostname, worker_id: @worker_id, filename: filename}
   end
 
-  def make_finish_message(filename, results)
-    {:action => :finish, :hostname => Socket.gethostname, :worker_id => @worker_id, :filename => filename}.merge(results)
+  def make_finish_message(filename, results, runtime)
+    {action: :finish, hostname: Socket.gethostname, worker_id: @worker_id, filename: filename, runtime: runtime}.merge(results)
   end
 
   def require_runner_code_for framework
