@@ -103,6 +103,10 @@ class JobState
     @state == :cancelled
   end
 
+  def failed_test? payload
+    payload[:type] == "fail" || payload[:type] == "crash"
+  end
+
   private
 
   def file_started_update_host_state payload
@@ -120,7 +124,4 @@ class JobState
     puts "NOTICE: JobState#file_finished called after job was cancelled" if is_job_cancelled?
   end
 
-  def failed_test? payload
-    payload[:type] == "fail" || payload[:type] == "crash"
-  end
 end

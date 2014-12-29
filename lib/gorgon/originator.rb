@@ -18,8 +18,9 @@ require 'socket'
 class Originator
   include Configuration
 
-  def initialize
+  def initialize(options = {})
     @configuration = nil
+    @options = options
   end
 
   def originate
@@ -137,7 +138,7 @@ class Originator
 
   def create_job_state_and_observers
     @job_state = JobState.new files.count
-    RuntimeRecorder.new @job_state, configuration[:runtime_file]
+    RuntimeRecorder.new(@job_state, configuration[:runtime_file]) unless @options[:failures]
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
     FailuresPrinter.new @job_state
@@ -156,7 +157,7 @@ class Originator
     current_files = configuration[:files].reduce([]) do |memo, obj|
       memo.concat(Dir[obj])
     end.uniq
-    runtime_file_reader = RuntimeFileReader.new configuration[:runtime_file]
+    runtime_file_reader = RuntimeFileReader.new(configuration[:runtime_file], @options)
     @files = runtime_file_reader.sorted_files(current_files)
   end
 
@@ -173,8 +174,7 @@ class Originator
   def sync_configuration
     configuration[:job].
       fetch(:sync, {}).
-      merge(source_tree_path: source_tree_path(configuration[:job][:sync])
-    )
+      merge( source_tree_path: source_tree_path(configuration[:job][:sync]) )
   end
 
   def source_tree_path(sync_config)
@@ -193,7 +193,7 @@ class Originator
       raise <<-MSG
         Missing file_server configuration.
         See https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample for a sample configuration
-MSG
+      MSG
     end
 
     configuration[:file_server][:host]
