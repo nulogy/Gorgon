@@ -50,7 +50,7 @@ describe RuntimeRecorder do
 
 
   describe "#write_records_to_file" do
-    let(:sample_records){ {"zero.rb" => 0.23, "one.rb" => 1.23, "two.rb" => 2.23} }
+    let(:records){ {"zero.rb" => [:passed,0.23], "one.rb" => [:failed,1.23], "two.rb" => [:passed,2.23]} }
 
     before do
       @job_state = JobState.new 1
@@ -58,7 +58,7 @@ describe RuntimeRecorder do
 
     it "should not write if no file is given" do
       runtime_recorder = RuntimeRecorder.new @job_state, nil
-      runtime_recorder.records = sample_records
+      runtime_recorder.records = records
       file = mock('file')
       File.should_not_receive(:open).and_yield(file)
       file.should_not_receive(:write)
@@ -67,12 +67,39 @@ describe RuntimeRecorder do
 
     it "should write sorted records to the given file" do
       runtime_recorder = RuntimeRecorder.new @job_state, runtime_filename
-      runtime_recorder.records = sample_records
+      runtime_recorder.records = records
       file = mock('file')
       File.should_receive(:open).with(runtime_filename, 'w').and_yield(file)
-      file.should_receive(:write).with("{\n  \"two.rb\": 2.23,\n  \"one.rb\": 1.23,\n  \"zero.rb\": 0.23\n}")
+      file.should_receive(:write).with("{\n  \"one.rb\": [\n    \"failed\",\n    1.23\n  ],\n  \"two.rb\": [\n    \"passed\",\n    2.23\n  ],\n  \"zero.rb\": [\n    \"passed\",\n    0.23\n  ]\n}")
       runtime_recorder.write_records_to_file
     end
+  end
+
+  describe "#sort_records" do
+
+    before do
+      @job_state = JobState.new 1
+    end
+
+    it "should prioritize failed tests then runtime" do
+      records = {
+        "zero.rb" => [:passed,0.23],
+        "one.rb" => [:failed,1.23],
+        "two.rb" => [:passed,2.23],
+        "three.rb" => [:failed,3.23],
+      }
+      sorted_records = {
+        "three.rb" => [:failed,3.23],
+        "one.rb" => [:failed,1.23],
+        "two.rb" => [:passed,2.23],
+        "zero.rb" => [:passed,0.23],
+      }
+      runtime_recorder = RuntimeRecorder.new(@job_state, runtime_filename)
+      runtime_recorder.records = records
+      runtime_recorder.send(:sort_records)
+      expect(runtime_recorder.records).to eq(sorted_records)
+    end
+
   end
 
 end

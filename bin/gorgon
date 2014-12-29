@@ -12,8 +12,14 @@ require 'gorgon/settings/initial_files_creator'
 
 WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 
-def start
-  o = Originator.new
+def extract_options(argv)
+  options, argv = argv.partition{|arg| /^-/.match(arg)}
+  options.map!{|o| o.gsub(/[^0-9a-z ]/i, '').to_sym} # change to symbols
+  return [ Hash[options.map{|o| [o, true]}], argv ]
+end
+
+def start(options)
+  o = Originator.new(options)
   o.originate
 end
 
@@ -63,6 +69,9 @@ end
 def usage
   #print instructions on how to use gorgon
   puts "\tstart - remotely runs all tests specified in gorgon.json"
+  puts "\t      - options:"
+  puts "\t          1.) --failures - runs only previously failed tests from runtime_file"
+  puts "\t                         - note: will not update the runtime_file"
   puts "\tlisten - starts a listener process using the settings in gorgon_listener.json"
   puts "\tping - pings listeners and shows hosts and gorgon's version they are running"
   puts "\tinit [rails] - create initial files for current project"
@@ -74,11 +83,13 @@ end
 
 puts WELCOME_MSG
 
-case ARGV[0]
+options, argv = extract_options(ARGV)
+
+case argv[0]
 when nil
-  start
+  start(options)
 when "start"
-  start
+  start(options)
 when "listen"
   listen
 when "start_rsync"
@@ -103,3 +114,4 @@ else
   usage
   exit 1
 end
+
