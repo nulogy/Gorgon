@@ -2,8 +2,9 @@ require 'yajl'
 
 class RuntimeFileReader
 
-  def initialize(runtime_filename)
-    @runtime_filename = runtime_filename || ""
+  def initialize(configuration)
+    @runtime_filename = configuration[:runtime_filename] || ""
+    @globs_of_files = configuration[:files] || [] # e.g. ["spec/file1_spec.rb", "spec/**/*_spec.rb"]
   end
 
   def old_files
@@ -18,9 +19,19 @@ class RuntimeFileReader
                    end
   end
 
+  def sorted_files_by_globs
+    @globs_of_files.reduce([]) do |memo, glob|
+      memo.concat( sorted_files(Dir[glob]) - memo )
+    end
+  end
+
+  private
+
   def sorted_files(current_files = [])
     (self.old_files+current_files).uniq - (self.old_files-current_files)
   end
+
+
 
 end
 
