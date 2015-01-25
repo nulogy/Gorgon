@@ -21,8 +21,8 @@ class RuntimeFileReader
 
   def sorted_files # sorts by 1.) globs, 2.) runtime
     @globs_of_files.reduce([]) do |memo, glob|
-      memo.concat( sorted_files_by_runtime(Dir[glob]) - memo )
-    end
+      memo.concat( sorted_files_by_runtime(Dir[glob]) )
+    end.uniq
   end
 
   private
