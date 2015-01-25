@@ -24,7 +24,7 @@ describe RuntimeFileReader do
   end
 
 
-  describe "#sorted_files" do
+  describe "#sorted_files_by_runtime" do
     let(:configuration){ {runtime_filename: "runtime_file.json"} }
 
     before do
@@ -34,21 +34,21 @@ describe RuntimeFileReader do
 
     it "should include new files at the end" do
       current_spec_files = ["new_a.rb", "old_b.rb", "old_a.rb", "new_b.rb", "old_c.rb"]
-      sorted_files = @runtime_file_reader.send(:sorted_files, current_spec_files)
-      expect(sorted_files.first(sorted_files.size-2)).to eq(old_files)
-      expect(sorted_files.last(2)).to eq(["new_a.rb", "new_b.rb"])
+      sorted_files_by_runtime = @runtime_file_reader.send(:sorted_files_by_runtime, current_spec_files)
+      expect(sorted_files_by_runtime.first(sorted_files_by_runtime.size-2)).to eq(old_files)
+      expect(sorted_files_by_runtime.last(2)).to eq(["new_a.rb", "new_b.rb"])
     end
 
     it "should remove old files that are not in current files" do
       current_spec_files = ["new_a.rb", "old_a.rb", "old_c.rb"]
-      sorted_files = @runtime_file_reader.send(:sorted_files, current_spec_files)
-      expect(sorted_files.first(2)).to eq(["old_a.rb", "old_c.rb"])
-      expect(sorted_files.last(1)).to eq(["new_a.rb"])
+      sorted_files_by_runtime = @runtime_file_reader.send(:sorted_files_by_runtime, current_spec_files)
+      expect(sorted_files_by_runtime.first(2)).to eq(["old_a.rb", "old_c.rb"])
+      expect(sorted_files_by_runtime.last(1)).to eq(["new_a.rb"])
     end
   end
 
 
-  describe "#sorted_files_by_globs" do
+  describe "#sorted_files" do
     let(:configuration){ {files: ["glob_1", "glob_2", "glob_3"]} }
 
     before do
@@ -65,8 +65,8 @@ describe RuntimeFileReader do
       Dir.stub(:[]) do |glob|
         globs[glob]
       end
-      sorted_files_by_globs = @runtime_file_reader.sorted_files_by_globs
-      expect(sorted_files_by_globs).to eq(
+      sorted_files = @runtime_file_reader.sorted_files
+      expect(sorted_files).to eq(
         ["old_b.rb", "old_a.rb", "new_c.rb", "new_a.rb", "new_b.rb"]
       )
     end
