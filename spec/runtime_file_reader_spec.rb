@@ -6,12 +6,12 @@ describe RuntimeFileReader do
   let(:old_files){ ["old_a.rb", "old_b.rb", "old_c.rb", "old_d.rb"] }
 
   describe "#old_files" do
-    let(:configuration){ {runtime_filename: "runtime_file.json"} }
+    let(:configuration){ {runtime_file: "runtime_file.json"} }
 
     it "should read runtime_file" do
       File.stub(:file?).and_return(true)
       runtime_file_reader = RuntimeFileReader.new(configuration)
-      File.should_receive(:open).with(configuration[:runtime_filename], 'r')
+      File.should_receive(:open).with(configuration[:runtime_file], 'r')
       runtime_file_reader.old_files
     end
 
@@ -25,7 +25,7 @@ describe RuntimeFileReader do
 
 
   describe "#sorted_files_by_runtime" do
-    let(:configuration){ {runtime_filename: "runtime_file.json"} }
+    let(:configuration){ {runtime_file: "runtime_file.json"} }
 
     before do
       @runtime_file_reader = RuntimeFileReader.new(configuration)

@@ -3,7 +3,7 @@ require 'yajl'
 class RuntimeFileReader
 
   def initialize(configuration)
-    @runtime_filename = configuration[:runtime_filename] || ""
+    @runtime_filename = configuration[:runtime_file] || ""
     @globs_of_files = configuration[:files] || [] # e.g. ["spec/file1_spec.rb", "spec/**/*_spec.rb"]
   end
 
