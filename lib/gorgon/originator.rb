@@ -153,11 +153,10 @@ class Originator
 
   def files
     return @files unless @files.nil?
-    current_files = configuration[:files].reduce([]) do |memo, obj|
-      memo.concat(Dir[obj])
-    end.uniq
     runtime_file_reader = RuntimeFileReader.new configuration[:runtime_file]
-    @files = runtime_file_reader.sorted_files(current_files)
+    @files = configuration[:files].reduce([]) do |memo, obj|
+      memo.concat( runtime_file_reader.sorted_files(Dir[obj]) - memo )
+    end
   end
 
   def job_definition
