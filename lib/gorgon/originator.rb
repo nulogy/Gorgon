@@ -152,7 +152,7 @@ class Originator
   end
 
   def files
-    @files ||= RuntimeFileReader.new(configuration).sorted_files_by_globs
+    @files ||= RuntimeFileReader.new(configuration).sorted_files
   end
 
   def job_definition
