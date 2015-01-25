@@ -3,7 +3,7 @@ require 'yajl'
 
 describe RuntimeFileReader do
 
-  let(:old_files){ ["old_a.rb", "old_b.rb", "old_c.rb"] }
+  let(:old_files){ ["old_a.rb", "old_b.rb", "old_c.rb", "old_d.rb"] }
 
   describe "#old_files" do
     let(:configuration){ {runtime_filename: "runtime_file.json"} }
@@ -33,7 +33,7 @@ describe RuntimeFileReader do
     end
 
     it "should include new files at the end" do
-      current_spec_files = ["new_a.rb", "old_b.rb", "old_a.rb", "new_b.rb", "old_c.rb"]
+      current_spec_files = ["new_a.rb", "old_b.rb", "old_a.rb", "new_b.rb", "old_c.rb", "old_d.rb"]
       sorted_files_by_runtime = @runtime_file_reader.send(:sorted_files_by_runtime, current_spec_files)
       expect(sorted_files_by_runtime.first(sorted_files_by_runtime.size-2)).to eq(old_files)
       expect(sorted_files_by_runtime.last(2)).to eq(["new_a.rb", "new_b.rb"])
@@ -60,14 +60,14 @@ describe RuntimeFileReader do
       globs = {
         "glob_1" => ["old_b.rb"],
         "glob_2" => ["new_c.rb", "old_a.rb"],
-        "glob_3" => ["new_a.rb", "new_b.rb", "new_c.rb", "old_a.rb", "old_b.rb"]
+        "glob_3" => ["old_d.rb", "old_c.rb", "new_a.rb", "new_b.rb", "new_c.rb", "old_a.rb", "old_b.rb"]
       }
       Dir.stub(:[]) do |glob|
         globs[glob]
       end
       sorted_files = @runtime_file_reader.sorted_files
       expect(sorted_files).to eq(
-        ["old_b.rb", "old_a.rb", "new_c.rb", "new_a.rb", "new_b.rb"]
+        ["old_b.rb", "old_a.rb", "new_c.rb", "old_c.rb", "old_d.rb", "new_a.rb", "new_b.rb"]
       )
     end
   end
