@@ -65,9 +65,6 @@ Credits
 Gorgon is maintained by:
 * Justin Fitzsimmons
 * Arturo Pie
-* Sean Kirby
-* Clemens Park
-* Victor Savkin
 
 Gorgon is funded by [Nulogy Corp](http://www.nulogy.com/).
 Thank you to all the [contributors](https://github.com/Fitzsimmons/Gorgon/contributors).

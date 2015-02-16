@@ -38,7 +38,8 @@ module Settings
             rsync_transport: "ssh"
           }
         },
-        files: content.files
+        files: content.files,
+        runtime_file: content.runtime_file
       }
 
       log_file = content.originator_log_file
