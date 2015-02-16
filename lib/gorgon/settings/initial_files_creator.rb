@@ -31,20 +31,18 @@ module Settings
 
       config = {
         connection: {host: content.amqp_host},
+        failed_files: content.failed_files,
         file_server: {host: content.file_server_host},
+        files: content.files,
         job: {
           sync: {
             exclude: content.sync_exclude,
             rsync_transport: "ssh"
           }
         },
-        files: content.files,
+        originator_log_file: content.originator_log_file,
         runtime_file: content.runtime_file,
-        failed_files: content.failed_files
       }
-
-      log_file = content.originator_log_file
-      config[:originator_log_file] = log_file if log_file
 
       if content.callbacks
         create_callback_file(content)

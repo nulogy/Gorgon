@@ -2,35 +2,31 @@
   "connection": {
     "host": "localhost"
   },
-
+  "failed_files": "tmp/gorgon-failed-files.json",
   "file_server": {
     "host": "localhost"
   },
-
-  "job": {
-    "sync": {
-      "exclude": [
-        ".git",
-        ".rvmrc",
-        "tmp",
-        "log",
-        "doc"
-      ],
-
-      "rsync_transport": "ssh" // or "anonymous"
-    },
-
-    "callbacks": {
-        "callbacks_class_file": "test/gorgon_callbacks.rb"
-    }
-  },
-
   "files": [
       "test/unit/**/*_test.rb",
       "test/functional/**/*_test.rb",
       "test/integration/**/*_test.rb"
   ],
-  "runtime_file": "gorgon-runtime-file.json",
-  "failed_files": "tmp/gorgon-failed-files.json"
-  "originator_log_file": "log/gorgon-orginator.log"
+  "job": {
+    "callbacks": {
+        "callbacks_class_file": "test/gorgon_callbacks.rb"
+    }
+    "sync": {
+      "exclude": [
+        ".git",
+        ".rvmrc",
+        "doc",
+        "log",
+        "tmp"
+      ],
+
+      "rsync_transport": "ssh" // or "anonymous"
+    },
+  },
+  "originator_log_file": "log/gorgon-orginator.log",
+  "runtime_file": "gorgon-runtime-file.json"
 }
