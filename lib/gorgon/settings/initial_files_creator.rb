@@ -39,7 +39,8 @@ module Settings
           }
         },
         files: content.files,
-        runtime_file: content.runtime_file
+        runtime_file: content.runtime_file,
+        failed_files: content.failed_files
       }
 
       log_file = content.originator_log_file

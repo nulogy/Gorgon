@@ -140,7 +140,7 @@ class Originator
     RuntimeRecorder.new @job_state, configuration[:runtime_file]
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
-    FailuresPrinter.new @job_state
+    FailuresPrinter.new(configuration, @job_state)
   end
 
   def on_disconnect

@@ -1,17 +1,20 @@
 require 'yajl'
 
 class FailuresPrinter
-  OUTPUT_FILE = "/tmp/gorgon-failed-files.json"
+  DEFAULT_OUTPUT_FILE = "/tmp/gorgon-failed-files.json"
 
-  def initialize job_state
+  attr_reader :output_file
+
+  def initialize(configuration, job_state)
     @job_state = job_state
     @job_state.add_observer(self)
+    @output_file = configuration.fetch(:failed_files) { DEFAULT_OUTPUT_FILE }
   end
 
   def update payload
     return unless @job_state.is_job_complete? || @job_state.is_job_cancelled?
 
-    File.open(OUTPUT_FILE, 'w+') do |fd|
+    File.open(@output_file, 'w+') do |fd|
       fd.write(Yajl::Encoder.encode(failed_files + unfinished_files))
     end
   end
