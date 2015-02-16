@@ -21,7 +21,7 @@ Installing listener as a Daemon process (Ubuntu 9.10 or later)
 Gotchas
 ----------------------------------------------------------------
 
-* if you get `cannot load such file -- qrack/qrack (LoadError)`, just add `gem 'gorgon', '~> 0.8.3' , :group => :remote_test` to your Gemfile, and run tests using `bundle exec gorgon`
+* if you get `cannot load such file -- qrack/qrack (LoadError)`, just add `gem 'gorgon', '~> 0.8.4' , :group => :remote_test` to your Gemfile, and run tests using `bundle exec gorgon`
 * If `gorgon install_listener` didn't work for you, you can try [these steps](/daemon_with_upstart_and_rvm.md)
 
 Also note that the steps in the tutorial are **not** meant to work on every project, they will only give you initial settings. You will probably have to modify the following files:
