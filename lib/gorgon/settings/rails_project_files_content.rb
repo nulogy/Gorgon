@@ -88,7 +88,7 @@ class GorgonCallbacks < Gorgon::DefaultCallbacks
     load './Rakefile'
 
     begin
-      if Rails.env = 'remote_test'
+      if Rails.env == 'remote_test'
         Rake::Task['db:drop'].execute
       end
     rescue Exception => ex
