@@ -21,6 +21,13 @@ Run `rspec` and make sure all tests pass.
 
 1. Install [RabbitMQ](https://www.rabbitmq.com/download.html).
 
+  If you are using Homebrew on OSX, run the following:
+
+  ```bash
+  brew install rabbitmq
+  /usr/local/sbin/rabbitmq-server    # runs the server
+  ```
+
 2. Add Gorgon to the Gemfile: `gem 'gorgon', '0.8.4'`
 
 3. `bundle`
