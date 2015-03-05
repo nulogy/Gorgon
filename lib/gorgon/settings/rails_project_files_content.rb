@@ -8,7 +8,7 @@ module Settings
       @file_server_host = FilesContent.get_file_server_host
       @sync_exclude = [".git", ".rvmrc","doc","log","tmp"]
       @originator_log_file = 'log/gorgon-originator.log'
-      @failed_files = 'tmp/gorgon-failed-files.json'
+      @failed_files = 'gorgon-failed-files.json'
       create_callbacks
     end
 
