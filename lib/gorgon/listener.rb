@@ -28,6 +28,7 @@ class Listener
     log "Listener #{Gorgon::VERSION} initializing"
     connect
     initialize_personal_job_queue
+    announce_readiness_to_originators
   end
 
   def listen
@@ -44,9 +45,15 @@ class Listener
   end
 
   def initialize_personal_job_queue
-    @job_queue = @bunny.queue("", :exclusive => true)
-    exchange = @bunny.exchange(job_queue_name, :type => :fanout)
+    @job_queue = @bunny.queue("job_queue_" + UUIDTools::UUID.timestamp_create.to_s, :auto_delete => true)
+    exchange = @bunny.exchange(job_exchange_name, :type => :fanout)
     @job_queue.bind(exchange)
+  end
+
+  def announce_readiness_to_originators
+    exchange = @bunny.exchange(originator_exchange_name, :type => :fanout)
+    data = {:listener_queue_name => @job_queue.name}
+    exchange.publish(Yajl::Encoder.encode(data))
   end
 
   def poll
@@ -175,8 +182,12 @@ class Listener
     reply_exchange.publish(Yajl::Encoder.encode(message))
   end
 
-  def job_queue_name
-    OriginatorProtocol.job_queue_name(configuration.fetch(:cluster_id, nil))
+  def job_exchange_name
+    OriginatorProtocol.job_exchange_name(configuration.fetch(:cluster_id, nil))
+  end
+
+  def originator_exchange_name
+    OriginatorProtocol.originator_exchange_name(configuration.fetch(:cluster_id, nil))
   end
 
   def connection_information

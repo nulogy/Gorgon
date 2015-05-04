@@ -69,6 +69,10 @@ class Originator
       @protocol.receive_payloads do |payload|
         handle_reply(payload)
       end
+
+      @protocol.receive_new_listener_notifications do |payload|
+        handle_new_listener_notification(payload)
+      end
     end
 
     callback_handler.after_job_finishes
@@ -83,7 +87,7 @@ class Originator
     create_job_state_and_observers
 
     @logger.log "Publishing Job..."
-    @protocol.publish_job job_definition
+    @protocol.publish_job_to_all job_definition
     @logger.log "Job Published"
   end
 
@@ -133,6 +137,17 @@ class Originator
     # ap payload
 
     cleanup_if_job_complete
+  end
+
+  def handle_new_listener_notification(payload)
+    payload = Yajl::Parser.new(:symbolize_keys => true).parse(payload)
+
+    if payload[:listener_queue_name]
+      @protocol.publish_job_to_one(job_definition, payload[:listener_queue_name])
+    else
+      puts "Received unexpected payload on originator queue"
+      ap payload
+    end
   end
 
   def create_job_state_and_observers
