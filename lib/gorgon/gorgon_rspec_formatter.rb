@@ -5,6 +5,10 @@ module RSpec
   module Core
     module Formatters
       class GorgonRspecFormatter < BaseFormatter
+        if Formatters.respond_to? :register
+          Formatters.register self, :message, :stop, :close
+        end
+
         attr_reader :output
 
         def initialize(output)
@@ -16,30 +20,35 @@ module RSpec
           @failures += message unless @failures.empty?
         end
 
-        def stop
-          super
-          failures = examples.select { |e| e.execution_result[:status] == "failed" }
-
-          @failures += failures.map do |failure|
+        def stop(notification=nil)
+          @failures += failures(notification).map do |failure|
             {
-              :test_name => "#{failure.full_description}: " \
-              "line #{failure.metadata[:line_number]}",
-              :description => failure.description,
-              :full_description => failure.full_description,
-              :status => failure.execution_result[:status],
-              :file_path => failure.metadata[:file_path],
-              :line_number  => failure.metadata[:line_number],
+              test_name: "#{failure.full_description}: line #{failure.metadata[:line_number]}",
+              description: failure.description,
+              full_description: failure.full_description,
+              status: :failed,
+              file_path: failure.metadata[:file_path],
+              line_number: failure.metadata[:line_number],
             }.tap do |hash|
-              if e=failure.exception
-                hash[:class] = e.class.name
-                hash[:message] = e.message
-                hash[:location] = e.backtrace
+              exception = failure.exception
+              unless exception.nil?
+                hash[:class] = exception.class.name
+                hash[:message] = exception.message
+                hash[:location] = exception.backtrace
               end
             end
           end
         end
 
-        def close
+        def failures(notification)
+          if !notification.nil?
+            notification.examples.select { |e| e.execution_result.status == :failed }
+          else
+            examples.select { |e| e.execution_result[:status] == "failed" }
+          end
+        end
+
+        def close(_notification=nil)
           output.write @failures.to_json
           output.close if IO === output && output != $stdout
         end

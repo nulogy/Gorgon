@@ -32,6 +32,7 @@ class RspecRunner
     def keep_config_modules
       orig_configuration = ::RSpec.configuration.clone
       yield
+      RSpec.reset
       ::RSpec.instance_variable_set(:@configuration, orig_configuration)
     end
   end

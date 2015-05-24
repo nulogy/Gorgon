@@ -60,4 +60,16 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
     @formatter.stop
     @formatter.close
   end
+
+  it "uses RSpec 3 API when available" do
+    fail_example.execution_result.should_receive(:status).and_return(:failed)
+    notification = double(examples: [fail_example])
+
+    expected_result = [{:test_name => "Full_Description: line 2", :description => "description",
+        :full_description => "Full_Description", :status => "failed",
+        :file_path => "path/to/file", :line_number => 2}]
+    output.should_receive(:write).with(expected_result.to_json)
+    @formatter.stop(notification)
+    @formatter.close
+  end
 end
