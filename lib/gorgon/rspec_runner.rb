@@ -20,7 +20,7 @@ class RspecRunner
 
       out.rewind
 
-      Yajl::Parser.new(:symbolize_keys => true).parse(out.read)
+      Yajl::Parser.new(symbolize_keys: true).parse(out.read)
     end
 
     def runner
@@ -32,6 +32,7 @@ class RspecRunner
     def keep_config_modules
       orig_configuration = ::RSpec.configuration.clone
       yield
+    ensure
       RSpec.reset
       ::RSpec.instance_variable_set(:@configuration, orig_configuration)
     end
