@@ -45,7 +45,7 @@ module GorgonBunny
     DEFAULT_CONTINUATION_TIMEOUT = if RUBY_VERSION.to_f < 1.9
                                      8000
                                    else
-                                     4000
+                                     15000
                                    end
 
     # RabbitMQ client metadata
@@ -87,7 +87,7 @@ module GorgonBunny
     attr_reader :mechanism
     # @return [Logger]
     attr_reader :logger
-    # @return [Integer] Timeout for blocking protocol operations (queue.declare, queue.bind, etc), in milliseconds. Default is 4000.
+    # @return [Integer] Timeout for blocking protocol operations (queue.declare, queue.bind, etc), in milliseconds. Default is 15000.
     attr_reader :continuation_timeout
 
 
@@ -105,7 +105,7 @@ module GorgonBunny
     # @option connection_string_or_opts [String] :tls_cert (nil) Path to client TLS/SSL certificate file (.pem)
     # @option connection_string_or_opts [String] :tls_key (nil) Path to client TLS/SSL private key file (.pem)
     # @option connection_string_or_opts [Array<String>] :tls_ca_certificates Array of paths to TLS/SSL CA files (.pem), by default detected from OpenSSL configuration
-    # @option connection_string_or_opts [Integer] :continuation_timeout (4000) Timeout for client operations that expect a response (e.g. {GorgonBunny::Queue#get}), in milliseconds.
+    # @option connection_string_or_opts [Integer] :continuation_timeout (15000) Timeout for client operations that expect a response (e.g. {GorgonBunny::Queue#get}), in milliseconds.
     #
     # @option optz [String] :auth_mechanism ("PLAIN") Authentication mechanism, PLAIN or EXTERNAL
     # @option optz [String] :locale ("PLAIN") Locale RabbitMQ should use
