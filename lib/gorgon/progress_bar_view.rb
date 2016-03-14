@@ -50,7 +50,7 @@ class ProgressBarView
       print "\r#{' ' * (LOADING_MSG.length)}\r"
       puts LEGEND_MSG
       @progress_bar = ProgressBar.create(:total => @job_state.total_files,
-                                         :length => [terminal_size[0], MAX_LENGTH].min,
+                                         :length => [terminal_length, MAX_LENGTH].min,
                                          :format => format(bar: :green, title: :white));
     end
   end
@@ -83,8 +83,8 @@ private
     "#{title} | [#{bar}] %c/%C %a"
   end
 
-  def terminal_size
-    `stty size`.split.map { |x| x.to_i }.reverse
+  def terminal_length
+    `stty size`.split.map { |x| x.to_i }.reverse[0].to_i
   end
 
   def print_summary
