@@ -16,8 +16,7 @@ module RSpec
           @failures = []
         end
 
-        def message(message)
-          @failures += message unless @failures.empty?
+        def message(_notification)
         end
 
         def stop(notification=nil)
