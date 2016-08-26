@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "rubygems"
 require 'gorgon'
 require 'gorgon/originator'
@@ -72,11 +74,20 @@ def usage
   puts "\tgem command [options...] - execute the gem command on every listener and shutdown listener. e.g. 'gorgon gem install --version 1.0.0'"
 end
 
+case ARGV[0] # special case for 'version', because we don't need the welcome message telling us the version when we're explicitly asking for it
+when "version", "--version"
+  puts Gorgon::VERSION
+  exit 0
+end
+
 puts WELCOME_MSG
 
 case ARGV[0]
 when nil
   start
+when "help", "--help"
+  usage
+  exit 0
 when "start"
   start
 when "listen"
