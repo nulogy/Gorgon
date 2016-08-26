@@ -76,6 +76,23 @@ describe Originator do
     end
   end
 
+  describe "#originate" do
+    before do
+      stub_methods
+    end
+
+    it "exits with a non-zero status code when the originator crashes" do
+      originator_logger.stub(:log_error)
+      $stderr = StringIO.new # slurp up the error output so we don't pollute the rsync run
+      CallbackHandler.any_instance.should_receive(:before_originate).and_throw("I'm an unhandled exception")
+
+      expect { @originator.originate }.to raise_error(SystemExit) do |error|
+        error.success?.should be_false
+      end
+      $stderr = STDERR
+    end
+  end
+
   describe "#cancel_job" do
     before do
       stub_methods
