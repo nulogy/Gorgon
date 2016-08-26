@@ -30,13 +30,14 @@ class Originator
       publish
       @logger.log "Originator finished successfully"
     rescue StandardError
-      puts "Unhandled exception in originator:"
-      puts $!.message
-      puts $!.backtrace.join("\n")
-      puts "----------------------------------"
-      puts "Now attempting to cancel the job."
+      $stderr.puts "Unhandled exception in originator:"
+      $stderr.puts $!.message
+      $stderr.puts $!.backtrace.join("\n")
+      $stderr.puts "----------------------------------"
+      $stderr.puts "Now attempting to cancel the job."
       @logger.log_error "Unhandled Exception!" if @logger
       cancel_job
+      exit 2
     end
   end
 
