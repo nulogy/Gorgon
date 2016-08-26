@@ -85,6 +85,9 @@ puts WELCOME_MSG
 case ARGV[0]
 when nil
   start
+when "help", "--help"
+  usage
+  exit 0
 when "start"
   start
 when "listen"
