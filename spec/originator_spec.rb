@@ -83,7 +83,7 @@ describe Originator do
 
     it "exits with a non-zero status code when the originator crashes" do
       originator_logger.stub(:log_error)
-      $stderr = StringIO.new # slurp up the error output so we don't pollute the rsync run
+      $stderr = StringIO.new # slurp up the error output so we don't pollute the rspec run
       CallbackHandler.any_instance.should_receive(:before_originate).and_throw("I'm an unhandled exception")
 
       expect { @originator.originate }.to raise_error(SystemExit) do |error|
