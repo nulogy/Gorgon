@@ -18,6 +18,12 @@ require 'socket'
 class Originator
   include Configuration
 
+  SPEC_SUCCESS_EXIT_STATUS = 0
+  SYNC_ERROR_EXIT_STATUS = 1
+  ERROR_EXIT_STATUS = 2
+  SPEC_FAILURE_EXIT_STATUS = 3
+
+
   def initialize
     @configuration = nil
   end
@@ -27,8 +33,9 @@ class Originator
       Signal.trap("INT") { ctrl_c }
       Signal.trap("TERM") { ctrl_c }
 
-      publish
+      exit_status = publish
       @logger.log "Originator finished successfully"
+      exit_status
     rescue StandardError
       $stderr.puts "Unhandled exception in originator:"
       $stderr.puts $!.message
@@ -37,7 +44,7 @@ class Originator
       $stderr.puts "Now attempting to cancel the job."
       @logger.log_error "Unhandled Exception!" if @logger
       cancel_job
-      exit 2
+      exit ERROR_EXIT_STATUS
     end
   end
 
@@ -55,7 +62,7 @@ class Originator
 
     if files.empty?
       $stderr.puts "There are no files to test! Quitting."
-      exit 2
+      exit ERROR_EXIT_STATUS
     end
 
     cluster_id = callback_handler.before_originate
@@ -77,6 +84,7 @@ class Originator
     end
 
     callback_handler.after_job_finishes
+    SPEC_SUCCESS_EXIT_STATUS
   end
 
   def publish_files_and_job
@@ -105,7 +113,7 @@ class Originator
       $stderr.puts "Command '#{syncer.sys_command}' failed!"
       $stderr.puts "Stdout:\n#{syncer.output}"
       $stderr.puts "Stderr:\n#{syncer.errors}"
-      exit 1
+      exit SYNC_ERROR_EXIT_STATUS
     end
   end
 
