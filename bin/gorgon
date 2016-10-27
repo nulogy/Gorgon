@@ -16,7 +16,7 @@ WELCOME_MSG = "Welcome to Gorgon #{Gorgon::VERSION}"
 
 def start
   o = Originator.new
-  o.originate
+  exit o.originate
 end
 
 def listen
@@ -77,7 +77,7 @@ end
 case ARGV[0] # special case for 'version', because we don't need the welcome message telling us the version when we're explicitly asking for it
 when "version", "--version"
   puts Gorgon::VERSION
-  exit 0
+  exit
 end
 
 puts WELCOME_MSG
@@ -87,7 +87,7 @@ when nil
   start
 when "help", "--help"
   usage
-  exit 0
+  exit
 when "start"
   start
 when "listen"

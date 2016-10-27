@@ -18,6 +18,12 @@ require 'socket'
 class Originator
   include Configuration
 
+  SPEC_SUCCESS_EXIT_STATUS = 0
+  SPEC_FAILURE_EXIT_STATUS = 1
+  SYNC_ERROR_EXIT_STATUS = 2
+  ERROR_EXIT_STATUS = 3
+
+
   def initialize
     @configuration = nil
   end
@@ -27,8 +33,9 @@ class Originator
       Signal.trap("INT") { ctrl_c }
       Signal.trap("TERM") { ctrl_c }
 
-      publish
+      exit_status = publish
       @logger.log "Originator finished successfully"
+      exit_status
     rescue StandardError
       $stderr.puts "Unhandled exception in originator:"
       $stderr.puts $!.message
@@ -37,7 +44,7 @@ class Originator
       $stderr.puts "Now attempting to cancel the job."
       @logger.log_error "Unhandled Exception!" if @logger
       cancel_job
-      exit 2
+      exit ERROR_EXIT_STATUS
     end
   end
 
@@ -51,11 +58,13 @@ class Originator
   end
 
   def publish
+    exit_status = SPEC_SUCCESS_EXIT_STATUS
+
     @logger = OriginatorLogger.new configuration[:originator_log_file]
 
     if files.empty?
       $stderr.puts "There are no files to test! Quitting."
-      exit 2
+      exit ERROR_EXIT_STATUS
     end
 
     cluster_id = callback_handler.before_originate
@@ -68,7 +77,7 @@ class Originator
       publish_files_and_job
 
       @protocol.receive_payloads do |payload|
-        handle_reply(payload)
+        exit_status |= handle_reply(payload)
       end
 
       @protocol.receive_new_listener_notifications do |payload|
@@ -77,6 +86,7 @@ class Originator
     end
 
     callback_handler.after_job_finishes
+    exit_status
   end
 
   def publish_files_and_job
@@ -105,7 +115,7 @@ class Originator
       $stderr.puts "Command '#{syncer.sys_command}' failed!"
       $stderr.puts "Stdout:\n#{syncer.output}"
       $stderr.puts "Stderr:\n#{syncer.errors}"
-      exit 1
+      exit SYNC_ERROR_EXIT_STATUS
     end
   end
 
@@ -138,6 +148,7 @@ class Originator
     # ap payload
 
     cleanup_if_job_complete
+    exit_status(payload)
   end
 
   def handle_new_listener_notification(payload)
@@ -180,6 +191,11 @@ class Originator
   end
 
   private
+
+  def exit_status(payload)
+    return SPEC_FAILURE_EXIT_STATUS if ["crash", "exception", "fail"].include?(payload[:type])
+    SPEC_SUCCESS_EXIT_STATUS
+  end
 
   def sync_configuration
     configuration[:job].
