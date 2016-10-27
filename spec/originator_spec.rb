@@ -33,6 +33,17 @@ describe Originator do
       @originator.publish
     end
 
+    it "propagates the success result of handle_reply" do
+      @originator.publish.should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+    end
+
+    it "propagates the error result of handle_reply" do
+      OriginatorProtocol.should_receive(:new).and_return(protocol)
+      protocol.should_receive(:receive_payloads).and_yield(Yajl::Encoder.encode({:type => 'fail'}))
+
+      @originator.publish.should eq Originator::SPEC_FAILURE_EXIT_STATUS
+    end
+
     it "creates a ProgressBarView and show" do
       JobState.stub(:new).and_return job_state
       ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
@@ -136,6 +147,29 @@ describe Originator do
       stub_methods
       JobState.stub(:new).and_return job_state
       @originator.publish
+    end
+
+    it "returns SPEC_SUCCESS_EXIT_STATUS when payload[:action] is start" do
+      job_state.stub(:file_started)
+      @originator.handle_reply(start_payload).should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+    end
+
+    it "returns SPEC_SUCCESS_EXIT_STATUS when payload[:action] is finish" do
+      job_state.stub(:file_finished)
+      @originator.handle_reply(finish_payload).should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+    end
+
+    it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is crash" do
+      job_state.stub(:gorgon_crash_message)
+      @originator.handle_reply(Yajl::Encoder.encode(gorgon_crash_message)).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+    end
+
+    it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is exception" do
+      @originator.handle_reply(Yajl::Encoder.encode({:type => 'exception'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+    end
+
+    it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is fail" do
+      @originator.handle_reply(Yajl::Encoder.encode({:type => 'fail'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
     end
 
     it "calls cleanup_if_job_complete" do
