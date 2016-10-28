@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gorgon (0.10.4)
+    gorgon (0.11.0)
       amq-protocol (~> 1.9.2)
       amqp (~> 1.1.0)
       awesome_print
@@ -48,4 +48,4 @@ DEPENDENCIES
   test-unit
 
 BUNDLED WITH
-   1.11.2
+   1.13.1
