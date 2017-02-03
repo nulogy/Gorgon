@@ -7,6 +7,8 @@ class RunnerTranscript
     @job_state = job_state
     @output_file = configuration.fetch(:failed_files) { DEFAULT_OUTPUT_FILE }
     @workers = {}
+
+    @job_state.add_observer(self)
   end
 
   def update(payload)

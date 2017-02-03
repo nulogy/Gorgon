@@ -3,8 +3,15 @@ require "gorgon/runner_transcript"
 describe RunnerTranscript do
   let(:fd) {double("File descriptor", :write => nil)}
 
+  it "responds to finish actions" do
+    publisher = double()
+    publisher.should_receive(:add_observer)
+
+    RunnerTranscript.new({}, publisher)
+  end
+
   it "writes the output file when the job is completed" do
-    subject = RunnerTranscript.new({}, double(is_job_complete?: true, is_job_cancelled?: false))
+    subject = RunnerTranscript.new({}, double(add_observer: nil, is_job_complete?: true, is_job_cancelled?: false))
     expected_output = Yajl::Encoder.encode({"1" => ["test/file_test.rb"]})
 
     File.should_receive(:open).with(RunnerTranscript::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
@@ -14,7 +21,7 @@ describe RunnerTranscript do
   end
 
   it "writes the output file when the job is cancelled" do
-    subject = RunnerTranscript.new({}, double(is_job_cancelled?: true, is_job_complete?: false))
+    subject = RunnerTranscript.new({}, double(add_observer: nil, is_job_cancelled?: true, is_job_complete?: false))
     expected_output = Yajl::Encoder.encode({"1" => ["test/file_test.rb"]})
     File.should_receive(:open).with(RunnerTranscript::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
     fd.should_receive(:write).with(expected_output)
