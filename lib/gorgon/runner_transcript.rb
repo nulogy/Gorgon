@@ -1,0 +1,27 @@
+class RunnerTranscript
+  DEFAULT_OUTPUT_FILE = "/tmp/gorgon-runner-transcript.json"
+
+  attr_accessor :workers
+
+  def initialize(configuration, job_state)
+    @job_state = job_state
+    @output_file = configuration.fetch(:failed_files) { DEFAULT_OUTPUT_FILE }
+    @workers = {}
+  end
+
+  def update(payload)
+    # update hash internally
+    puts payload.inspect
+
+    if payload[:action] == "finish"
+      @workers[payload[:worker_id]] ||= []
+      @workers[payload[:worker_id]].push(payload[:filename])
+    end
+
+    if @job_state.is_job_complete?
+      File.open(@output_file, 'w+') do |fd|
+        fd.write(Yajl::Encoder.encode(@workers))
+      end
+    end
+  end
+end
