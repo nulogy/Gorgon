@@ -38,10 +38,8 @@ describe RunnerTranscript do
       File.should_receive(:open).with(RunnerTranscript::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
       fd.should_receive(:write).with(expected_output)
 
-      puts '====='
       subject.update(finish_payload)
       subject.update(second_finish_payload)
-      puts '====='
     end
 
     it "does not write the output file otherwise" do
