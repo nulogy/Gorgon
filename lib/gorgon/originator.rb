@@ -164,6 +164,7 @@ class Originator
 
   def create_job_state_and_observers
     @job_state = JobState.new files.count
+    RunnerTranscript.new(configuration, @job_state)
     RuntimeRecorder.new @job_state, configuration[:runtime_file]
     @progress_bar_view = ProgressBarView.new @job_state
     @progress_bar_view.show
