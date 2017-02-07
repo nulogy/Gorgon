@@ -12,7 +12,6 @@ require 'gorgon/settings/initial_files_creator'
 
 module Gorgon
   class Command
-    attr_reader :argv
     WELCOME_MESSAGE = "Welcome to Gorgon #{Gorgon::VERSION}"
     USAGE = <<-EOT
 USAGE: gorgon <command> [<args>]
@@ -25,7 +24,6 @@ COMMANDS:
   install_listener            run gorgon listener as a daemon process
   start_rsync <directory>     start rsync daemon. Run this command in File Server
   stop_rsync                  stop rsync daemon.
-  manage_workers
   gem command [<options>...]  execute the gem command on every listener and shutdown listener.
                               (e.g. 'gorgon gem install bunny --version 1.0.0')
 
@@ -36,12 +34,22 @@ OPTIONS:
 
     COMMAND_WHITELIST = %w(help version start listen start_rsync stop_rsync manage_workers ping gem init install_listener)
 
+    attr_reader :argv
+
     def initialize(argv)
-      @argv = argv
+      if argv.empty?
+        @argv = ['start']
+      else
+        @argv = argv
+      end
     end
 
-    def run!(command)
-      command = parse(command)
+    def self.run(argv = ARGV)
+      new(argv).run_command
+    end
+
+    def run_command
+      command = parse(argv.shift)
       if COMMAND_WHITELIST.include?(command)
         puts WELCOME_MESSAGE unless ['version', 'help'].include?(command)
         send(command)

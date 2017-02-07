@@ -1,8 +1,4 @@
 #!/usr/bin/env ruby
 
-ARGV << 'start' if ARGV.empty?
-command = ARGV.shift
-
 require 'gorgon/command'
-
-Gorgon::Command.new(ARGV).run!(command)
+Gorgon::Command.run(ARGV)
