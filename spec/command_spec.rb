@@ -1,12 +1,17 @@
 require 'gorgon/command'
+require File.expand_path("../support/stream_helpers", __FILE__)
 
 describe Gorgon::Command do
+  include Gorgon::StreamHelpers
+
   context "run command" do
     it "runs whitlisted command" do
-      Gorgon::Command::COMMAND_WHITELIST.each do |command|
-        command_executioner = Gorgon::Command.new([command])
-        command_executioner.should_receive(command).with(no_args).and_return(true)
-        command_executioner.run_command
+      silence_streams($stdout) do
+        Gorgon::Command::COMMAND_WHITELIST.each do |command|
+          command_executioner = Gorgon::Command.new([command])
+          command_executioner.should_receive(command).with(no_args).and_return(true)
+          command_executioner.run_command
+        end
       end
     end
 
@@ -23,13 +28,14 @@ describe Gorgon::Command do
         originator = double('originator')
         originator.should_receive(:originate).with(no_args).and_return(0)
         Originator.should_receive(:new).with(no_args).and_return(originator)
-        begin
-          Gorgon::Command.run(argv)
-        rescue SystemExit => e
-          error_code = e.status
+        silence_streams($stdout) do
+          begin
+            Gorgon::Command.run(argv)
+          rescue SystemExit => e
+            error_code = e.status
+          end
+          error_code.should eq(0)
         end
-
-        error_code.should eq(0)
       end
     end
   end
@@ -53,43 +59,52 @@ describe Gorgon::Command do
       listener = double('listener')
       listener.should_receive(:listen).with(no_args).and_return(true)
       Listener.should_receive(:new).with(no_args).and_return(listener)
-      Gorgon::Command.run(['listen'])
+      silence_streams($stdout) do
+        Gorgon::Command.run(['listen'])
+      end
     end
   end
 
   context 'start rsync' do
     it 'starts rsync for directory' do
-      RsyncDaemon.should_receive(:start).with('/path/to/directory').and_return(true)
-      Gorgon::Command.run(['start_rsync', '/path/to/directory'])
+      silence_streams($stdout) do
+        RsyncDaemon.should_receive(:start).with('/path/to/directory').and_return(true)
+        Gorgon::Command.run(['start_rsync', '/path/to/directory'])
+      end
     end
 
     it 'exits with failure if rsync does not start' do
       RsyncDaemon.should_receive(:start).with(nil).and_return(false)
-      begin
-        Gorgon::Command.run(['start_rsync'])
-      rescue SystemExit => e
-        error_code = e.status
-      end
+      silence_streams($stdout) do
+        begin
+          Gorgon::Command.run(['start_rsync'])
+        rescue SystemExit => e
+          error_code = e.status
+        end
 
-      error_code.should eq(1)
+        error_code.should eq(1)
+      end
     end
   end
 
   context 'stop rsync' do
     it 'stops rsync daemon' do
       RsyncDaemon.should_receive(:stop).with(no_args).and_return(true)
-      Gorgon::Command.run(['stop_rsync'])
+      silence_streams($stdout) do
+        Gorgon::Command.run(['stop_rsync'])
+      end
     end
 
     it 'exits with failure if rsync does not stop' do
       RsyncDaemon.should_receive(:stop).with(no_args).and_return(false)
-      begin
-        Gorgon::Command.run(['stop_rsync'])
-      rescue SystemExit => e
-        error_code = e.status
+      silence_streams($stdout) do
+        begin
+          Gorgon::Command.run(['stop_rsync'])
+        rescue SystemExit => e
+          error_code = e.status
+        end
+        error_code.should eq(1)
       end
-
-      error_code.should eq(1)
     end
   end
 
@@ -100,9 +115,11 @@ describe Gorgon::Command do
       WorkerManager.should_receive(:build).with('/path/to/config').and_return(manager)
       manager.should_receive(:manage).with(no_args).and_return(true)
 
-      begin
-        Gorgon::Command.run(['manage_workers'])
-      rescue SystemExit
+      silence_streams($stdout) do
+        begin
+          Gorgon::Command.run(['manage_workers'])
+        rescue SystemExit
+        end
       end
       ENV.delete('GORGON_CONFIG_PATH')
     end
@@ -114,7 +131,9 @@ describe Gorgon::Command do
       PingService.should_receive(:new).with(no_args).and_return(ping_service)
       ping_service.should_receive(:ping_listeners).with(no_args).and_return(true)
 
-      Gorgon::Command.run(['ping'])
+      silence_streams($stdout) do
+        Gorgon::Command.run(['ping'])
+      end
     end
   end
 
@@ -122,7 +141,9 @@ describe Gorgon::Command do
     it 'creates initial files for provided framework' do
       Settings::InitialFilesCreator.should_receive(:run).with('rails').and_return(true)
 
-      Gorgon::Command.run(['init', 'rails'])
+      silence_streams($stdout) do
+        Gorgon::Command.run(['init', 'rails'])
+      end
     end
   end
 
@@ -130,7 +151,9 @@ describe Gorgon::Command do
     it 'run listener' do
       ListenerInstaller.should_receive(:install).with(no_args).and_return(true)
 
-      Gorgon::Command.run(['install_listener'])
+      silence_streams($stdout) do
+        Gorgon::Command.run(['install_listener'])
+      end
     end
   end
 
@@ -141,7 +164,9 @@ describe Gorgon::Command do
       gem_service.should_receive(:run).with(opts.join(' ')).and_return(true)
       GemService.should_receive(:new).with(no_args).and_return(gem_service)
 
-      Gorgon::Command.run(opts.unshift('gem'))
+      silence_streams($stdout) do
+        Gorgon::Command.run(opts.unshift('gem'))
+      end
     end
   end
 end
