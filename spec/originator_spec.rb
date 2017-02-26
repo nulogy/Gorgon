@@ -1,6 +1,8 @@
 require 'gorgon/originator'
+require File.expand_path("../support/stream_helpers", __FILE__)
 
 describe Originator do
+  include Gorgon::StreamHelpers
   let(:protocol){ double("Originator Protocol", :connect => nil, :publish_files => nil,
     :publish_job_to_all => nil, :publish_job_to_one => nil, :receive_payloads => nil, :cancel_job => nil,
     :disconnect => nil, :receive_new_listener_notifications => nil)}
@@ -41,7 +43,9 @@ describe Originator do
       OriginatorProtocol.should_receive(:new).and_return(protocol)
       protocol.should_receive(:receive_payloads).and_yield(Yajl::Encoder.encode({:type => 'fail'}))
 
-      @originator.publish.should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      silence_streams($stdout) do
+        @originator.publish.should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      end
     end
 
     it "creates a ProgressBarView and show" do
@@ -165,11 +169,15 @@ describe Originator do
     end
 
     it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is exception" do
-      @originator.handle_reply(Yajl::Encoder.encode({:type => 'exception'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      silence_streams($stdout) do
+        @originator.handle_reply(Yajl::Encoder.encode({:type => 'exception'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      end
     end
 
     it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is fail" do
-      @originator.handle_reply(Yajl::Encoder.encode({:type => 'fail'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      silence_streams($stdout) do
+        @originator.handle_reply(Yajl::Encoder.encode({:type => 'fail'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      end
     end
 
     it "calls cleanup_if_job_complete" do
