@@ -1,22 +1,24 @@
-module PipeForker
-  def pipe_fork
-    stdin = Pipe.new(*IO.pipe)
-    pid = fork do
-      stdin.write.close
-      STDIN.reopen(stdin.read)
+module Gorgon
+  module PipeForker
+    def pipe_fork
+      stdin = Pipe.new(*IO.pipe)
+      pid = fork do
+        stdin.write.close
+        STDIN.reopen(stdin.read)
+        stdin.read.close
+
+        yield
+
+        exit
+      end
+
       stdin.read.close
 
-      yield
-
-      exit
+      return pid, stdin.write
     end
 
-    stdin.read.close
+    private
 
-    return pid, stdin.write
+    Pipe = Struct.new(:read, :write)
   end
-
-  private
-
-  Pipe = Struct.new(:read, :write)
 end

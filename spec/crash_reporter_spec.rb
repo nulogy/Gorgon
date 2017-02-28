@@ -1,6 +1,6 @@
 require 'gorgon/crash_reporter'
 
-describe "CrashReporter" do
+describe Gorgon::CrashReporter do
   let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
   let(:info) { {
       :out_file => "stdout_file", :err_file => "stderr_file", :footer_text => "Text"
@@ -8,7 +8,7 @@ describe "CrashReporter" do
 
   let(:container_class) do
     Class.new do
-      extend(CrashReporter)
+      extend(Gorgon::CrashReporter)
     end
   end
 

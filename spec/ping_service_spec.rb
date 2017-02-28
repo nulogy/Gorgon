@@ -1,6 +1,6 @@
 require 'gorgon/ping_service'
 
-describe "PingService" do
+describe Gorgon::PingService do
   describe "#ping_listeners" do
     let(:configuration){ {:connection => {:host => "host"}, :originator_log_file => "file.log"}}
     let(:protocol) { double("OriginatorProtocol", :connect => nil, :ping => nil,
@@ -10,23 +10,23 @@ describe "PingService" do
 
     before do
       $stdout.stub(:write)
-      PingService.any_instance.stub(:load_configuration_from_file).and_return configuration
+      Gorgon::PingService.any_instance.stub(:load_configuration_from_file).and_return configuration
       EventMachine.stub(:run).and_yield
       EM.stub(:add_timer).and_yield
-      OriginatorLogger.stub(:new).and_return logger
+      Gorgon::OriginatorLogger.stub(:new).and_return logger
     end
 
     it "connnects and calls OriginatorProtocol#send_message_to_listeners" do
-      OriginatorProtocol.should_receive(:new).once.ordered.and_return(protocol)
+      Gorgon::OriginatorProtocol.should_receive(:new).once.ordered.and_return(protocol)
       protocol.should_receive(:connect).once.ordered.with({:host => "host"}, anything)
       protocol.should_receive(:send_message_to_listeners).once.ordered
-      PingService.new.ping_listeners
+      Gorgon::PingService.new.ping_listeners
     end
 
     context "after sending ping messages" do
       before do
-        OriginatorProtocol.stub(:new).and_return(protocol)
-        @service = PingService.new
+        Gorgon::OriginatorProtocol.stub(:new).and_return(protocol)
+        @service = Gorgon::PingService.new
       end
 
       it "adds an Event machine timer" do

@@ -1,6 +1,6 @@
 require 'gorgon/source_tree_syncer'
 
-describe SourceTreeSyncer.new(source_tree_path: "") do
+describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
   it { should respond_to :sync }
   it { should respond_to :push }
   it { should respond_to :sys_command }
@@ -15,7 +15,7 @@ describe SourceTreeSyncer.new(source_tree_path: "") do
   let(:status) { double("Process Status", :exitstatus => 0)}
 
   before do
-    @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source")
+    @syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "path/to/source")
     stub_utilities_methods
   end
 
@@ -29,7 +29,7 @@ describe SourceTreeSyncer.new(source_tree_path: "") do
 
     context "invalid source_tree_path" do
       it "gives error if source_tree_path is empty string" do
-        syncer = SourceTreeSyncer.new(source_tree_path: "  ")
+        syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "  ")
         Dir.should_not_receive(:mktmpdir)
         syncer.sync
         syncer.success?.should be_false
@@ -37,7 +37,7 @@ describe SourceTreeSyncer.new(source_tree_path: "") do
       end
 
       it "gives error if source_tree_path is nil" do
-        syncer = SourceTreeSyncer.new nil
+        syncer = Gorgon::SourceTreeSyncer.new nil
         Dir.should_not_receive(:mktmpdir)
         syncer.sync
         syncer.success?.should be_false
@@ -53,7 +53,7 @@ describe SourceTreeSyncer.new(source_tree_path: "") do
       end
 
       it "exclude files when they are specified" do
-        @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source", exclude: ["log", ".git"])
+        @syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "path/to/source", exclude: ["log", ".git"])
         Open4.should_receive(:popen4).with(/--exclude log --exclude .git/)
         @syncer.sync
       end
@@ -98,7 +98,7 @@ describe SourceTreeSyncer.new(source_tree_path: "") do
 
   describe "#remove_temp_dir" do
     before do
-      @syncer = SourceTreeSyncer.new(source_tree_path: "path/to/source")
+      @syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "path/to/source")
       stub_utilities_methods
       @syncer.sync
     end

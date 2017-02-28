@@ -1,6 +1,6 @@
 require 'gorgon/gem_command_handler'
 
-describe GemCommandHandler do
+describe Gorgon::GemCommandHandler do
   let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
   let(:bunny) { double("GorgonBunny", :exchange => exchange, :stop => nil) }
 
@@ -15,7 +15,7 @@ describe GemCommandHandler do
 
   describe "#handle" do
     before do
-      @handler = GemCommandHandler.new bunny
+      @handler = Gorgon::GemCommandHandler.new bunny
       @running_response = {:type => :running_command, :hostname => Socket.gethostname}
       stub_methods
     end

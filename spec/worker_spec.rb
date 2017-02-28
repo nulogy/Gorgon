@@ -11,7 +11,7 @@ class FakeAmqp
   end
 end
 
-describe Worker do
+describe Gorgon::Worker do
   WORKER_ID = 1
   let(:file_queue) { double("Queue") }
   let(:reply_exchange) { double("Exchange", :publish => nil) }
@@ -36,43 +36,43 @@ describe Worker do
     let(:config) { {:connection => "", :log_file => "path/to/log_file"} }
     before do
       stub_streams
-      AmqpService.stub(:new).and_return fake_amqp
-      CallbackHandler.stub(:new).and_return callback_handler
-      Worker.stub(:new)
+      Gorgon::AmqpService.stub(:new).and_return fake_amqp
+      Gorgon::CallbackHandler.stub(:new).and_return callback_handler
+      Gorgon::Worker.stub(:new)
     end
 
     it "redirects output to a file since writing to a pipe may block when pipe is full" do
-      File.should_receive(:open).with(Worker.output_file(1, :out), 'w').and_return(:file1)
+      File.should_receive(:open).with(Gorgon::Worker.output_file(1, :out), 'w').and_return(:file1)
       STDOUT.should_receive(:reopen).with(:file1)
-      File.should_receive(:open).with(Worker.output_file(1, :err), 'w').and_return(:file2)
+      File.should_receive(:open).with(Gorgon::Worker.output_file(1, :err), 'w').and_return(:file2)
       STDERR.should_receive(:reopen).with(:file2)
-      Worker.build 1, config
+      Gorgon::Worker.build 1, config
     end
 
     it "use STDOUT#sync to flush output immediately so if an exception happens, we can grab the last\
 few lines of output and send it to originator. Order matters" do
       STDOUT.should_receive(:reopen).once.ordered
       STDOUT.should_receive(:sync=).with(true).once.ordered
-      Worker.build 1, config
+      Gorgon::Worker.build 1, config
     end
 
     it "use STDERR#sync to flush output immediately so if an exception happens, we can grab the last\
 few lines of output and send it to originator. Order matters" do
       STDERR.should_receive(:reopen).once.ordered
       STDERR.should_receive(:sync=).with(true).once.ordered
-      Worker.build 1, config
+      Gorgon::Worker.build 1, config
     end
 
     it "creates a JobDefinition using a payload written to stdin" do
       STDIN.should_receive(:read).and_return '{ "key": "value" }'
-      JobDefinition.should_receive(:new).with({:key => "value"}).and_return job_definition
-      Worker.build 1, config
+      Gorgon::JobDefinition.should_receive(:new).with({:key => "value"}).and_return job_definition
+      Gorgon::Worker.build 1, config
     end
 
     it "creates a new worker" do
-      JobDefinition.stub(:new).and_return job_definition
-      Worker.should_receive(:new).with(params)
-      Worker.build 1, config
+      Gorgon::JobDefinition.stub(:new).and_return job_definition
+      Gorgon::Worker.should_receive(:new).with(params)
+      Gorgon::Worker.build 1, config
     end
   end
 
@@ -80,8 +80,8 @@ few lines of output and send it to originator. Order matters" do
     before do
       stub_const("MiniTestRunner", :mini_test_runner)
       stub_const("MiniTest", :test)
-      Worker.any_instance.stub(:initialize_logger)
-      @worker = Worker.new params
+      Gorgon::Worker.any_instance.stub(:initialize_logger)
+      @worker = Gorgon::Worker.new params
       @worker.stub(:require_relative)
     end
 
@@ -100,7 +100,7 @@ few lines of output and send it to originator. Order matters" do
       end
       reply_exchange.should_receive(:publish).with(any_args())
 
-      TestRunner.stub(:run_file).and_return({:type => :pass, :time => 0})
+      Gorgon::TestRunner.stub(:run_file).and_return({:type => :pass, :time => 0})
 
       @worker.work
     end
@@ -115,7 +115,7 @@ few lines of output and send it to originator. Order matters" do
         msg[:filename].should == 'testfile1'
       end
 
-      TestRunner.stub(:run_file).and_return({:type => :pass, :time => 0})
+      Gorgon::TestRunner.stub(:run_file).and_return({:type => :pass, :time => 0})
 
       @worker.work
     end
@@ -133,7 +133,7 @@ few lines of output and send it to originator. Order matters" do
         msg[:failures].should == failures
       end
 
-      TestRunner.stub(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
+      Gorgon::TestRunner.stub(:run_file).and_return({:type => :fail, :time => 0, :failures => failures})
 
       @worker.work
     end
@@ -173,7 +173,7 @@ few lines of output and send it to originator. Order matters" do
         stub_const("Test", :test_unit)
 
         @worker.should_receive(:require_relative).with "test_unit_runner"
-        TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
+        Gorgon::TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
 
         @worker.work
       end
@@ -182,7 +182,7 @@ few lines of output and send it to originator. Order matters" do
         file_queue.stub(:pop).and_return("file_spec.rb", nil)
 
         @worker.should_receive(:require_relative).with "rspec_runner"
-        TestRunner.should_receive(:run_file).with("file_spec.rb", RspecRunner).and_return({})
+        Gorgon::TestRunner.should_receive(:run_file).with("file_spec.rb", RspecRunner).and_return({})
 
         @worker.work
       end
@@ -191,7 +191,7 @@ few lines of output and send it to originator. Order matters" do
         MiniTest = Temp
 
         @worker.should_receive(:require_relative).with "mini_test_runner"
-        TestRunner.should_receive(:run_file).with("file_test.rb", MiniTestRunner).and_return({})
+        Gorgon::TestRunner.should_receive(:run_file).with("file_test.rb", MiniTestRunner).and_return({})
         @worker.work
       end
 
@@ -201,7 +201,7 @@ few lines of output and send it to originator. Order matters" do
         stub_const("Test", :test_unit)
 
         @worker.should_receive(:require_relative).with "test_unit_runner"
-        TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
+        Gorgon::TestRunner.should_receive(:run_file).with("file_test.rb", TestUnitRunner).and_return({})
 
         @worker.work
       end
@@ -211,7 +211,7 @@ few lines of output and send it to originator. Order matters" do
         file_queue.stub(:pop).and_return("file.rb", nil)
 
         @worker.should_receive(:require_relative).with "unknown_runner"
-        TestRunner.should_receive(:run_file).with("file.rb", UnknownRunner).and_return({})
+        Gorgon::TestRunner.should_receive(:run_file).with("file.rb", UnknownRunner).and_return({})
 
         @worker.work
       end

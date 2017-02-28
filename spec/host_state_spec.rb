@@ -1,13 +1,13 @@
 require 'gorgon/host_state'
 
-describe HostState do
+describe Gorgon::HostState do
   it { should respond_to(:file_started).with(2).arguments }
   it { should respond_to(:file_finished).with(2).arguments }
   it { should respond_to(:each_running_file).with(0).argument }
   it { should respond_to(:total_running_workers).with(0).argument }
 
   before do
-    @host_state = HostState.new
+    @host_state = Gorgon::HostState.new
   end
 
   describe "#total_workers_running" do

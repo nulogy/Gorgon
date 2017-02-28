@@ -1,6 +1,6 @@
 require 'gorgon/originator_protocol'
 
-describe OriginatorProtocol do
+describe Gorgon::OriginatorProtocol do
   let(:connection) { double("Connection", :disconnect => nil, :on_closed => nil)}
   let(:queue) { double("Queue", :bind => nil, :subscribe => nil, :name => "queue", :purge => nil,
                      :delete => nil) }
@@ -12,7 +12,7 @@ describe OriginatorProtocol do
   before do
     AMQP.stub(:connect).and_return connection
     AMQP::Channel.stub(:new).and_return channel
-    @originator_p = OriginatorProtocol.new logger
+    @originator_p = Gorgon::OriginatorProtocol.new logger
     @conn_information = {:host => "host"}
   end
 
@@ -72,20 +72,20 @@ describe OriginatorProtocol do
 
     it "adds queue's names to job_definition and fanout using 'gorgon.jobs' exchange" do
       channel.should_receive(:fanout).with("gorgon.jobs")
-      expected_job_definition = JobDefinition.new
+      expected_job_definition = Gorgon::JobDefinition.new
       expected_job_definition.file_queue_name = "queue"
       expected_job_definition.reply_exchange_name = "exchange"
 
       exchange.should_receive(:publish).with(expected_job_definition.to_json)
-      @originator_p.publish_job_to_all JobDefinition.new
+      @originator_p.publish_job_to_all Gorgon::JobDefinition.new
     end
 
     it "uses cluster_id in job_queue_name, when it is specified" do
-      originator_p = connect_and_publish_files(OriginatorProtocol.new(logger, "cluster1"))
+      originator_p = connect_and_publish_files(Gorgon::OriginatorProtocol.new(logger, "cluster1"))
 
       channel.should_receive(:fanout).with("gorgon.jobs.cluster1")
 
-      originator_p.publish_job_to_all JobDefinition.new
+      originator_p.publish_job_to_all Gorgon::JobDefinition.new
     end
   end
 
@@ -96,13 +96,13 @@ describe OriginatorProtocol do
 
     it "publishes the job to the specified listener queue" do
       expected_listener_queue_name = "abcd1234"
-      expected_job_definition = JobDefinition.new
+      expected_job_definition = Gorgon::JobDefinition.new
       expected_job_definition.file_queue_name = "queue"
       expected_job_definition.reply_exchange_name = "exchange"
 
       exchange.should_receive(:publish).with(expected_job_definition.to_json, {:routing_key => expected_listener_queue_name})
 
-      @originator_p.publish_job_to_one(JobDefinition.new, expected_listener_queue_name)
+      @originator_p.publish_job_to_one(Gorgon::JobDefinition.new, expected_listener_queue_name)
     end
   end
 

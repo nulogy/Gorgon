@@ -1,7 +1,7 @@
 require 'gorgon/originator'
 require File.expand_path("../support/stream_helpers", __FILE__)
 
-describe Originator do
+describe Gorgon::Originator do
   include Gorgon::StreamHelpers
   let(:protocol){ double("Originator Protocol", :connect => nil, :publish_files => nil,
     :publish_job_to_all => nil, :publish_job_to_one => nil, :receive_payloads => nil, :cancel_job => nil,
@@ -14,13 +14,13 @@ describe Originator do
   let(:originator_logger){ double("Originator Logger", :log => nil, :log_message => nil)}
   let(:source_tree_syncer) { double("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
     :sys_command => 'command')}
-  let(:job_definition){ JobDefinition.new }
+  let(:job_definition){ Gorgon::JobDefinition.new }
 
   before do
-    OriginatorLogger.stub(:new).and_return originator_logger
-    SourceTreeSyncer.stub(:new).and_return source_tree_syncer
+    Gorgon::OriginatorLogger.stub(:new).and_return originator_logger
+    Gorgon::SourceTreeSyncer.stub(:new).and_return source_tree_syncer
     Dir.stub(:[]).and_return(["file"])
-    @originator = Originator.new
+    @originator = Gorgon::Originator.new
   end
 
   describe "#publish" do
@@ -30,27 +30,27 @@ describe Originator do
 
     it "creates a JobState instance and passes total files" do
       @originator.stub(:files).and_return ["a file", "other file"]
-      JobState.should_receive(:new).with(2).and_return job_state
+      Gorgon::JobState.should_receive(:new).with(2).and_return job_state
 
       @originator.publish
     end
 
     it "propagates the success result of handle_reply" do
-      @originator.publish.should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+      @originator.publish.should eq Gorgon::Originator::SPEC_SUCCESS_EXIT_STATUS
     end
 
     it "propagates the error result of handle_reply" do
-      OriginatorProtocol.should_receive(:new).and_return(protocol)
+      Gorgon::OriginatorProtocol.should_receive(:new).and_return(protocol)
       protocol.should_receive(:receive_payloads).and_yield(Yajl::Encoder.encode({:type => 'fail'}))
 
       silence_streams($stdout) do
-        @originator.publish.should eq Originator::SPEC_FAILURE_EXIT_STATUS
+        @originator.publish.should eq Gorgon::Originator::SPEC_FAILURE_EXIT_STATUS
       end
     end
 
     it "creates a ProgressBarView and show" do
-      JobState.stub(:new).and_return job_state
-      ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
+      Gorgon::JobState.stub(:new).and_return job_state
+      Gorgon::ProgressBarView.should_receive(:new).with(job_state).and_return progress_bar_view
       progress_bar_view.should_receive(:show)
       @originator.publish
     end
@@ -66,26 +66,26 @@ describe Originator do
       Dir.stub(:[] => [])
 
       $stderr.should_receive(:puts)
-      OriginatorProtocol.should_not_receive(:new)
+      Gorgon::OriginatorProtocol.should_not_receive(:new)
       source_tree_syncer.should_not_receive(:push)
 
       expect { @originator.publish }.to raise_error(SystemExit)
     end
 
     it "calls before_originate callback" do
-      CallbackHandler.any_instance.should_receive(:before_originate)
+      Gorgon::CallbackHandler.any_instance.should_receive(:before_originate)
       @originator.publish
     end
 
     it "uses results of before_originate callback to build a job_queue_name" do
-      CallbackHandler.any_instance.stub(:before_originate).and_return('job_1')
-      OriginatorProtocol.should_receive(:new).with(anything, 'job_1')
+      Gorgon::CallbackHandler.any_instance.stub(:before_originate).and_return('job_1')
+      Gorgon::OriginatorProtocol.should_receive(:new).with(anything, 'job_1')
 
       @originator.publish
     end
 
     it "calls after_job_finishes callback" do
-      CallbackHandler.any_instance.should_receive(:after_job_finishes)
+      Gorgon::CallbackHandler.any_instance.should_receive(:after_job_finishes)
 
       @originator.publish
     end
@@ -99,7 +99,7 @@ describe Originator do
     it "exits with a non-zero status code when the originator crashes" do
       originator_logger.stub(:log_error)
       $stderr = StringIO.new # slurp up the error output so we don't pollute the rspec run
-      CallbackHandler.any_instance.should_receive(:before_originate).and_throw("I'm an unhandled exception")
+      Gorgon::CallbackHandler.any_instance.should_receive(:before_originate).and_throw("I'm an unhandled exception")
 
       expect { @originator.originate }.to raise_error(SystemExit) do |error|
         error.success?.should be_false
@@ -115,9 +115,9 @@ describe Originator do
 
     it 'tells ShutdownManager to cancel_job' do
       shutdown_manager = double('ShutdownManager')
-      JobState.stub(:new).and_return job_state
+      Gorgon::JobState.stub(:new).and_return job_state
 
-      ShutdownManager.should_receive(:new).
+      Gorgon::ShutdownManager.should_receive(:new).
           with(hash_including(protocol: protocol, job_state: job_state)).
           and_return(shutdown_manager)
       shutdown_manager.should_receive(:cancel_job)
@@ -130,7 +130,7 @@ describe Originator do
   describe "#cleanup_if_job_complete" do
     before do
       stub_methods
-      JobState.stub(:new).and_return job_state
+      Gorgon::JobState.stub(:new).and_return job_state
       @originator.publish
     end
 
@@ -149,34 +149,34 @@ describe Originator do
   describe "#handle_reply" do
     before do
       stub_methods
-      JobState.stub(:new).and_return job_state
+      Gorgon::JobState.stub(:new).and_return job_state
       @originator.publish
     end
 
     it "returns SPEC_SUCCESS_EXIT_STATUS when payload[:action] is start" do
       job_state.stub(:file_started)
-      @originator.handle_reply(start_payload).should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+      @originator.handle_reply(start_payload).should eq Gorgon::Originator::SPEC_SUCCESS_EXIT_STATUS
     end
 
     it "returns SPEC_SUCCESS_EXIT_STATUS when payload[:action] is finish" do
       job_state.stub(:file_finished)
-      @originator.handle_reply(finish_payload).should eq Originator::SPEC_SUCCESS_EXIT_STATUS
+      @originator.handle_reply(finish_payload).should eq Gorgon::Originator::SPEC_SUCCESS_EXIT_STATUS
     end
 
     it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is crash" do
       job_state.stub(:gorgon_crash_message)
-      @originator.handle_reply(Yajl::Encoder.encode(gorgon_crash_message)).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+      @originator.handle_reply(Yajl::Encoder.encode(gorgon_crash_message)).should eq Gorgon::Originator::SPEC_FAILURE_EXIT_STATUS
     end
 
     it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is exception" do
       silence_streams($stdout) do
-        @originator.handle_reply(Yajl::Encoder.encode({:type => 'exception'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+        @originator.handle_reply(Yajl::Encoder.encode({:type => 'exception'})).should eq Gorgon::Originator::SPEC_FAILURE_EXIT_STATUS
       end
     end
 
     it "returns SPEC_FAILURE_EXIT_STATUS when payload[:action] is fail" do
       silence_streams($stdout) do
-        @originator.handle_reply(Yajl::Encoder.encode({:type => 'fail'})).should eq Originator::SPEC_FAILURE_EXIT_STATUS
+        @originator.handle_reply(Yajl::Encoder.encode({:type => 'fail'})).should eq Gorgon::Originator::SPEC_FAILURE_EXIT_STATUS
       end
     end
 
@@ -219,8 +219,8 @@ describe Originator do
   describe "#job_definition" do
     it "returns a JobDefinition object" do
       @originator.stub(:configuration).and_return configuration
-      job_definition = JobDefinition.new
-      JobDefinition.should_receive(:new).and_return job_definition
+      job_definition = Gorgon::JobDefinition.new
+      Gorgon::JobDefinition.should_receive(:new).and_return job_definition
       @originator.job_definition.should equal job_definition
     end
 
@@ -248,8 +248,8 @@ describe Originator do
 
   def stub_methods
     EventMachine.stub(:run).and_yield
-    ProgressBarView.stub(:new).and_return progress_bar_view
-    OriginatorProtocol.stub(:new).and_return protocol
+    Gorgon::ProgressBarView.stub(:new).and_return progress_bar_view
+    Gorgon::OriginatorProtocol.stub(:new).and_return protocol
     @originator.stub(:configuration).and_return configuration
     @originator.stub(:connection_information).and_return 'host'
     @originator.stub(:job_definition).and_return job_definition
