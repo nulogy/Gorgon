@@ -22,6 +22,7 @@ Gotchas
 
 Also note that the steps in the tutorial are **not** meant to work on every project, they will only give you initial settings. You will probably have to modify the following files:
 * gorgon.json
+* gorgon_secret.json
 * {test, spec}/gorgon_callbacks/gorgon_callbacks.rb
 * gorgon_listener.json (located in your project root or in ~/.gorgon/)
 
@@ -42,6 +43,11 @@ This file contains project-specific settings for gorgon, such as:
 * The file used for Originator's logs
 
 See [gorgon.json example](/gorgon.json.sample) for an example file.
+
+### gorgon_secret.json (optional)
+This optional file contains sensitive information such as passwords that cannot be put in gorgon.json.
+
+See [gorgon_secret.json example](/gorgon_secret.json.sample) for an example file.
 
 ### gorgon_listener.json
 This file contains the listener-specific settings, such as:
