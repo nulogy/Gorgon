@@ -1,6 +1,6 @@
 require 'gorgon/failures_printer'
 
-describe FailuresPrinter do
+describe Gorgon::FailuresPrinter do
   let(:job_state) { double("Job State", :add_observer => nil,
                          :is_job_complete? => true, :is_job_cancelled? => false,
                          :each_failed_test => nil,
@@ -8,7 +8,7 @@ describe FailuresPrinter do
   let(:fd) {double("File descriptor", :write => nil)}
 
   subject do
-    FailuresPrinter.new({}, job_state)
+    Gorgon::FailuresPrinter.new({}, job_state)
   end
 
   it { should respond_to :update }
@@ -16,13 +16,13 @@ describe FailuresPrinter do
   describe "#initialize" do
     it "add its self to observers of job_state" do
       job_state.should_receive(:add_observer)
-      FailuresPrinter.new({}, job_state)
+      Gorgon::FailuresPrinter.new({}, job_state)
     end
   end
 
   describe "#update" do
     before do
-      @printer = FailuresPrinter.new({}, job_state)
+      @printer = Gorgon::FailuresPrinter.new({}, job_state)
     end
 
     context "job is not completed nor cancelled" do
@@ -36,13 +36,13 @@ describe FailuresPrinter do
     context "job is completed" do
       it "outputs failed tests return by job_state#each_failed_test" do
         job_state.stub(:each_failed_test).and_yield({:filename => "file1.rb"}).and_yield({:filename => "file2.rb"})
-        File.should_receive(:open).with(FailuresPrinter::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
+        File.should_receive(:open).with(Gorgon::FailuresPrinter::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
         fd.should_receive(:write).with(Yajl::Encoder.encode(["file1.rb", "file2.rb"]))
         @printer.update({})
       end
 
       it "outputs failed tests to 'failed_files' in configuration" do
-        printer = FailuresPrinter.new({failed_files: 'a-file-somewhere.json'}, job_state)
+        printer = Gorgon::FailuresPrinter.new({failed_files: 'a-file-somewhere.json'}, job_state)
         File.should_receive(:open).with('a-file-somewhere.json', 'w+')
         printer.update({})
       end
@@ -56,7 +56,7 @@ describe FailuresPrinter do
 
       it "outputs failed tests return by job_state#each_failed_test" do
         job_state.stub(:each_failed_test).and_yield({:filename => "file1.rb"}).and_yield({:filename => "file2.rb"})
-        File.should_receive(:open).with(FailuresPrinter::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
+        File.should_receive(:open).with(Gorgon::FailuresPrinter::DEFAULT_OUTPUT_FILE, 'w+').and_yield fd
         fd.should_receive(:write).once.with(Yajl::Encoder.encode(["file1.rb", "file2.rb"]))
         @printer.update({})
       end

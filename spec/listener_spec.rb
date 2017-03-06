@@ -1,6 +1,6 @@
 require 'gorgon/listener'
 
-describe Listener do
+describe Gorgon::Listener do
   let(:connection_information) { double }
   let(:queue) { double("GorgonBunny Queue", :bind => nil, :name => "some supposedly unique string") }
   let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
@@ -10,36 +10,36 @@ describe Listener do
   before do
     Logger.stub(:new).and_return(logger)
     GorgonBunny.stub(:new).and_return(bunny)
-    Listener.any_instance.stub(:configuration => {})
-    Listener.any_instance.stub(:connection_information => connection_information)
+    Gorgon::Listener.any_instance.stub(:configuration => {})
+    Gorgon::Listener.any_instance.stub(:connection_information => connection_information)
   end
 
   describe "logging to a file" do
     context "passing a log file path in the configuration" do
       before do
-        Listener.any_instance.stub(:configuration).and_return({:log_file => 'listener.log'})
+        Gorgon::Listener.any_instance.stub(:configuration).and_return({:log_file => 'listener.log'})
       end
 
       it "should use 'log_file' from the configuration as the log file" do
         Logger.should_receive(:new).with('listener.log', anything, anything)
-        Listener.new
+        Gorgon::Listener.new
       end
 
       it "should log to 'log_file'" do
         logger.should_receive(:info).with(/Listener.*initializing/)
 
-        Listener.new
+        Gorgon::Listener.new
       end
     end
 
     context "passing a literal '-'' as the path in the configuration" do
       before do
-        Listener.any_instance.stub(:configuration).and_return({:log_file => "-"})
+        Gorgon::Listener.any_instance.stub(:configuration).and_return({:log_file => "-"})
       end
 
       it "logs to stdout" do
         Logger.should_receive(:new).with($stdout)
-        Listener.new
+        Gorgon::Listener.new
       end
     end
 
@@ -48,13 +48,13 @@ describe Listener do
         Logger.should_not_receive(:new)
         logger.should_not_receive(:info)
 
-        Listener.new
+        Gorgon::Listener.new
       end
     end
   end
 
   context "initialized" do
-    let(:listener) { Listener.new }
+    let(:listener) { Gorgon::Listener.new }
 
     describe "#connect" do
       it "connects" do
@@ -74,7 +74,7 @@ describe Listener do
       end
 
       it "builds job_exchange_name using cluster_id from configuration" do
-        Listener.any_instance.stub(:configuration).and_return(:cluster_id => 'cluster5')
+        Gorgon::Listener.any_instance.stub(:configuration).and_return(:cluster_id => 'cluster5')
         bunny.should_receive(:exchange).with('gorgon.jobs.cluster5', anything).and_return(exchange)
         listener.initialize_personal_job_queue
       end
@@ -170,7 +170,7 @@ describe Listener do
         end
 
         it "calls GemCommandHandler#handle and pass payload" do
-          GemCommandHandler.should_receive(:new).with(bunny).and_return gem_command_handler
+          Gorgon::GemCommandHandler.should_receive(:new).with(bunny).and_return gem_command_handler
           gem_command_handler.should_receive(:handle).with payload, configuration
           listener.poll
         end
@@ -193,11 +193,11 @@ describe Listener do
 
       before do
         stub_classes
-        @listener = Listener.new
+        @listener = Gorgon::Listener.new
       end
 
       it "copy source tree" do
-        SourceTreeSyncer.should_receive(:new).once.
+        Gorgon::SourceTreeSyncer.should_receive(:new).once.
           with(source_tree_path: "path/to/source", exclude: ["log"]).
           and_return(syncer)
         syncer.should_receive(:sync)
@@ -230,9 +230,9 @@ describe Listener do
 
         it "report_crash with pid, exitstatus, stdout and stderr outputs" do
           @listener.should_receive(:report_crash).with(exchange,
-                                                       :out_file => WorkerManager::STDOUT_FILE,
-                                                       :err_file => WorkerManager::STDERR_FILE,
-                                                       :footer_text => Listener::ERROR_FOOTER_TEXT)
+                                                       :out_file => Gorgon::WorkerManager::STDOUT_FILE,
+                                                       :err_file => Gorgon::WorkerManager::STDERR_FILE,
+                                                       :footer_text => Gorgon::Listener::ERROR_FOOTER_TEXT)
           @listener.run_job(payload)
         end
       end
@@ -243,7 +243,7 @@ describe Listener do
       end
 
       it "creates a CallbackHandler object using callbacks passed in payload" do
-        CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
+        Gorgon::CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
         @listener.run_job(payload)
       end
 
@@ -256,8 +256,8 @@ describe Listener do
     private
 
     def stub_classes
-      SourceTreeSyncer.stub(:new).and_return syncer
-      CallbackHandler.stub(:new).and_return callback_handler
+      Gorgon::SourceTreeSyncer.stub(:new).and_return syncer
+      Gorgon::CallbackHandler.stub(:new).and_return callback_handler
       Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
       Process.stub(:waitpid2).and_return([0, process_status])
       Socket.stub(:gethostname).and_return("hostname")

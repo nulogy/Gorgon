@@ -1,7 +1,7 @@
 require 'gorgon/runtime_file_reader'
 require 'yajl'
 
-describe RuntimeFileReader do
+describe Gorgon::RuntimeFileReader do
 
   let(:old_files){ ["old_a.rb", "old_b.rb", "old_c.rb", "old_d.rb"] }
 
@@ -10,14 +10,14 @@ describe RuntimeFileReader do
 
     it "should read runtime_file" do
       File.stub(:file?).and_return(true)
-      runtime_file_reader = RuntimeFileReader.new(configuration)
+      runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
       File.should_receive(:open).with(configuration[:runtime_file], 'r')
       runtime_file_reader.old_files
     end
 
     it "should return empty array if runtime_file is invalid" do
       File.should_receive(:file?).and_return(false)
-      runtime_file_reader = RuntimeFileReader.new(configuration)
+      runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
       File.should_not_receive(:open)
       runtime_file_reader.old_files
     end
@@ -28,7 +28,7 @@ describe RuntimeFileReader do
     let(:configuration){ {runtime_file: "runtime_file.json"} }
 
     before do
-      @runtime_file_reader = RuntimeFileReader.new(configuration)
+      @runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
       @runtime_file_reader.stub(:old_files).and_return old_files
     end
 
@@ -52,7 +52,7 @@ describe RuntimeFileReader do
     let(:configuration){ {files: ["glob_1", "glob_2", "glob_3"]} }
 
     before do
-      @runtime_file_reader = RuntimeFileReader.new(configuration)
+      @runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
       @runtime_file_reader.stub(:old_files).and_return old_files
     end
 

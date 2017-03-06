@@ -5,63 +5,65 @@ require 'gorgon/colors'
 
 require 'colorize'
 
-class PingService
-  include Configuration
+module Gorgon
+  class PingService
+    include Configuration
 
-  TIMEOUT=4
+    TIMEOUT=4
 
-  def initialize
-    @configuration = load_configuration_from_file("gorgon.json")
-    @logger = OriginatorLogger.new @configuration[:originator_log_file]
-    @protocol = OriginatorProtocol.new @logger
-    @listeners = []
-  end
+    def initialize
+      @configuration = load_configuration_from_file("gorgon.json")
+      @logger = OriginatorLogger.new @configuration[:originator_log_file]
+      @protocol = OriginatorProtocol.new @logger
+      @listeners = []
+    end
 
-  def ping_listeners
-    Signal.trap("INT") { disconnect }
-    Signal.trap("TERM") { disconnect }
+    def ping_listeners
+      Signal.trap("INT") { disconnect }
+      Signal.trap("TERM") { disconnect }
 
-    EventMachine.run do
-      @logger.log "Connecting..."
-      @protocol.connect @configuration[:connection],  :on_closed => proc {EM.stop}
+      EventMachine.run do
+        @logger.log "Connecting..."
+        @protocol.connect @configuration[:connection],  :on_closed => proc {EM.stop}
 
-      @logger.log "Pinging Listeners..."
-      @protocol.send_message_to_listeners :ping
+        @logger.log "Pinging Listeners..."
+        @protocol.send_message_to_listeners :ping
 
-      EM.add_timer(TIMEOUT) { disconnect }
+        EM.add_timer(TIMEOUT) { disconnect }
 
-      @protocol.receive_payloads do |payload|
-        @logger.log "Received #{payload}"
+        @protocol.receive_payloads do |payload|
+          @logger.log "Received #{payload}"
 
-        handle_reply(Yajl::Parser.new(:symbolize_keys => true).parse(payload))
+          handle_reply(Yajl::Parser.new(:symbolize_keys => true).parse(payload))
+        end
       end
     end
-  end
 
-  private
+    private
 
-  def disconnect
-    @protocol.disconnect
-    print_summary
-  end
-
-  def handle_reply payload
-    if payload[:type] != "ping_response"
-      puts "Unexpected message received: #{payload}"
-      return
+    def disconnect
+      @protocol.disconnect
+      print_summary
     end
 
-    @listeners << payload
-    hostname = payload[:hostname].colorize(Colors::HOST)
-    puts "#{hostname} is running Listener version #{payload[:version]} and uses #{payload[:worker_slots]} workers"
-  end
+    def handle_reply payload
+      if payload[:type] != "ping_response"
+        puts "Unexpected message received: #{payload}"
+        return
+      end
 
-  def print_summary
-    worker_slots = @listeners.inject(0) { |sum, l| sum + l[:worker_slots] }
-    puts "\n#{@listeners.size} host(s) responded using a total of #{worker_slots} worker(s)."
-  end
+      @listeners << payload
+      hostname = payload[:hostname].colorize(Colors::HOST)
+      puts "#{hostname} is running Listener version #{payload[:version]} and uses #{payload[:worker_slots]} workers"
+    end
 
-  def on_disconnect
-    EventMachine.stop
+    def print_summary
+      worker_slots = @listeners.inject(0) { |sum, l| sum + l[:worker_slots] }
+      puts "\n#{@listeners.size} host(s) responded using a total of #{worker_slots} worker(s)."
+    end
+
+    def on_disconnect
+      EventMachine.stop
+    end
   end
 end

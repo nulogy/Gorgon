@@ -1,12 +1,12 @@
 require 'gorgon/pipe_forker'
 
-describe PipeForker do
+describe Gorgon::PipeForker do
   let(:io_pipe) { double("IO object", :close => nil)}
   let(:pipe) {double("Pipe", :write => io_pipe)}
 
   let(:container_class) do
     Class.new do
-      extend(PipeForker)
+      extend(Gorgon::PipeForker)
     end
   end
 

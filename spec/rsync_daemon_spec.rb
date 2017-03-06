@@ -1,6 +1,6 @@
 require 'gorgon/rsync_daemon'
 
-describe RsyncDaemon do
+describe Gorgon::RsyncDaemon do
   let(:directory) {'/lol/hax'}
 
   before(:each) do
@@ -10,7 +10,7 @@ describe RsyncDaemon do
     File.stub(:write => 100, :read => "12345", :directory? => true)
     FileUtils.stub(:remove_entry_secure => nil)
     TCPServer.stub(:new => double('TCPServer', :close => nil))
-    @r = RsyncDaemon
+    @r = Gorgon::RsyncDaemon
   end
 
   it "starts the rsync daemon" do
@@ -20,8 +20,8 @@ describe RsyncDaemon do
   end
 
   it "creates a directory in temporary dir for the configuration and pid files" do
-    Dir.should_receive(:mkdir).with(RsyncDaemon::RSYNC_DIR_NAME)
-    Dir.should_receive(:chdir).with(RsyncDaemon::RSYNC_DIR_NAME)
+    Dir.should_receive(:mkdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
+    Dir.should_receive(:chdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
 
     @r.start(directory)
   end

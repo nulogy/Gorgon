@@ -1,40 +1,41 @@
 require 'gorgon/settings/files_content'
 
-module Settings
-  class RailsProjectFilesContent < FilesContent
-    def initialize
-      super
-      @amqp_host = FilesContent.get_amqp_host
-      @file_server_host = FilesContent.get_file_server_host
-      @sync_exclude = [".git", ".rvmrc","doc","log","tmp"]
-      @originator_log_file = 'log/gorgon-originator.log'
-      @failed_files = 'gorgon-failed-files.json'
-      create_callbacks
-    end
-
-    private
-
-    def create_callbacks
-      @callbacks = {
-        file_name: "#{get_app_subdir}/gorgon_callbacks/gorgon_callbacks.rb",
-        file_content: callback_file_content
-      }
-    end
-
-    def get_app_subdir
-      if Dir.exist? "test"
-        "test"
-      elsif Dir.exist? "spec"
-        "spec"
-      elsif Dir.exist? "lib"
-        "lib"
-      else
-        ""
+module Gorgon
+  module Settings
+    class RailsProjectFilesContent < FilesContent
+      def initialize
+        super
+        @amqp_host = FilesContent.get_amqp_host
+        @file_server_host = FilesContent.get_file_server_host
+        @sync_exclude = [".git", ".rvmrc","doc","log","tmp"]
+        @originator_log_file = 'log/gorgon-originator.log'
+        @failed_files = 'gorgon-failed-files.json'
+        create_callbacks
       end
-    end
 
-    def callback_file_content
-      <<-'CONTENT'
+      private
+
+      def create_callbacks
+        @callbacks = {
+          file_name: "#{get_app_subdir}/gorgon_callbacks/gorgon_callbacks.rb",
+          file_content: callback_file_content
+        }
+      end
+
+      def get_app_subdir
+        if Dir.exist? "test"
+          "test"
+        elsif Dir.exist? "spec"
+          "spec"
+        elsif Dir.exist? "lib"
+          "lib"
+        else
+          ""
+        end
+      end
+
+      def callback_file_content
+        <<-'CONTENT'
 class GorgonCallbacks < Gorgon::DefaultCallbacks
   BUNDLE_LOG_FILE||="/tmp/gorgon-bundle-install.log "
   def after_sync
@@ -98,7 +99,8 @@ class GorgonCallbacks < Gorgon::DefaultCallbacks
 end
 
 Gorgon.callbacks = GorgonCallbacks.new
-CONTENT
+        CONTENT
+      end
     end
   end
 end

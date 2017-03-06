@@ -1,6 +1,6 @@
 require 'gorgon/job_state'
 
-describe JobState do
+describe Gorgon::JobState do
   let(:payload) {
     {:hostname => "host-name", :worker_id => "worker1", :filename => "path/file.rb",
       :type => "pass", :failures => []}
@@ -8,7 +8,7 @@ describe JobState do
 
   let (:host_state){ double("Host State", :file_started => nil, :file_finished => nil)}
 
-  subject { JobState.new 5 }
+  subject { Gorgon::JobState.new 5 }
   it { should respond_to :failed_files_count }
   it { should respond_to :finished_files_count }
   it { should respond_to(:file_started).with(1).argument }
@@ -23,7 +23,7 @@ describe JobState do
   it { should respond_to :is_job_cancelled? }
 
   before do
-    @job_state = JobState.new 5
+    @job_state = Gorgon::JobState.new 5
   end
 
   describe "#initialize" do
@@ -57,19 +57,19 @@ describe JobState do
     end
 
     it "creates a new HostState object if this is the first file started by 'hostname'" do
-      HostState.should_receive(:new).and_return host_state
+      Gorgon::HostState.should_receive(:new).and_return host_state
       @job_state.file_started(payload)
     end
 
     it "doesn't create a new HostState object if this is not the first file started by 'hostname'" do
-      HostState.stub(:new).and_return host_state
+      Gorgon::HostState.stub(:new).and_return host_state
       @job_state.file_started(payload)
-      HostState.should_not_receive(:new)
+      Gorgon::HostState.should_not_receive(:new)
       @job_state.file_started(payload)
     end
 
     it "calls #file_started on HostState object representing 'hostname'" do
-      HostState.stub(:new).and_return host_state
+      Gorgon::HostState.stub(:new).and_return host_state
       host_state.should_receive(:file_started).with("worker_id", "file_name")
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
@@ -85,7 +85,7 @@ describe JobState do
 
   describe "#file_finished" do
     before do
-      HostState.stub(:new).and_return host_state
+      Gorgon::HostState.stub(:new).and_return host_state
       @job_state.file_started payload
     end
 
@@ -124,7 +124,7 @@ describe JobState do
     end
 
     it "tells to the proper HostState object that a file finished in that host" do
-      HostState.stub(:new).and_return host_state
+      Gorgon::HostState.stub(:new).and_return host_state
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
                                 :filename => "file_name"})

@@ -1,11 +1,11 @@
 require 'gorgon/originator_logger'
 
-describe OriginatorLogger do
+describe Gorgon::OriginatorLogger do
   before do
-    OriginatorLogger.any_instance.stub(:initialize_logger)
+    Gorgon::OriginatorLogger.any_instance.stub(:initialize_logger)
   end
 
-  let (:originator_logger) { OriginatorLogger.new "" }
+  let (:originator_logger) { Gorgon::OriginatorLogger.new "" }
 
   describe "#log_message" do
     it "prints start messages" do

@@ -1,6 +1,6 @@
 require 'gorgon/gem_service'
 
-describe GemService do
+describe Gorgon::GemService do
   let(:configuration){ {:connection => {:host => "host"}, :originator_log_file => "file.log"}}
   let(:protocol) { double("OriginatorProtocol", :connect => nil,
                         :receive_payloads => nil, :disconnect => nil,
@@ -9,12 +9,12 @@ describe GemService do
 
   before do
     $stdout.stub(:write)
-    GemService.any_instance.stub(:load_configuration_from_file).and_return configuration
+    Gorgon::GemService.any_instance.stub(:load_configuration_from_file).and_return configuration
     EM.stub(:run).and_yield
     EM.stub(:add_periodic_timer).and_yield
-    OriginatorLogger.stub(:new).and_return logger
-    OriginatorProtocol.stub(:new).and_return(protocol)
-    @service = GemService.new
+    Gorgon::OriginatorLogger.stub(:new).and_return logger
+    Gorgon::OriginatorProtocol.stub(:new).and_return(protocol)
+    @service = Gorgon::GemService.new
     @command = "install"
   end
 
@@ -31,7 +31,7 @@ describe GemService do
     end
 
     it "adds a periodic timer that checks if there is any listener running command" do
-      EM.should_receive(:add_periodic_timer).with(GemService::TIMEOUT)
+      EM.should_receive(:add_periodic_timer).with(Gorgon::GemService::TIMEOUT)
       @service.run @command
     end
 

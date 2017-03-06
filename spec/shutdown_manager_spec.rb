@@ -1,6 +1,6 @@
 require 'gorgon/shutdown_manager'
 
-describe ShutdownManager do
+describe Gorgon::ShutdownManager do
   let(:protocol){ double("Originator Protocol", :cancel_job => nil, :disconnect => nil)}
 
   let(:job_state){ double("JobState", cancel: nil)}
@@ -35,6 +35,6 @@ describe ShutdownManager do
         protocol: protocol,
         job_state: job_state
     }
-    ShutdownManager.new(defaults.merge(args))
+    Gorgon::ShutdownManager.new(defaults.merge(args))
   end
 end
