@@ -12,7 +12,7 @@ module Gorgon
     TIMEOUT=4
 
     def initialize
-      @configuration = load_configuration_from_file("gorgon.json")
+      @configuration = load_configuration_from_file("gorgon.json", merge: "gorgon_secret.json")
       @logger = OriginatorLogger.new @configuration[:originator_log_file]
       @protocol = OriginatorProtocol.new @logger
       @listeners = []

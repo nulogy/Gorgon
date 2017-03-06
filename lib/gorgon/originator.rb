@@ -228,7 +228,8 @@ module Gorgon
     end
 
     def configuration
-      @configuration ||= load_configuration_from_file("gorgon.json")
+      @configuration ||= load_configuration_from_file("gorgon.json", merge: "gorgon_secret.json")
     end
   end
 end
+
