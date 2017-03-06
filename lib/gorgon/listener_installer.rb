@@ -15,7 +15,7 @@ module Gorgon
     end
 
     def install
-      @configuration = load_configuration_from_file("gorgon.json")
+      @configuration = load_configuration_from_file("gorgon.json", merge: "gorgon_secret.json")
 
       FileUtils.mkdir_p gorgon_dir_path
       Dir.chdir gorgon_dir_path
