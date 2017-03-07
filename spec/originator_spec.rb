@@ -12,13 +12,14 @@ describe Gorgon::Originator do
     :add_observer => nil)}
   let(:progress_bar_view){ double("Progress Bar View", :show => nil)}
   let(:originator_logger){ double("Originator Logger", :log => nil, :log_message => nil)}
-  let(:source_tree_syncer) { double("Source Tree Syncer", :push => nil, :exclude= => nil, :success? => true,
-    :sys_command => 'command')}
+  let(:source_tree_syncer) { double("Source Tree Syncer")}
+  let(:sync_execution_context) { double("Sync Execution Context", success: true, command: "command")}
   let(:job_definition){ Gorgon::JobDefinition.new }
 
   before do
     Gorgon::OriginatorLogger.stub(:new).and_return originator_logger
     Gorgon::SourceTreeSyncer.stub(:new).and_return source_tree_syncer
+    source_tree_syncer.stub(:push).and_return(sync_execution_context)
     Dir.stub(:[]).and_return(["file"])
     @originator = Gorgon::Originator.new
   end
@@ -56,8 +57,8 @@ describe Gorgon::Originator do
     end
 
     it "pushes source code" do
-      source_tree_syncer.should_receive(:push)
-      source_tree_syncer.should_receive(:success?).and_return true
+      source_tree_syncer.should_receive(:push).and_return(sync_execution_context)
+      sync_execution_context.should_receive(:success).and_return true
 
       @originator.publish
     end
