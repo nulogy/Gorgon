@@ -109,13 +109,13 @@ module Gorgon
 
     def push_source_code
       syncer = SourceTreeSyncer.new(sync_configuration)
-      syncer.push
-      if syncer.success?
-        @logger.log "Command '#{syncer.sys_command}' completed successfully."
+      execution_context = syncer.push
+      if execution_context.success
+        @logger.log "Command '#{execution_context.command}' completed successfully."
       else
-        $stderr.puts "Command '#{syncer.sys_command}' failed!"
-        $stderr.puts "Stdout:\n#{syncer.output}"
-        $stderr.puts "Stderr:\n#{syncer.errors}"
+        $stderr.puts "Command '#{execution_context.command}' failed!"
+        $stderr.puts "Stdout:\n#{execution_context.output}"
+        $stderr.puts "Stderr:\n#{execution_context.errors}"
         exit SYNC_ERROR_EXIT_STATUS
       end
     end

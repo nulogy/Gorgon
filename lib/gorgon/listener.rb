@@ -87,16 +87,16 @@ module Gorgon
       @job_definition = JobDefinition.new(payload)
       @reply_exchange = @bunny.exchange(@job_definition.reply_exchange_name, :auto_delete => true)
 
-      copy_source_tree(@job_definition.sync)
+      syncer = SourceTreeSyncer.new(@job_definition.sync)
+      syncer.pull do |execution_context|
+        if execution_context.success
+          log "Command '#{execution_context.command}' completed successfully."
+          fork_worker_manager if run_after_sync?
+        else
 
-      if !@syncer.success? || !run_after_sync
-        clean_up
-        return
+          log_and_send_crash_message(execution_context.command, execution_context.output, execution_context.errors)
+        end
       end
-
-      fork_worker_manager
-
-      clean_up
     end
 
     def at_exit_hook
@@ -105,7 +105,7 @@ module Gorgon
 
     private
 
-    def run_after_sync
+    def run_after_sync?
       log "Running after_sync callback..."
       begin
         callback_handler.after_sync
@@ -129,22 +129,11 @@ module Gorgon
       @callback_handler ||= Gorgon::CallbackHandler.new(@job_definition.callbacks)
     end
 
-    def copy_source_tree(sync_configuration)
-      log "Downloading source tree to temp directory..."
-      @syncer = SourceTreeSyncer.new sync_configuration
-      @syncer.sync
-      if @syncer.success?
-        log "Command '#{@syncer.sys_command}' completed successfully."
-      else
-        send_crash_message @reply_exchange, @syncer.output, @syncer.errors
-        log_error "Command '#{@syncer.sys_command}' failed!"
-        log_error "Stdout:\n#{@syncer.output}"
-        log_error "Stderr:\n#{@syncer.errors}"
-      end
-    end
-
-    def clean_up
-      @syncer.remove_temp_dir
+    def log_and_send_crash_message(command, output, errors)
+      send_crash_message @reply_exchange, output, errors
+      log_error "Command '#{command}' failed!"
+      log_error "Stdout:\n#{output}"
+      log_error "Stderr:\n#{errors}"
     end
 
     ERROR_FOOTER_TEXT = "\n***** See #{WorkerManager::STDERR_FILE} and #{WorkerManager::STDOUT_FILE} at '#{Socket.gethostname}' for complete output *****\n"

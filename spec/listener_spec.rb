@@ -6,6 +6,7 @@ describe Gorgon::Listener do
   let(:exchange) { double("GorgonBunny Exchange", :publish => nil) }
   let(:bunny) { double("GorgonBunny", :start => nil, :queue => queue, :exchange => exchange) }
   let(:logger) { double("Logger", :info => true, :datetime_format= => "")}
+  let(:sync_execution_context) { double("Sync Execution Context", success: true, command: "command", output: "some output", errors: "some errors")}
 
   before do
     Logger.stub(:new).and_return(logger)
@@ -182,9 +183,7 @@ describe Gorgon::Listener do
           :sync => {:source_tree_path => "path/to/source", :exclude => ["log"]}, :callbacks => {:a_callback => "path/to/callback"}
         }}
 
-      let(:syncer) { double("SourceTreeSyncer", :sync => nil, :exclude= => nil, :success? => true,
-                          :output => "some output", :errors => "some errors",
-                          :remove_temp_dir => nil, :sys_command => "rsync ...")}
+      let(:syncer) { double("SourceTreeSyncer")}
       let(:process_status) { double("Process Status", :exitstatus => 0)}
       let(:callback_handler) { double("Callback Handler", :after_sync => nil) }
       let(:stdin) { double("IO object", :write => nil, :close => nil)}
@@ -200,16 +199,15 @@ describe Gorgon::Listener do
         Gorgon::SourceTreeSyncer.should_receive(:new).once.
           with(source_tree_path: "path/to/source", exclude: ["log"]).
           and_return(syncer)
-        syncer.should_receive(:sync)
-        syncer.should_receive(:success?).and_return(true)
+        syncer.should_receive(:pull).and_yield(sync_execution_context)
         @listener.run_job(payload)
       end
 
       context "syncer#sync fails" do
         before do
-          syncer.stub(:success?).and_return false
-          syncer.stub(:output).and_return "some output"
-          syncer.stub(:errors).and_return "some errors"
+          sync_execution_context.stub(:success).and_return false
+          sync_execution_context.stub(:output).and_return "some output"
+          sync_execution_context.stub(:errors).and_return "some errors"
         end
 
         it "aborts current job" do
@@ -218,7 +216,7 @@ describe Gorgon::Listener do
         end
 
         it "sends message to originator with output and errors from syncer" do
-          @listener.should_receive(:send_crash_message).with exchange, "some output", "some errors"
+          @listener.should_receive(:send_crash_message).with(exchange, "some output", "some errors")
           @listener.run_job(payload)
         end
       end
@@ -237,11 +235,6 @@ describe Gorgon::Listener do
         end
       end
 
-      it "remove temp source directory when complete" do
-        syncer.should_receive(:remove_temp_dir)
-        @listener.run_job(payload)
-      end
-
       it "creates a CallbackHandler object using callbacks passed in payload" do
         Gorgon::CallbackHandler.should_receive(:new).once.with({:a_callback => "path/to/callback"}).and_return(callback_handler)
         @listener.run_job(payload)
@@ -257,6 +250,7 @@ describe Gorgon::Listener do
 
     def stub_classes
       Gorgon::SourceTreeSyncer.stub(:new).and_return syncer
+      syncer.stub(:pull).and_yield(sync_execution_context)
       Gorgon::CallbackHandler.stub(:new).and_return callback_handler
       Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
       Process.stub(:waitpid2).and_return([0, process_status])
