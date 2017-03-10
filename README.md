@@ -1,4 +1,4 @@
-# Gorgon [![Gem Version](https://badge.fury.io/rb/gorgon.svg)](https://rubygems.org/gems/gorgon) [![Code Climate](https://codeclimate.com/github/nulogy/Gorgon/badges/gpa.svg)](https://codeclimate.com/github/nulogy/Gorgon)
+# Gorgon [![Build Status](https://travis-ci.org/arturopie/Gorgon.svg?branch=master)][![Gem Version](https://badge.fury.io/rb/gorgon.svg)](https://rubygems.org/gems/gorgon) [![Code Climate](https://codeclimate.com/github/nulogy/Gorgon/badges/gpa.svg)](https://codeclimate.com/github/nulogy/Gorgon)
 
 About
 ---------------------
