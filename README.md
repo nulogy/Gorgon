@@ -56,6 +56,20 @@ Contributing
 ---------------------
 Read overview [architecture](/architecture.md)
 
+### Running specs
+
+* `rspec spec`
+
+### Running end to end specs
+
+1. `cd tests/end_to_end`
+1. Run `rabbitmq-server` in the background
+1. `bundle install`
+1. `gorgon listen`
+1. In a new tab/window, run `./run_test.sh`. This script will compare the output from `gorgon` with the expected output
+
+If you want to update the expected output, run `./update_correct_test_result.sh`
+
 Credits
 ---------------------
 Gorgon is maintained by:
