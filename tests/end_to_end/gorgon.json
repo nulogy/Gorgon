@@ -1,0 +1,30 @@
+{
+  "connection": {
+    "host": "localhost"
+  },
+  "file_server": {
+    "host": "localhost"
+  },
+  "job": {
+    "sync": {
+      "exclude": [
+        ".git",
+        ".rvmrc",
+        "tmp",
+        "log",
+        "doc"
+      ],
+
+      "rsync_transport": "ssh" // or "anonymous"
+    },
+
+    "callbacks": {
+      "callbacks_class_file": "gorgon_callbacks.rb"
+    }
+  },
+  "files": [
+    "test/**/*_test.rb",
+    "spec/**/*_spec.rb"
+  ],
+  "originator_log_file": "log/gorgon-originator.log"
+}

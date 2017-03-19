@@ -1,0 +1,125 @@
+Welcome to Gorgon 0.11.0
+before job starts was called
+Loading environment and workers...                                  Legend:
+F - failure files count
+H - number of hosts that have run files
+W - number of workers running files
+
+
+Progress: |============================================================================================================================================================================================|
+
+********************************************************************************
+File 'test/unit/1_syntax_error_test.rb' failed/crashed at hostname
+Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-input, expecting keyword_end
+Users/username/src/Gorgon/lib/gorgon/test_unit_runner.rb:34:in `load'
+Users/username/src/Gorgon/lib/gorgon/test_unit_runner.rb:34:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:18:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:127:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:100:in `block (2 levels) in work'
+Users/username/.rvm/rubies/ruby-2.1.6/lib/ruby/2.1.0/benchmark.rb:294:in `realtime'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:99:in `block in work'
+Users/username/src/Gorgon/lib/gorgon/amqp_service.rb:37:in `block in start_worker'
+Users/username/src/Gorgon/lib/gorgon_bunny/lib/gorgon_bunny.rb:81:in `call'
+Users/username/src/Gorgon/lib/gorgon_bunny/lib/gorgon_bunny.rb:81:in `run'
+Users/username/src/Gorgon/lib/gorgon/amqp_service.rb:34:in `start_worker'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:94:in `work'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:92:in `block in fork_a_worker'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:10:in `block in pipe_fork'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:5:in `fork'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:5:in `pipe_fork'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:90:in `fork_a_worker'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:76:in `block (2 levels) in fork_workers'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:75:in `times'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:75:in `block in fork_workers'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `call'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `run_machine'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `run'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:74:in `fork_workers'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:54:in `manage'
+Users/username/src/Gorgon/lib/gorgon/command.rb:98:in `manage_workers'
+Users/username/src/Gorgon/lib/gorgon/command.rb:55:in `run_command'
+Users/username/src/Gorgon/lib/gorgon/command.rb:48:in `run'
+Users/username/src/Gorgon/bin/gorgon:4:in `<top (required)>'
+Users/username/.rvm/gems/ruby-2.1.6/bin/gorgon:22:in `load'
+Users/username/.rvm/gems/ruby-2.1.6/bin/gorgon:22:in `<main>'
+Users/username/.rvm/gems/ruby-2.1.6/bin/ruby_executable_hooks:15:in `eval'
+Users/username/.rvm/gems/ruby-2.1.6/bin/ruby_executable_hooks:15:in `<main>'
+
+********************************************************************************
+File 'test/unit/exception_test.rb' failed/crashed at hostname
+[1;33mError:[0m
+test_going_to_blow_up(Stuff::Haha1):
+RuntimeError: oh mah gawd
+    test/unit/exception_test.rb:10:in `test_going_to_blow_up'
+
+********************************************************************************
+File 'test/unit/failing_test.rb' failed/crashed at hostname
+[1;31mFailure:[0m
+test_2_will_fail(Stuff::Over9000) [test/unit/failing_test.rb:14]:
+<false> is not true.
+[1;31mFailure:[0m
+test_will_fail(Stuff::Over9000) [test/unit/failing_test.rb:10]:
+<false> is not true.
+
+********************************************************************************
+File 'spec/1_syntax_error_spec.rb' failed/crashed at hostname
+Exception: undefined local variable or method `ruby' for main:Object
+temp_dir/spec/1_syntax_error_spec.rb:1:in `<top (required)>'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/configuration.rb:1361:in `load'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/configuration.rb:1361:in `block in load_spec_files'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/configuration.rb:1359:in `each'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/configuration.rb:1359:in `load_spec_files'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/runner.rb:106:in `setup'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/runner.rb:92:in `run'
+Users/username/.rvm/gems/ruby-2.1.6/gems/rspec-core-3.4.4/lib/rspec/core/runner.rb:78:in `run'
+Users/username/src/Gorgon/lib/gorgon/rspec_runner.rb:18:in `block in run_file'
+Users/username/src/Gorgon/lib/gorgon/rspec_runner.rb:35:in `keep_config_modules'
+Users/username/src/Gorgon/lib/gorgon/rspec_runner.rb:17:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:18:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:127:in `run_file'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:100:in `block (2 levels) in work'
+Users/username/.rvm/rubies/ruby-2.1.6/lib/ruby/2.1.0/benchmark.rb:294:in `realtime'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:99:in `block in work'
+Users/username/src/Gorgon/lib/gorgon/amqp_service.rb:37:in `block in start_worker'
+Users/username/src/Gorgon/lib/gorgon_bunny/lib/gorgon_bunny.rb:81:in `call'
+Users/username/src/Gorgon/lib/gorgon_bunny/lib/gorgon_bunny.rb:81:in `run'
+Users/username/src/Gorgon/lib/gorgon/amqp_service.rb:34:in `start_worker'
+Users/username/src/Gorgon/lib/gorgon/worker.rb:94:in `work'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:92:in `block in fork_a_worker'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:10:in `block in pipe_fork'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:5:in `fork'
+Users/username/src/Gorgon/lib/gorgon/pipe_forker.rb:5:in `pipe_fork'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:90:in `fork_a_worker'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:76:in `block (2 levels) in fork_workers'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:75:in `times'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:75:in `block in fork_workers'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `call'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `run_machine'
+Users/username/.rvm/gems/ruby-2.1.6/gems/eventmachine-1.0.9.1/lib/eventmachine.rb:193:in `run'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:74:in `fork_workers'
+Users/username/src/Gorgon/lib/gorgon/worker_manager.rb:54:in `manage'
+Users/username/src/Gorgon/lib/gorgon/command.rb:98:in `manage_workers'
+Users/username/src/Gorgon/lib/gorgon/command.rb:55:in `run_command'
+Users/username/src/Gorgon/lib/gorgon/command.rb:48:in `run'
+Users/username/src/Gorgon/bin/gorgon:4:in `<top (required)>'
+Users/username/.rvm/gems/ruby-2.1.6/bin/gorgon:22:in `load'
+Users/username/.rvm/gems/ruby-2.1.6/bin/gorgon:22:in `<main>'
+Users/username/.rvm/gems/ruby-2.1.6/bin/ruby_executable_hooks:15:in `eval'
+Users/username/.rvm/gems/ruby-2.1.6/bin/ruby_executable_hooks:15:in `<main>'
+
+********************************************************************************
+File 'spec/exception_spec.rb' failed/crashed at hostname
+Test name: Exception spec raises: line 2
+[1;31mRuntimeError[0m
+Message: 
+	BOOOOM from spec!
+
+
+********************************************************************************
+File 'spec/failing_spec.rb' failed/crashed at hostname
+Test name: Failing spec fails: line 6
+[1;31mRSpec::Expectations::ExpectationNotMetError[0m
+Message: 
+	failed
+
+running after_job_finishes
