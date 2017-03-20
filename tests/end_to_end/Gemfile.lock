@@ -1,5 +1,5 @@
 PATH
-  remote: ~/src/Gorgon
+  remote: ../..
   specs:
     gorgon (0.11.0)
       amq-protocol (~> 1.9.2)
@@ -75,3 +75,6 @@ DEPENDENCIES
   pry-byebug
   rspec (>= 3.4.0)
   test-unit
+
+BUNDLED WITH
+   1.14.6
