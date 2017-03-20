@@ -56,7 +56,11 @@ Contributing
 ---------------------
 Read overview [architecture](/architecture.md)
 
-### Running specs
+### Running all tests
+
+* `rake`
+
+### Running only specs
 
 * `rspec spec`
 
