@@ -20,14 +20,16 @@ module Gorgon
       end
 
       def load_from_files(first_filename:, merge_filename:)
-        load_file(first_filename).deep_merge(load_file(merge_filename))
+        if merge_filename && @file_loader.exists?(merge_filename)
+          load_file(first_filename).deep_merge(load_file(merge_filename))
+        else
+          load_file(first_filename)
+        end
       end
 
       private
 
       def load_file(filename)
-        return {} if filename.nil?
-
         @file_loader.parse(filename)
       end
     end
@@ -36,6 +38,10 @@ module Gorgon
       def self.parse(filename)
         file = File.new(filename, "r")
         Yajl::Parser.new(symbolize_keys: true).parse(file)
+      end
+
+      def self.exists?(filename)
+        File.exists?(filename)
       end
     end
   end
