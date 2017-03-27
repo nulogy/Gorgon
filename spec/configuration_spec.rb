@@ -5,11 +5,12 @@ module Gorgon
     describe ".load_configuration_from_file" do
       let(:config_filename) { "config.json" }
       let(:secret_filename) { "secret.json" }
+      let(:file_loader) { double }
 
       example do
-        mock_file(config_filename, content: %({"config": {"key": "value"}}))
+        file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
 
-        configuration = load_file(config_filename)
+        configuration = load_file(config_filename, file_loader: file_loader)
 
         expect(configuration).to eq({
           config: {
@@ -19,10 +20,10 @@ module Gorgon
       end
 
       it "merges the values from another file" do
-        mock_file(config_filename, content: %({"config": {"key": "value"}}))
-        mock_file(secret_filename, content: %({"config": {"password": "password01"}}))
+        file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
+        file_loader.should_receive(:parse).with(secret_filename).and_return({ config: { password: "password01" } })
 
-        configuration = load_file(config_filename, merge: secret_filename)
+        configuration = load_file(config_filename, merge: secret_filename, file_loader: file_loader)
 
         expect(configuration).to eq({
           config: {
@@ -30,12 +31,6 @@ module Gorgon
             password: "password01"
           }
         })
-      end
-
-      def mock_file(filename, content:)
-        File.should_receive(:new)
-          .with(filename, "r")
-          .and_return(StringIO.new(content))
       end
 
       def load_file(*args)
