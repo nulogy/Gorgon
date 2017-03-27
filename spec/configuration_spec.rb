@@ -34,6 +34,13 @@ module Gorgon
         })
       end
 
+      it "raises when config file cannot be parsed" do
+        file_loader.should_receive(:parse).with(config_filename).and_raise("cannot be parsed")
+        file_loader.should_receive(:exists?).with(secret_filename).and_return(false)
+
+        expect { load_file(config_filename, merge: secret_filename, file_loader: file_loader) }.to raise_error("cannot be parsed")
+      end
+
       it "ignores the second filename if does not exist" do
         file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
         file_loader.should_receive(:exists?).with(secret_filename).and_return(false)
