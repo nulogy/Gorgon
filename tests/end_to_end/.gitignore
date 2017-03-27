@@ -1,3 +1,3 @@
 *.log
-log/*
+log/test_result.out
 /.idea/
