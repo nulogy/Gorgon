@@ -6,7 +6,7 @@ H - number of hosts that have run files
 W - number of workers running files
 
 
-Progress: |============================================================================================================================================================================================|
+Progress Bar
 
 ********************************************************************************
 File 'test/unit/1_syntax_error_test.rb' failed/crashed at hostname
