@@ -1,4 +1,5 @@
 language: ruby
+sudo: required
 services:
   - rabbitmq
 before_script:
