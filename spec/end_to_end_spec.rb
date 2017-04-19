@@ -16,7 +16,7 @@ describe "EndToEnd" do
 
   context "number of output hunks" do
     it "is same as errors raised plus meta information" do
-      expect(@outputs.count).to eq(7)
+      expect(@outputs.count).to eq(7), "expected 7 output hunks, got:\n#{@outputs.inspect}"
     end
   end
 
@@ -47,6 +47,7 @@ Progress: ||
   context "exception test" do
     it "has proper error output" do
       actual_output = @outputs.grep /Stuff::Haha1/
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       expected_output = <<-EXPECTED
@@ -66,11 +67,12 @@ RuntimeError: oh mah gawd
   context "exception spec" do
     it "has proper error output" do
       actual_output = @outputs.grep /exception_spec/
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       expected_output = <<-EXPECTED
 
-File 'spec/exception_spec.rb' failed/crashed at 'goodlove:1'
+File 'spec/exception_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 Test name: Exception spec raises: line 2
 RuntimeError
 Message: 
@@ -86,6 +88,7 @@ Message:
   context "syntax error test" do
     it "has proper error output" do
       actual_output = @outputs.grep(/1_syntax_error_test/)
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       actual_output = actual_output.gsub(PATH_REGEX, '')
@@ -102,6 +105,7 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
   context "syntax error spec" do
     it "has proper error output" do
       actual_output = @outputs.grep(/1_syntax_error_spec/)
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       actual_output = actual_output.gsub(PATH_REGEX, '')
@@ -118,6 +122,7 @@ Exception: undefined local variable or method `ruby' for main:Object
   context "failing test" do
     it "has proper error output" do
       actual_output = @outputs.grep(/failing_test\.rb/)
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       expected_output = <<-EXPECTED
@@ -138,6 +143,7 @@ test_will_fail(Stuff::Over9000) [test/unit/failing_test.rb:10]:
   context "failing spec" do
     it "has proper error output" do
       actual_output = @outputs.grep(/failing_spec\.rb/)
+      expect(actual_output).not_to be_nil
       actual_output = actual_output[0].gsub(COLOR_REGEX, '')
       actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
       expected_output = <<-EXPECTED
