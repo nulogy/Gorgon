@@ -2,7 +2,7 @@ require 'gorgon/originator_logger'
 
 describe Gorgon::OriginatorLogger do
   before do
-    Gorgon::OriginatorLogger.any_instance.stub(:initialize_logger)
+    allow_any_instance_of(Gorgon::OriginatorLogger).to receive(:initialize_logger)
   end
 
   let (:originator_logger) { Gorgon::OriginatorLogger.new "" }
@@ -13,7 +13,7 @@ describe Gorgon::OriginatorLogger do
                  :hostname => "host",
                  :filename => "filename",
                  :worker_id => "a_worker_id"}
-      originator_logger.should_receive(:log).with("Started running 'filename' at 'host:a_worker_id'")
+      expect(originator_logger).to receive(:log).with("Started running 'filename' at 'host:a_worker_id'")
       originator_logger.log_message(payload)
     end
 
@@ -22,7 +22,7 @@ describe Gorgon::OriginatorLogger do
                  :hostname => "host",
                  :filename => "filename",
                  :worker_id => "a_worker_id"}
-      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host:a_worker_id'")
+      expect(originator_logger).to receive(:log).with("Finished running 'filename' at 'host:a_worker_id'")
       originator_logger.log_message(payload)
     end
 
@@ -36,7 +36,7 @@ describe Gorgon::OriginatorLogger do
                    "failure"
                  ]}
 
-      originator_logger.should_receive(:log).with("Finished running 'filename' at 'host:a_worker_id'failure\n")
+      expect(originator_logger).to receive(:log).with("Finished running 'filename' at 'host:a_worker_id'failure\n")
       originator_logger.log_message(payload)
     end
   end

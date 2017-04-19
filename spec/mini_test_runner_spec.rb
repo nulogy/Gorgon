@@ -9,29 +9,29 @@ describe MiniTestRunner do
 
     let(:runner) {double("MiniTestUnitRunner", :run => nil, :report => ["report"])}
     before do
-      Object.stub(:load)
-      MiniTestUnitRunner.stub(:new).and_return(runner)
+      allow(Object).to receive(:load)
+      allow(MiniTestUnitRunner).to receive(:new).and_return(runner)
     end
 
     it "clear test cases previously loaded (when a previous file was loaded), and then loads filename" do
-      MiniTest::Unit::TestCase.should_receive(:reset).ordered
-      Object.should_receive(:load).with("file_test.rb").ordered
+      expect(MiniTest::Unit::TestCase).to receive(:reset).ordered
+      expect(Object).to receive(:load).with("file_test.rb").ordered
       MiniTestRunner.run_file "file_test.rb"
     end
 
     it "runs the MiniTestUnitRunner" do
-      runner.should_receive(:run)
+      expect(runner).to receive(:run)
       MiniTestRunner.run_file "file_test.rb"
     end
 
     it "returns runner's report" do
-      MiniTestRunner.run_file("file_test.rb").should == ["report"]
+      expect(MiniTestRunner.run_file("file_test.rb")).to eq(["report"])
     end
   end
 
   describe ".runner" do
     it "returns :minitest" do
-      MiniTestRunner.runner.should == :minitest
+      expect(MiniTestRunner.runner).to eq(:minitest)
     end
   end
 end

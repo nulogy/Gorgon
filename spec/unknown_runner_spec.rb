@@ -14,7 +14,7 @@ describe UnknownRunner do
 
   describe "#runner" do
     it "returns :unknown_framework" do
-      UnknownRunner.runner.should == :unknown_framework
+      expect(UnknownRunner.runner).to eq(:unknown_framework)
     end
   end
 end

@@ -9,16 +9,16 @@ describe Gorgon::RuntimeFileReader do
     let(:configuration){ {runtime_file: "runtime_file.json"} }
 
     it "should read runtime_file" do
-      File.stub(:file?).and_return(true)
+      allow(File).to receive(:file?).and_return(true)
       runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
-      File.should_receive(:open).with(configuration[:runtime_file], 'r')
+      expect(File).to receive(:open).with(configuration[:runtime_file], 'r')
       runtime_file_reader.old_files
     end
 
     it "should return empty array if runtime_file is invalid" do
-      File.should_receive(:file?).and_return(false)
+      expect(File).to receive(:file?).and_return(false)
       runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
-      File.should_not_receive(:open)
+      expect(File).not_to receive(:open)
       runtime_file_reader.old_files
     end
   end
@@ -29,7 +29,7 @@ describe Gorgon::RuntimeFileReader do
 
     before do
       @runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
-      @runtime_file_reader.stub(:old_files).and_return old_files
+      allow(@runtime_file_reader).to receive(:old_files).and_return old_files
     end
 
     it "should include new files at the end" do
@@ -53,7 +53,7 @@ describe Gorgon::RuntimeFileReader do
 
     before do
       @runtime_file_reader = Gorgon::RuntimeFileReader.new(configuration)
-      @runtime_file_reader.stub(:old_files).and_return old_files
+      allow(@runtime_file_reader).to receive(:old_files).and_return old_files
     end
 
     it "sort by globs then by runtime" do
@@ -62,7 +62,7 @@ describe Gorgon::RuntimeFileReader do
         "glob_2" => ["new_c.rb", "old_a.rb"],
         "glob_3" => ["old_d.rb", "old_c.rb", "new_a.rb", "new_b.rb", "new_c.rb", "old_a.rb", "old_b.rb"]
       }
-      Dir.stub(:[]) do |glob|
+      allow(Dir).to receive(:[]) do |glob|
         globs[glob]
       end
       sorted_files = @runtime_file_reader.sorted_files

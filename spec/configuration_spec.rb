@@ -8,7 +8,7 @@ module Gorgon
       let(:file_loader) { double }
 
       example do
-        file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
+        expect(file_loader).to receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
 
         configuration = load_file(config_filename, file_loader: file_loader)
 
@@ -20,9 +20,9 @@ module Gorgon
       end
 
       it "merges the values from another file" do
-        file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
-        file_loader.should_receive(:exists?).with(secret_filename).and_return(true)
-        file_loader.should_receive(:parse).with(secret_filename).and_return({ config: { password: "password01" } })
+        expect(file_loader).to receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
+        expect(file_loader).to receive(:exists?).with(secret_filename).and_return(true)
+        expect(file_loader).to receive(:parse).with(secret_filename).and_return({ config: { password: "password01" } })
 
         configuration = load_file(config_filename, merge: secret_filename, file_loader: file_loader)
 
@@ -35,15 +35,15 @@ module Gorgon
       end
 
       it "raises when config file cannot be parsed" do
-        file_loader.should_receive(:parse).with(config_filename).and_raise("cannot be parsed")
-        file_loader.should_receive(:exists?).with(secret_filename).and_return(false)
+        expect(file_loader).to receive(:parse).with(config_filename).and_raise("cannot be parsed")
+        expect(file_loader).to receive(:exists?).with(secret_filename).and_return(false)
 
         expect { load_file(config_filename, merge: secret_filename, file_loader: file_loader) }.to raise_error("cannot be parsed")
       end
 
       it "ignores the second filename if does not exist" do
-        file_loader.should_receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
-        file_loader.should_receive(:exists?).with(secret_filename).and_return(false)
+        expect(file_loader).to receive(:parse).with(config_filename).and_return({ config: { key: "value" } })
+        expect(file_loader).to receive(:exists?).with(secret_filename).and_return(false)
 
         configuration = load_file(config_filename, merge: secret_filename, file_loader: file_loader)
 
