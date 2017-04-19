@@ -28,107 +28,107 @@ describe Gorgon::JobState do
 
   describe "#initialize" do
     it "sets total files for job" do
-      @job_state.total_files.should be 5
+      expect(@job_state.total_files).to eq(5)
     end
 
     it "sets remaining_files_count" do
-      @job_state.remaining_files_count.should be 5
+      expect(@job_state.remaining_files_count).to eq(5)
     end
 
     it "sets failed_files_count to 0" do
-      @job_state.failed_files_count.should be 0
+      expect(@job_state.failed_files_count).to eq(0)
     end
 
     it "set state to starting" do
-      @job_state.state.should be :starting
+      expect(@job_state.state).to eq(:starting)
     end
   end
 
   describe "#finished_files_count" do
     it "returns total_files - remaining_files_count" do
-      @job_state.finished_files_count.should be 0
+      expect(@job_state.finished_files_count).to eq(0)
     end
   end
 
   describe "#file_started" do
     it "change state to running after first start_file_message is received" do
       @job_state.file_started({})
-      @job_state.state.should be :running
+      expect(@job_state.state).to eq(:running)
     end
 
     it "creates a new HostState object if this is the first file started by 'hostname'" do
-      Gorgon::HostState.should_receive(:new).and_return host_state
+      expect(Gorgon::HostState).to receive(:new).and_return host_state
       @job_state.file_started(payload)
     end
 
     it "doesn't create a new HostState object if this is not the first file started by 'hostname'" do
-      Gorgon::HostState.stub(:new).and_return host_state
+      allow(Gorgon::HostState).to receive(:new).and_return host_state
       @job_state.file_started(payload)
-      Gorgon::HostState.should_not_receive(:new)
+      expect(Gorgon::HostState).not_to receive(:new)
       @job_state.file_started(payload)
     end
 
     it "calls #file_started on HostState object representing 'hostname'" do
-      Gorgon::HostState.stub(:new).and_return host_state
-      host_state.should_receive(:file_started).with("worker_id", "file_name")
+      allow(Gorgon::HostState).to receive(:new).and_return host_state
+      expect(host_state).to receive(:file_started).with("worker_id", "file_name")
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
                                 :filename => "file_name"})
     end
 
     it "notify observers" do
-      @job_state.should_receive :notify_observers
-      @job_state.should_receive :changed
+      expect(@job_state).to receive :notify_observers
+      expect(@job_state).to receive :changed
       @job_state.file_started({})
     end
   end
 
   describe "#file_finished" do
     before do
-      Gorgon::HostState.stub(:new).and_return host_state
+      allow(Gorgon::HostState).to receive(:new).and_return host_state
       @job_state.file_started payload
     end
 
     it "decreases remaining_files_count" do
-      lambda do
+      expect(lambda do
         @job_state.file_finished payload
-      end.should(change(@job_state, :remaining_files_count).by(-1))
+      end).to change{@job_state.remaining_files_count}.by(-1)
 
-      @job_state.total_files.should be 5
+      expect(@job_state.total_files).to eq(5)
     end
 
     it "doesn't change failed_files_count if type test result is pass" do
-      lambda do
+      expect(lambda do
         @job_state.file_finished payload
-      end.should_not change(@job_state, :failed_files_count)
-      @job_state.failed_files_count.should be 0
+      end).not_to change{@job_state.failed_files_count}
+      expect(@job_state.failed_files_count).to eq(0)
     end
 
     it "increments failed_files_count if type is failed" do
-      lambda do
+      expect(lambda do
         @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failure messages"]})
-      end.should change(@job_state, :failed_files_count).by(1)
+      end).to change{@job_state.failed_files_count}.by(1)
     end
 
     it "notify observers" do
-      @job_state.should_receive :notify_observers
-      @job_state.should_receive :changed
+      expect(@job_state).to receive :notify_observers
+      expect(@job_state).to receive :changed
       @job_state.file_finished payload
     end
 
     it "raises if job already complete" do
       finish_job
-      lambda do
+      expect(lambda do
         @job_state.file_finished payload
-      end.should raise_error
+      end).to raise_error(RuntimeError)
     end
 
     it "tells to the proper HostState object that a file finished in that host" do
-      Gorgon::HostState.stub(:new).and_return host_state
+      allow(Gorgon::HostState).to receive(:new).and_return host_state
       @job_state.file_started({:hostname => "hostname",
                                 :worker_id => "worker_id",
                                 :filename => "file_name"})
-      host_state.should_receive(:file_finished).with("worker_id", "file_name")
+      expect(host_state).to receive(:file_finished).with("worker_id", "file_name")
       @job_state.file_finished({:hostname => "hostname",
                                  :worker_id => "worker_id",
                                  :filename => "file_name"})
@@ -141,37 +141,37 @@ describe Gorgon::JobState do
 
     it "adds crashed host to JobState#crashed_hosted" do
       @job_state.gorgon_crash_message(crash_msg)
-      @job_state.crashed_hosts.should == ["host"]
+      expect(@job_state.crashed_hosts).to eq(["host"])
     end
 
     it "notify observers" do
-      @job_state.should_receive :notify_observers
-      @job_state.should_receive :changed
+      expect(@job_state).to receive :notify_observers
+      expect(@job_state).to receive :changed
       @job_state.gorgon_crash_message crash_msg
     end
   end
 
   describe "#is_job_complete?" do
     it "returns false if remaining_files_count != 0" do
-      @job_state.is_job_complete?.should be_false
+      expect(@job_state.is_job_complete?).to be_falsey
     end
 
     it "returns true if remaining_files_count == 0" do
       finish_job
-      @job_state.is_job_complete?.should be_true
+      expect(@job_state.is_job_complete?).to be_truthy
     end
   end
 
   describe "#cancel and is_job_cancelled?" do
     it "cancels job" do
-      @job_state.is_job_cancelled?.should be_false
+      expect(@job_state.is_job_cancelled?).to be_falsey
       @job_state.cancel
-      @job_state.is_job_cancelled?.should be_true
+      expect(@job_state.is_job_cancelled?).to be_truthy
     end
 
     it "notify observers when cancelling" do
-      @job_state.should_receive :changed
-      @job_state.should_receive :notify_observers
+      expect(@job_state).to receive :changed
+      expect(@job_state).to receive :notify_observers
       @job_state.cancel
     end
   end
@@ -184,7 +184,7 @@ describe Gorgon::JobState do
     it "returns failed tests info" do
       @job_state.file_finished payload.merge({:type => "fail", :failures => ["Failure messages"]})
       @job_state.each_failed_test do |test|
-        test[:failures].should == ["Failure messages"]
+        expect(test[:failures]).to eq(["Failure messages"])
       end
     end
   end
@@ -202,9 +202,9 @@ describe Gorgon::JobState do
       @job_state.each_running_file do |hostname, filename|
         hosts_files[hostname] = filename
       end
-      hosts_files.size.should == 2
-      hosts_files["host-name"].should == "path/file.rb"
-      hosts_files["host2"].should == "path/file2.rb"
+     expect(hosts_files.size).to eq(2)
+     expect(hosts_files["host-name"]).to eq("path/file.rb")
+     expect(hosts_files["host2"]).to eq("path/file2.rb")
     end
   end
 
@@ -215,7 +215,7 @@ describe Gorgon::JobState do
       @job_state.file_started payload.merge({ :hostname => "host2",
                                               :filename => "path/file2.rb",
                                               :worker_id => "worker1"})
-      @job_state.total_running_hosts.should == 2
+      expect(@job_state.total_running_hosts).to eq(2)
     end
   end
 
@@ -226,7 +226,7 @@ describe Gorgon::JobState do
       @job_state.file_started payload.merge({ :hostname => "host2",
                                               :filename => "path/file2.rb",
                                               :worker_id => "worker1"})
-      @job_state.total_running_workers.should == 3
+      expect(@job_state.total_running_workers).to eq(3)
     end
   end
 

@@ -18,13 +18,13 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
     describe "options" do
       it "exclude files when they are specified" do
         @syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "path/to/source", exclude: ["log", ".git"])
-        Open4.should_receive(:popen4).with(/--exclude log --exclude .git/)
+        expect(Open4).to receive(:popen4).with(/--exclude log --exclude .git/)
         @syncer.public_send(operation)
       end
 
       it "uses io timeout to avoid listener hanging forever in case rsync asks for any input" do
         opt = /--timeout=5/
-        Open4.should_receive(:popen4).with(opt)
+        expect(Open4).to receive(:popen4).with(opt)
         @syncer.public_send(operation)
       end
     end
@@ -32,36 +32,36 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
 
   describe "#pull" do
     it "makes tempdir and changes current dir to temdir" do
-      Dir.should_receive(:mktmpdir).and_return("tmp/dir")
-      Dir.should_receive(:chdir).with("tmp/dir")
+      expect(Dir).to receive(:mktmpdir).and_return("tmp/dir")
+      expect(Dir).to receive(:chdir).with("tmp/dir")
       execution_context = @syncer.pull do |context|
-        expect(context.success).to be_true, "Syncer error: #{context.errors}"
+        expect(context.success).to be_truthy, "Syncer error: #{context.errors}"
       end
-      expect(execution_context.success).to be_true, "Syncer error: #{execution_context.errors}"
+      expect(execution_context.success).to be_truthy, "Syncer error: #{execution_context.errors}"
     end
 
     context "invalid source_tree_path" do
       it "gives error if source_tree_path is empty string" do
         syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "  ")
-        Dir.should_not_receive(:mktmpdir)
+        expect(Dir).not_to receive(:mktmpdir)
         execution_context = syncer.pull do |context|
-          context.success.should be_false
-          context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+          expect(context.success).to be_falsey
+          expect(context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
         end
 
-        execution_context.success.should be_false
-        execution_context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+        expect(execution_context.success).to be_falsey
+        expect(execution_context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
       end
 
       it "gives error if source_tree_path is nil" do
         syncer = Gorgon::SourceTreeSyncer.new(nil)
-        Dir.should_not_receive(:mktmpdir)
+        expect(Dir).not_to receive(:mktmpdir)
         execution_context = syncer.pull do |context|
-          context.success.should be_false
-          context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+          expect(context.success).to be_falsey
+          expect(context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
         end
-        execution_context.success.should be_false
-        execution_context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+        expect(execution_context.success).to be_falsey
+        expect(execution_context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
       end
     end
 
@@ -72,7 +72,7 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
 
       it "runs rsync system command with appropriate options" do
         cmd = /rsync.*-azr .*path\/to\/source\/\ \./
-        Open4.should_receive(:popen4).with(cmd)
+        expect(Open4).to receive(:popen4).with(cmd)
         @syncer.pull
       end
     end
@@ -84,47 +84,47 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
         syncer = Gorgon::SourceTreeSyncer.new(source_tree_path: "  ")
         execution_context = syncer.push
 
-        execution_context.success.should be_false
-        execution_context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+        expect(execution_context.success).to be_falsey
+        expect(execution_context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
       end
 
       it "is nil" do
         syncer = Gorgon::SourceTreeSyncer.new(nil)
         execution_context = syncer.push
 
-        execution_context.success.should be_false
-        execution_context.errors.should == "Source tree path cannot be blank. Check your gorgon.json file."
+        expect(execution_context.success).to be_falsey
+        expect(execution_context.errors).to eq("Source tree path cannot be blank. Check your gorgon.json file.")
       end
 
       it "is valid" do
         execution_context = @syncer.push
-        execution_context.success.should be_true
+        expect(execution_context.success).to be_truthy
       end
     end
 
     context "command execution" do
       it "returns true if sync execution was successful" do
-        status.should_receive(:exitstatus).and_return(0)
+        expect(status).to receive(:exitstatus).and_return(0)
         execution_context = @syncer.push
-        execution_context.success.should be_true
+        expect(execution_context.success).to be_truthy
       end
 
       it "returns false if sync execution failed" do
-        status.should_receive(:exitstatus).and_return(1)
+        expect(status).to receive(:exitstatus).and_return(1)
         execution_context = @syncer.push
-        execution_context.success.should be_false
+        expect(execution_context.success).to be_falsey
       end
 
       it "returns standard output of rsync" do
-        stdout.should_receive(:read).and_return("some output")
+        expect(stdout).to receive(:read).and_return("some output")
         execution_context = @syncer.push
-        execution_context.output.should == "some output"
+        expect(execution_context.output).to eq("some output")
       end
 
       it "returns standard error output of rsync" do
-        stderr.should_receive(:read).and_return("some errors")
+        expect(stderr).to receive(:read).and_return("some errors")
         execution_context = @syncer.push
-        execution_context.errors.should == "some errors"
+        expect(execution_context.errors).to eq("some errors")
       end
     end
 
@@ -135,7 +135,7 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
 
       it "runs rsync system command with appropriate options" do
         cmd = /rsync.*-azr .* \. path\/to\/source/
-        Open4.should_receive(:popen4).with(cmd)
+        expect(Open4).to receive(:popen4).with(cmd)
         @syncer.push
       end
     end
@@ -143,35 +143,35 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
 
   describe "command execution" do
     it "returns true if sync execution was successful" do
-      status.should_receive(:exitstatus).and_return(0)
+      expect(status).to receive(:exitstatus).and_return(0)
       execution_context = @syncer.pull do |context|
-        context.success.should be_true
+        expect(context.success).to be_truthy
       end
-      execution_context.success.should be_true
+      expect(execution_context.success).to be_truthy
     end
 
     it "returns false if sync execution failed" do
-      status.should_receive(:exitstatus).and_return(1)
+      expect(status).to receive(:exitstatus).and_return(1)
       execution_context = @syncer.pull do |context|
-        context.success.should be_false
+        expect(context.success).to be_falsey
       end
-      execution_context.success.should be_false
+      expect(execution_context.success).to be_falsey
     end
 
     it "returns standard output of rsync" do
-      stdout.should_receive(:read).and_return("some output")
+      expect(stdout).to receive(:read).and_return("some output")
       execution_context = @syncer.pull do |context|
-        context.output.should == "some output"
+        expect(context.output).to eq("some output")
       end
-      execution_context.output.should == "some output"
+      expect(execution_context.output).to eq("some output")
     end
 
     it "returns standard error output of rsync" do
-      stderr.should_receive(:read).and_return("some errors")
+      expect(stderr).to receive(:read).and_return("some errors")
       execution_context = @syncer.pull do |context|
-        context.errors.should == "some errors"
+        expect(context.errors).to eq("some errors")
       end
-      execution_context.errors.should == "some errors"
+      expect(execution_context.errors).to eq("some errors")
     end
   end
 
@@ -182,12 +182,12 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
     end
 
     it "remove temporary dir" do
-      FileUtils.should_receive(:remove_entry_secure).with("tmp/dir")
+      expect(FileUtils).to receive(:remove_entry_secure).with("tmp/dir")
       @syncer.pull
     end
 
     it "removes temporary dir in case of exception" do
-      FileUtils.should_receive(:remove_entry_secure).with("tmp/dir")
+      expect(FileUtils).to receive(:remove_entry_secure).with("tmp/dir")
       begin
       @syncer.pull do |context|
         raise
@@ -200,10 +200,10 @@ describe Gorgon::SourceTreeSyncer.new(source_tree_path: "") do
   private
 
   def stub_utilities_methods
-    Dir.stub(:mktmpdir).and_return("tmp/dir")
-    Dir.stub(:chdir)
-    Open4.stub(:popen4).and_return([1, stdin, stdout, stderr])
-    Process.stub(:waitpid2).and_return([nil, status])
-    FileUtils.stub(:remove_entry_secure)
+    allow(Dir).to       receive(:mktmpdir).and_return("tmp/dir")
+    allow(Dir).to       receive(:chdir)
+    allow(Open4).to     receive(:popen4).and_return([1, stdin, stdout, stderr])
+    allow(Process).to   receive(:waitpid2).and_return([nil, status])
+    allow(FileUtils).to receive(:remove_entry_secure)
   end
 end

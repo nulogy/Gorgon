@@ -9,34 +9,34 @@ describe Gorgon::PingService do
     let(:logger){ double("Originator Logger", :log => nil, :log_message => nil)}
 
     before do
-      $stdout.stub(:write)
-      Gorgon::PingService.any_instance.stub(:load_configuration_from_file).and_return configuration
-      EventMachine.stub(:run).and_yield
-      EM.stub(:add_timer).and_yield
-      Gorgon::OriginatorLogger.stub(:new).and_return logger
+      allow($stdout).to receive(:write)
+      allow_any_instance_of(Gorgon::PingService).to receive(:load_configuration_from_file).and_return configuration
+      allow(EventMachine).to receive(:run).and_yield
+      allow(EM).to receive(:add_timer).and_yield
+      allow(Gorgon::OriginatorLogger).to receive(:new).and_return logger
     end
 
     it "connnects and calls OriginatorProtocol#send_message_to_listeners" do
-      Gorgon::OriginatorProtocol.should_receive(:new).once.ordered.and_return(protocol)
-      protocol.should_receive(:connect).once.ordered.with({:host => "host"}, anything)
-      protocol.should_receive(:send_message_to_listeners).once.ordered
+      expect(Gorgon::OriginatorProtocol).to receive(:new).once.ordered.and_return(protocol)
+      expect(protocol).to receive(:connect).once.ordered.with({:host => "host"}, anything)
+      expect(protocol).to receive(:send_message_to_listeners).once.ordered
       Gorgon::PingService.new.ping_listeners
     end
 
     context "after sending ping messages" do
       before do
-        Gorgon::OriginatorProtocol.stub(:new).and_return(protocol)
+        allow(Gorgon::OriginatorProtocol).to receive(:new).and_return(protocol)
         @service = Gorgon::PingService.new
       end
 
       it "adds an Event machine timer" do
-        EM.should_receive(:add_timer).and_yield
+        expect(EM).to receive(:add_timer).and_yield
         @service.ping_listeners
       end
 
       it "receives a ping_response message" do
         payload = {:type => "ping_response", :hostname => "host", :version => "1.1.1"}
-        protocol.should_receive(:receive_payloads).and_yield Yajl::Encoder.encode(payload)
+        expect(protocol).to receive(:receive_payloads).and_yield Yajl::Encoder.encode(payload)
         @service.ping_listeners
       end
     end

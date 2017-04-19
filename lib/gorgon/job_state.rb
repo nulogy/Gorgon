@@ -117,6 +117,7 @@ module Gorgon
     end
 
     def raise_if_completed
+      # TODO: Following should raise a specific error instead of a generic RuntimeError
       raise "JobState#file_finished called when job was already complete" if is_job_complete?
       puts "NOTICE: JobState#file_finished called after job was cancelled" if is_job_cancelled?
     end

@@ -12,25 +12,25 @@ describe Gorgon::HostState do
 
   describe "#total_workers_running" do
     it "returns 0 if there are no worker running files" do
-      @host_state.total_running_workers.should == 0
+      expect(@host_state.total_running_workers).to eq(0)
     end
 
     it "returns 1 if #file_started was called, but #file_finished has not been called with such a worker id" do
       @host_state.file_started "worker1", "path/to/file.rb"
-      @host_state.total_running_workers.should == 1
+      expect(@host_state.total_running_workers).to eq(1)
     end
 
     it "returns 0 if #file_started and #file_finished were called for the same worker_id" do
       @host_state.file_started "worker1", "path/to/file.rb"
       @host_state.file_finished "worker1", "path/to/file.rb"
-      @host_state.total_running_workers.should == 0
+      expect(@host_state.total_running_workers).to eq(0)
     end
 
     it "returns 1 if #file_started and #file_finished were called for different worker id (worker1)" do
       @host_state.file_started "worker1", "path/to/file.rb"
       @host_state.file_started "worker2", "path/to/file2.rb"
       @host_state.file_finished "worker2", "path/to/file2.rb"
-      @host_state.total_running_workers.should == 1
+      expect(@host_state.total_running_workers).to eq(1)
     end
   end
 
@@ -46,7 +46,7 @@ describe Gorgon::HostState do
         @host_state.each_running_file do |file|
           files << file
         end
-        files.should == ["path/to/file1.rb", "path/to/file2.rb"]
+        expect(files).to eq(["path/to/file1.rb", "path/to/file2.rb"])
       end
     end
 
@@ -58,7 +58,7 @@ describe Gorgon::HostState do
         @host_state.each_running_file do |file|
           files << file
         end
-        files.should == ["path/to/file1.rb"]
+        expect(files).to eq(["path/to/file1.rb"])
       end
     end
   end

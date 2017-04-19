@@ -18,7 +18,7 @@ describe Gorgon::JobDefinition do
 
       jd = Gorgon::JobDefinition.new(expected_hash)
 
-      @json_parser.parse(jd.to_json).should == expected_hash
+      expect(@json_parser.parse(jd.to_json)).to eq(expected_hash)
     end
   end
 end

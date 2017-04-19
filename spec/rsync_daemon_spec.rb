@@ -4,24 +4,26 @@ describe Gorgon::RsyncDaemon do
   let(:directory) {'/lol/hax'}
 
   before(:each) do
-    Kernel.stub(:system => true)
-    Dir.stub(:mkdir => nil)
-    Dir.stub(:chdir).and_yield
-    File.stub(:write => 100, :read => "12345", :directory? => true)
-    FileUtils.stub(:remove_entry_secure => nil)
-    TCPServer.stub(:new => double('TCPServer', :close => nil))
+    allow(Kernel).to receive(:system).and_return(true)
+    allow(Dir).to receive(:mkdir).and_return(nil)
+    allow(Dir).to receive(:chdir).and_yield
+    allow(File).to receive(:write).and_return(100)
+    allow(File).to receive(:read).and_return("12345")
+    allow(File).to receive(:directory?).and_return(true)
+    allow(FileUtils).to receive(:remove_entry_secure).and_return(nil)
+    allow(TCPServer).to receive(:new).and_return(double('TCPServer', :close => nil))
     @r = Gorgon::RsyncDaemon
   end
 
   it "starts the rsync daemon" do
-    Kernel.should_receive(:system).with("rsync --daemon --config rsyncd.conf")
+    allow(Kernel).to receive(:system).with("rsync --daemon --config rsyncd.conf")
 
     @r.start(directory)
   end
 
   it "creates a directory in temporary dir for the configuration and pid files" do
-    Dir.should_receive(:mkdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
-    Dir.should_receive(:chdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
+    expect(Dir).to receive(:mkdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
+    expect(Dir).to receive(:chdir).with(Gorgon::RsyncDaemon::RSYNC_DIR_NAME)
 
     @r.start(directory)
   end
@@ -36,22 +38,22 @@ pid file = rsync.pid
   read only = false
   use chroot = false
 EOF
-    File.should_receive(:write).with("rsyncd.conf", valid_config)
+    expect(File).to receive(:write).with("rsyncd.conf", valid_config)
 
     @r.start(directory)
   end
 
   it "reports when an error has prevented startup" do
-    Kernel.should_receive(:system).and_return(false)
+    expect(Kernel).to receive(:system).and_return(false)
 
-    @r.start(directory).should == false
+    expect(@r.start(directory)).to be_falsey
   end
 
   it "stops the rsync daemon" do
     @r.start(directory)
 
-    File.should_receive(:read).with("rsync.pid").and_return("12345")
-    Kernel.should_receive(:system).with("kill 12345")
+    expect(File).to receive(:read).with("rsync.pid").and_return("12345")
+    expect(Kernel).to receive(:system).with("kill 12345")
 
     @r.stop
   end

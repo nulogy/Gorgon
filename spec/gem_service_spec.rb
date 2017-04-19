@@ -8,46 +8,46 @@ describe Gorgon::GemService do
   let(:logger){ double("Originator Logger", :log => nil, :log_message => nil)}
 
   before do
-    $stdout.stub(:write)
-    Gorgon::GemService.any_instance.stub(:load_configuration_from_file).and_return configuration
-    EM.stub(:run).and_yield
-    EM.stub(:add_periodic_timer).and_yield
-    Gorgon::OriginatorLogger.stub(:new).and_return logger
-    Gorgon::OriginatorProtocol.stub(:new).and_return(protocol)
+    allow($stdout).to receive(:write)
+    allow_any_instance_of(Gorgon::GemService).to receive(:load_configuration_from_file).and_return configuration
+    allow(EM).to receive(:run).and_yield
+    allow(EM).to receive(:add_periodic_timer).and_yield
+    allow(Gorgon::OriginatorLogger).to receive(:new).and_return logger
+    allow(Gorgon::OriginatorProtocol).to receive(:new).and_return(protocol)
     @service = Gorgon::GemService.new
     @command = "install"
   end
 
   describe "#run" do
     it "runs EventMachine loop and connect using configuration[:connection]" do
-      EM.should_receive(:run)
-      protocol.should_receive(:connect).once.ordered.with({:host => "host"}, anything)
+      expect(EM).to receive(:run)
+      expect(protocol).to receive(:connect).once.ordered.with({:host => "host"}, anything)
       @service.run @command
     end
 
     it "calls Protocol#send_message_to_listeners with version number" do
-      protocol.should_receive(:send_message_to_listeners).with(:gem_command, :gem_command => @command)
+      expect(protocol).to receive(:send_message_to_listeners).with(:gem_command, :gem_command => @command)
       @service.run @command
     end
 
     it "adds a periodic timer that checks if there is any listener running command" do
-      EM.should_receive(:add_periodic_timer).with(Gorgon::GemService::TIMEOUT)
+      expect(EM).to receive(:add_periodic_timer).with(Gorgon::GemService::TIMEOUT)
       @service.run @command
     end
 
     context "when it receives an running_command message" do
       before do
         payload = {:type => "running_command", :hostname => "host"}
-        protocol.stub(:receive_payloads).and_yield Yajl::Encoder.encode(payload)
+        allow(protocol).to receive(:receive_payloads).and_yield Yajl::Encoder.encode(payload)
       end
 
       it "writes to console" do
-        $stdout.should_receive(:write).with(/host/)
+        expect($stdout).to receive(:write).with(/host/)
         @service.run @command
       end
 
       it "won't diconnect as long as there is a host running_command" do
-        protocol.should_not_receive(:disconnect)
+        expect(protocol).not_to receive(:disconnect)
         @service.run @command
       end
     end
@@ -56,17 +56,17 @@ describe Gorgon::GemService do
       before do
         running_command_payload = {:type => "running_command", :hostname => "host"}
         complete_payload = {:type => "command_completed", :hostname => "host"}
-        protocol.stub(:receive_payloads).and_yield(Yajl::Encoder.encode(running_command_payload))
+        allow(protocol).to receive(:receive_payloads).and_yield(Yajl::Encoder.encode(running_command_payload))
           .and_yield(Yajl::Encoder.encode(complete_payload))
       end
 
       it "writes to console" do
-        $stdout.should_receive(:write).at_least(:twice).with(/host/)
+        expect($stdout).to receive(:write).at_least(:twice).with(/host/)
         @service.run @command
       end
 
       it "disconnect since there is no host running command anymore" do
-        protocol.should_receive(:disconnect)
+        expect(protocol).to receive(:disconnect)
         @service.run @command
       end
     end

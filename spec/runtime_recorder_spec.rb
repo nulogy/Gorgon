@@ -9,7 +9,7 @@ describe Gorgon::RuntimeRecorder do
   describe "#initialize" do
     it "adds itself to observers of job_state and sets records as empty" do
       job_state = Gorgon::JobState.new 1
-      job_state.should_receive(:add_observer)
+      expect(job_state).to receive(:add_observer)
       runtime_recorder = Gorgon::RuntimeRecorder.new job_state, runtime_filename
       expect(runtime_recorder.records).to eq({})
     end
@@ -36,14 +36,14 @@ describe Gorgon::RuntimeRecorder do
     end
 
     it "should write to the file if job is completed" do
-      @job_state.stub(:is_job_complete?).and_return(true)
-      @runtime_recorder.should_receive(:write_records_to_file)
+      allow(@job_state).to receive(:is_job_complete?).and_return(true)
+      expect(@runtime_recorder).to receive(:write_records_to_file)
       @runtime_recorder.update(payload)
     end
 
     it "should not write to the file if job is not completed" do
-      @job_state.stub(:is_job_complete?).and_return(false)
-      @runtime_recorder.should_not_receive(:write_records_to_file)
+      allow(@job_state).to receive(:is_job_complete?).and_return(false)
+      expect(@runtime_recorder).not_to receive(:write_records_to_file)
       @runtime_recorder.update(payload)
     end
   end
@@ -59,18 +59,18 @@ describe Gorgon::RuntimeRecorder do
     it "should not write if no file is given" do
       runtime_recorder = Gorgon::RuntimeRecorder.new @job_state, nil
       runtime_recorder.records = sample_records
-      file = mock('file')
-      File.should_not_receive(:open).and_yield(file)
-      file.should_not_receive(:write)
+      file = double('file')
+      expect(File).not_to receive(:open).and_yield(file)
+      expect(file).not_to receive(:write)
       runtime_recorder.write_records_to_file
     end
 
     it "should write sorted records to the given file" do
       runtime_recorder = Gorgon::RuntimeRecorder.new @job_state, runtime_filename
       runtime_recorder.records = sample_records
-      file = mock('file')
-      File.should_receive(:open).with(runtime_filename, 'w').and_yield(file)
-      file.should_receive(:write).with("{\n  \"two.rb\": 2.23,\n  \"one.rb\": 1.23,\n  \"zero.rb\": 0.23\n}")
+      file = double('file')
+      expect(File).to receive(:open).with(runtime_filename, 'w').and_yield(file)
+      expect(file).to receive(:write).with("{\n  \"two.rb\": 2.23,\n  \"one.rb\": 1.23,\n  \"zero.rb\": 0.23\n}")
       runtime_recorder.write_records_to_file
     end
   end
