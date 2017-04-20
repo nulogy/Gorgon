@@ -2,9 +2,4 @@ language: ruby
 sudo: required
 services:
   - rabbitmq
-before_script:
-  - pushd tests/end_to_end
-  - bundle install
-  - bundle exec gorgon listen &
-  - popd
-script: "bundle exec rspec spec"
+script: sh -c ./.travis-run-tests.sh
