@@ -6,20 +6,20 @@ class MyCallbacks < Gorgon::DefaultCallbacks
 
   BUNDLE_LOG_FILE||="/tmp/gorgon-bundle-install.log "
   def after_sync
-    #require 'bundler'
-    #require 'open4'
+    require 'bundler'
+    require 'open4'
 
-    ## raise "BOOOOOOOOOOOM"
-    #Bundler.with_clean_env do
+    # raise "BOOOOOOOOOOOM"
+    Bundler.with_clean_env do
 
-      #pid, stdin, stdout, stderr = Open4::popen4 "bundle install > #{BUNDLE_LOG_FILE} 2>&1 "
+      pid, stdin, stdout, stderr = Open4::popen4 "bundle install > #{BUNDLE_LOG_FILE} 2>&1 "
 
-      #ignore, status = Process.waitpid2 pid
+      ignore, status = Process.waitpid2 pid
 
-      #if status.exitstatus != 0
-        #raise "There was an error when running 'bundle install'\n#{stderr.read}"
-      #end
-    #end
+      if status.exitstatus != 0
+        raise "There was an error when running 'bundle install'\n#{stderr.read}"
+      end
+    end
   end
 
   def before_creating_workers
