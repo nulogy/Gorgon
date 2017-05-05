@@ -1,10 +1,10 @@
 require "open4"
 require "socket"
+require File.expand_path("../support/end_to_end_helpers", __FILE__)
 
 describe "EndToEnd" do
-  COLOR_REGEX = /\e\[(\d+)(;\d+)*m/
-  PATH_REGEX  = /^\/.+\n/
-  AFTER_RUNNING_REGEX = /running after_job_finishes/
+  include Gorgon::EndToEndHelpers
+
   HOSTNAME = Socket.gethostname
 
   before(:all) do
@@ -40,16 +40,13 @@ Progress: ||
 
   context "last hunk" do
     it "has information for running after_job_finishes callback" do
-      expect(@outputs.last).to match(AFTER_RUNNING_REGEX)
+      expect(@outputs.last).to match(Gorgon::EndToEndHelpers::AFTER_RUNNING_REGEX)
     end
   end
 
   context "exception test" do
     it "has proper error output" do
-      actual_output = @outputs.grep /Stuff::Haha1/
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
+      actual_output = extract_hunk(@outputs, /Stuff::Haha1/)
       expected_output = <<-EXPECTED
 
 File 'test/unit/exception_test.rb' failed/crashed at '#{HOSTNAME}:1'
@@ -66,10 +63,7 @@ RuntimeError: oh mah gawd
 
   context "exception spec" do
     it "has proper error output" do
-      actual_output = @outputs.grep /exception_spec/
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
+      actual_output = extract_hunk(@outputs, /exception_spec/)
       expected_output = <<-EXPECTED
 
 File 'spec/exception_spec.rb' failed/crashed at '#{HOSTNAME}:1'
@@ -87,11 +81,7 @@ Message:
 
   context "syntax error test" do
     it "has proper error output" do
-      actual_output = @outputs.grep(/1_syntax_error_test/)
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
-      actual_output = actual_output.gsub(PATH_REGEX, '')
+      actual_output = extract_hunk(@outputs, /1_syntax_error_test/, strip_backtrace: true)
       expected_output = <<-EXPECTED
 
 File 'test/unit/1_syntax_error_test.rb' failed/crashed at '#{HOSTNAME}:1'
@@ -104,11 +94,7 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
 
   context "syntax error spec" do
     it "has proper error output" do
-      actual_output = @outputs.grep(/1_syntax_error_spec/)
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
-      actual_output = actual_output.gsub(PATH_REGEX, '')
+      actual_output = extract_hunk(@outputs, /1_syntax_error_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
 
 File 'spec/1_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
@@ -121,10 +107,7 @@ Exception: undefined local variable or method `ruby' for main:Object
 
   context "failing test" do
     it "has proper error output" do
-      actual_output = @outputs.grep(/failing_test\.rb/)
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
+      actual_output = extract_hunk(@outputs, /failing_test\.rb/)
       expected_output = <<-EXPECTED
 
 File 'test/unit/failing_test.rb' failed/crashed at '#{HOSTNAME}:1'
@@ -142,10 +125,7 @@ test_will_fail(Stuff::Over9000) [test/unit/failing_test.rb:10]:
 
   context "failing spec" do
     it "has proper error output" do
-      actual_output = @outputs.grep(/failing_spec\.rb/)
-      expect(actual_output[0]).not_to be_nil
-      actual_output = actual_output[0].gsub(COLOR_REGEX, '')
-      actual_output = actual_output.gsub(AFTER_RUNNING_REGEX, '')
+      actual_output = extract_hunk(@outputs, /failing_spec\.rb/)
       expected_output = <<-EXPECTED
 
 File 'spec/failing_spec.rb' failed/crashed at '#{HOSTNAME}:1'
