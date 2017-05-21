@@ -1,6 +1,6 @@
 {
   "connection": {
-    "host": "localhost"
+    "host": "0.0.0.0"
   },
   "file_server": {
     "host": "localhost"
