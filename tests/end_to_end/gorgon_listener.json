@@ -1,6 +1,6 @@
 {
   "connection": {
-    "host": "localhost"
+    "host": "0.0.0.0"
   },
 
   "worker_slots": 1,
