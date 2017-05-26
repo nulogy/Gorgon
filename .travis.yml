@@ -3,6 +3,8 @@ sudo: required
 services:
   - docker
 before_script:
+  - gem build gorgon.gemspec
+  - gem install gorgon
   - pushd tests/end_to_end
   - bundle install
   - docker-compose up -d
