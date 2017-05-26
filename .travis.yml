@@ -7,6 +7,9 @@ before_script:
   - gem install gorgon
   - pushd tests/end_to_end
   - bundle install
+  - mkdir -p ~/.ssh
+  - ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
+  - cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
   - docker-compose up -d
   - sleep 15
   - bundle exec gorgon listen &
