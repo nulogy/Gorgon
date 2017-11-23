@@ -16,7 +16,8 @@ module RSpec
           @failures = []
         end
 
-        def message(_notification)
+        def message(notification)
+          @failures << notification.message
         end
 
         def stop(notification=nil)
