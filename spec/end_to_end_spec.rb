@@ -65,12 +65,12 @@ RuntimeError: oh mah gawd
     it "has proper error output" do
       actual_output = extract_hunk(@outputs, /2_require_missing_file_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
+File 'spec/2_require_missing_file_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 
-spec/2_require_missing_file_spec.rb' failed/crashed at 'Jordan.local:1'
-Exception: /private/v...spec/2_require_missing_file_spec.rb:6: syntax error, unexpected keyword_end, expecting end-of-input
-
+An error occurred while loading ./spec/2_require_missing_file_spec.rb.
+Failure/Error: load file
       EXPECTED
-      expect(actual_output.strip).to eq(expected_output.strip)
+      expect(actual_output.strip).to include(expected_output.strip)
     end
   end
 
@@ -101,7 +101,7 @@ File 'test/unit/1_syntax_error_test.rb' failed/crashed at '#{HOSTNAME}:1'
 Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-input, expecting keyword_end
 
       EXPECTED
-      expect(actual_output).to eq(expected_output)
+      expect(actual_output.strip).to eq(expected_output.strip)
     end
   end
 
@@ -109,7 +109,7 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
     it "has proper error output" do
       actual_output = extract_hunk(@outputs, /1_syntax_error_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
-File 'spec/1_syntax_error_spec.rb' failed/crashed at 'Jordan.local:1'
+File 'spec/1_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 
 An error occurred while loading ./spec/1_syntax_error_spec.rb.
 Failure/Error: using invalid ruby
