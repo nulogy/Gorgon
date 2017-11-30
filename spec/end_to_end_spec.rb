@@ -109,10 +109,16 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
     it "has proper error output" do
       actual_output = extract_hunk(@outputs, /1_syntax_error_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
-File 'spec/1_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
-Exception: undefined local variable or method `ruby' for main:Object
+File 'spec/1_syntax_error_spec.rb' failed/crashed at 'Jordan.local:1'
+
+An error occurred while loading ./spec/1_syntax_error_spec.rb.
+Failure/Error: using invalid ruby
+
+NameError:
+  undefined local variable or method `ruby' for main:Object
       EXPECTED
-      expect(actual_output.strip).to eq(expected_output.strip)
+
+      expect(actual_output.strip).to include(expected_output.strip)
     end
   end
 
