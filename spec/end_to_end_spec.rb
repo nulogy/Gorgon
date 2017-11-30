@@ -16,7 +16,7 @@ describe "EndToEnd" do
 
   context "number of output hunks" do
     it "is same as errors raised plus meta information" do
-      expect(@outputs.count).to eq(7), "expected 7 output hunks, got:\n#{@outputs.inspect}"
+      expect(@outputs.count).to eq(8), "expected 8 output hunks, got: #{@outputs.count} hunks\n#{@outputs.inspect}"
     end
   end
 
@@ -58,6 +58,19 @@ RuntimeError: oh mah gawd
       EXPECTED
 
       expect(actual_output).to eq(expected_output)
+    end
+  end
+
+  context "require missing file" do
+    it "has proper error output" do
+      actual_output = extract_hunk(@outputs, /2_require_missing_file_spec/, strip_backtrace: true)
+      expected_output = <<-EXPECTED
+
+spec/2_require_missing_file_spec.rb' failed/crashed at 'Jordan.local:1'
+Exception: /private/v...spec/2_require_missing_file_spec.rb:6: syntax error, unexpected keyword_end, expecting end-of-input
+
+      EXPECTED
+      expect(actual_output.strip).to eq(expected_output.strip)
     end
   end
 
