@@ -25,7 +25,7 @@
   "files": [
     "spec/**/*_spec.rb",
     "test/**/*_test.rb",
-    "spec/2_require_missing_file_spec.rb"
+    "spec/1_syntax_error_spec.rb"
   ],
   "originator_log_file": "log/gorgon-originator.log"
 }
