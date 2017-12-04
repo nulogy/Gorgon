@@ -28,7 +28,7 @@ module RSpec
               full_description: failure.full_description,
               status: :failed,
               file_path: failure.metadata[:file_path],
-              line_number: failure.metadata[:line_number],
+              line_number: failure.metadata[:line_number]
             }.tap do |hash|
               exception = failure.exception
               unless exception.nil?
