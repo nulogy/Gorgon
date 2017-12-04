@@ -17,7 +17,7 @@ module RSpec
         end
 
         def message(notification)
-          @failures << "\nNOTE: Rerun gorgon after fixing this test. RSpec might not be actually running the other tests due to this non example failure.\n" + notification.message
+          @failures << rerun_note + notification.message
         end
 
         def stop(notification=nil)
@@ -51,6 +51,12 @@ module RSpec
         def close(_notification=nil)
           output.write @failures.to_json
           output.close if IO === output && output != $stdout
+        end
+
+        private
+
+        def rerun_note
+          "\nNOTE: Rerun gorgon after fixing this test. RSpec might not be actually running the other tests due to this non example failure.\n"
         end
       end
     end
