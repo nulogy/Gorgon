@@ -17,7 +17,7 @@ module RSpec
         end
 
         def message(notification)
-          @failures << notification.message
+          @failures << "\nNOTE: Rerun gorgon after fixing this test. RSpec might not be actually running the other tests due to this non example failure.\n" + notification.message
         end
 
         def stop(notification=nil)

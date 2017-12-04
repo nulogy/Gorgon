@@ -98,6 +98,8 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
       expected_output = <<-EXPECTED
 File 'spec/non_example_failures/syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 
+NOTE: Rerun gorgon after fixing this test. RSpec might not be actually running the other tests due to this non example failure.
+
 An error occurred while loading ./spec/non_example_failures/syntax_error_spec.rb.
 Failure/Error: using invalid ruby
 
