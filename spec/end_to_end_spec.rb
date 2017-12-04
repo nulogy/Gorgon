@@ -94,11 +94,11 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
 
   context "syntax error spec" do
     it "has proper error output" do
-      actual_output = extract_hunk(@outputs, /1_syntax_error_spec/, strip_backtrace: true)
+      actual_output = extract_hunk(@outputs, /z_syntax_error_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
-File 'spec/1_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
+File 'spec/z_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 
-An error occurred while loading ./spec/1_syntax_error_spec.rb.
+An error occurred while loading ./spec/z_syntax_error_spec.rb.
 Failure/Error: using invalid ruby
 
 NameError:

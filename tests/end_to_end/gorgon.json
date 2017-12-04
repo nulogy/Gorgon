@@ -24,8 +24,7 @@
   },
   "files": [
     "spec/**/*_spec.rb",
-    "test/**/*_test.rb",
-    "spec/1_syntax_error_spec.rb"
+    "test/**/*_test.rb"
   ],
   "originator_log_file": "log/gorgon-originator.log"
 }
