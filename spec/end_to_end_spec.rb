@@ -66,7 +66,7 @@ RuntimeError: oh mah gawd
       actual_output = extract_hunk(@outputs, /exception_spec/)
       expected_output = <<-EXPECTED
 
-File 'spec/exception_spec.rb' failed/crashed at '#{HOSTNAME}:1'
+File 'spec/examples/exception_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 Test name: Exception spec raises: line 2
 RuntimeError
 Message: 
@@ -94,11 +94,11 @@ Exception: test/unit/1_syntax_error_test.rb:9: syntax error, unexpected end-of-i
 
   context "syntax error spec" do
     it "has proper error output" do
-      actual_output = extract_hunk(@outputs, /z_syntax_error_spec/, strip_backtrace: true)
+      actual_output = extract_hunk(@outputs, /syntax_error_spec/, strip_backtrace: true)
       expected_output = <<-EXPECTED
-File 'spec/z_syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
+File 'spec/non_example_failures/syntax_error_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 
-An error occurred while loading ./spec/z_syntax_error_spec.rb.
+An error occurred while loading ./spec/non_example_failures/syntax_error_spec.rb.
 Failure/Error: using invalid ruby
 
 NameError:
@@ -132,7 +132,7 @@ test_will_fail(Stuff::Over9000) [test/unit/failing_test.rb:10]:
       actual_output = extract_hunk(@outputs, /failing_spec\.rb/)
       expected_output = <<-EXPECTED
 
-File 'spec/failing_spec.rb' failed/crashed at '#{HOSTNAME}:1'
+File 'spec/examples/failing_spec.rb' failed/crashed at '#{HOSTNAME}:1'
 Test name: Failing spec fails: line 6
 RSpec::Expectations::ExpectationNotMetError
 Message: 

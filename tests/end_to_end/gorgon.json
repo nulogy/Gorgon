@@ -23,8 +23,9 @@
     }
   },
   "files": [
-    "spec/**/*_spec.rb",
-    "test/**/*_test.rb"
+    "spec/examples/**/*_spec.rb",
+    "test/**/*_test.rb",
+    "spec/non_example_failures/**/*_spec.rb"
   ],
   "originator_log_file": "log/gorgon-originator.log"
 }
