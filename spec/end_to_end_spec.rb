@@ -5,7 +5,7 @@ require File.expand_path("../support/end_to_end_helpers", __FILE__)
 describe "EndToEnd" do
   include Gorgon::EndToEndHelpers
 
-  HOSTNAME = Socket.gethostname
+  HOSTNAME = "listener"
 
   before(:all) do
     Dir.chdir(File.join(__dir__, "..", "tests", "end_to_end")) do
