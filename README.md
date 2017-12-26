@@ -87,4 +87,4 @@ Gorgon is maintained by:
 * Arturo Pie
 
 Gorgon is funded by [Nulogy Corp](http://www.nulogy.com/).
-Thank you to all the [contributors](https://github.com/Fitzsimmons/Gorgon/contributors).
+Thank you to all the [contributors](https://github.com/nulogy/Gorgon/contributors).
