@@ -12,6 +12,7 @@ services:
     container_name: "gorgon_listener"
     build: .
     entrypoint: "sleep infinity"
+    hostname: listener
     volumes:
       - .:/opt/gorgon
     depends_on:
