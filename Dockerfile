@@ -5,9 +5,10 @@ RUN apt-get update -y && apt-get install -y \
   git \
   net-tools # we need ifconfig
 
-RUN mkdir -p ~/.ssh \
-  && ssh-keygen -f ~/.ssh/id_rsa -t rsa -N '' \
-  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+RUN mkdir -p ~/.ssh
+
+ADD tests/end_to_end/test_gorgon.pem .
+RUN mv test_gorgon.pem ~/.ssh/id_rsa
 
 WORKDIR '/opt/gorgon'
 
