@@ -1,9 +1,9 @@
 {
   "connection": {
-    "host": "0.0.0.0"
+    "host": "rabbitmq"
   },
   "file_server": {
-    "host": "localhost"
+    "host": "file_server"
   },
   "job": {
     "sync": {
