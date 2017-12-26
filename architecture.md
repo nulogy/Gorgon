@@ -1,7 +1,7 @@
 Architecture
 ---------------------
 
-[Gorgon](https://github.com/Fitzsimmons/Gorgon/) distributes a test suite across multiple machines. So you can use all the computer power in your office to run your tests in parallel.
+[Gorgon](https://github.com/nulogy/Gorgon/) distributes a test suite across multiple machines. So you can use all the computer power in your office to run your tests in parallel.
 
 These are the main components of Gorgon's architecture:
 
@@ -33,7 +33,7 @@ When a *listener* receives a *job definition*, it:
 After WorkerManager starts, it:
 
 * Runs before_creating_workers callback
-* Forks n workers, where n is the number of available worker slots specified in [gorgon configuration](https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon_listener.json.sample).
+* Forks n workers, where n is the number of available worker slots specified in [gorgon configuration](https://github.com/nulogy/Gorgon/blob/master/gorgon_listener.json.sample).
 * Subscribes to a queue where originator can send a cancel_job message
 
 Each Worker:

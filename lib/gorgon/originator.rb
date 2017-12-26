@@ -220,7 +220,7 @@ module Gorgon
       if configuration[:file_server].nil?
         raise <<-MSG
         Missing file_server configuration.
-        See https://github.com/Fitzsimmons/Gorgon/blob/master/gorgon.json.sample for a sample configuration
+        See https://github.com/nulogy/Gorgon/blob/master/gorgon.json.sample for a sample configuration
         MSG
       end
 
