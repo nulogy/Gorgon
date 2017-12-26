@@ -1,6 +1,6 @@
 {
   "connection": {
-    "host": "0.0.0.0"
+    "host": "rabbitmq"
   },
 
   "worker_slots": 1,

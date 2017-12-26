@@ -4,3 +4,24 @@ services:
     image: "rabbitmq:alpine"
     ports:
       - "5672:5672"
+  file_server:
+    build: "file_server"
+    volumes:
+      - .:/opt/gorgon
+  listener:
+    container_name: "gorgon_listener"
+    build: .
+    entrypoint: "sleep infinity"
+    volumes:
+      - .:/opt/gorgon
+    depends_on:
+      - rabbitmq
+  originator:
+    container_name: "gorgon_originator"
+    build: .
+    entrypoint: "sleep infinity"
+    volumes:
+      - .:/opt/gorgon
+    depends_on:
+      - rabbitmq
+
