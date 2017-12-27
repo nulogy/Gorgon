@@ -8,4 +8,4 @@ before_script:
   - sleep 15
   - docker-compose exec listener /bin/bash -c 'cd tests/end_to_end && gorgon listen' &
   - docker-compose exec originator /bin/bash -c 'cd tests/end_to_end && gorgon' || true # ignore error status from gorgon run
-script: "docker-compose exec originator rspec"
+script: "docker-compose exec originator rake"

@@ -8,7 +8,7 @@ RUN apt-get update -y && apt-get install -y \
 RUN mkdir -p ~/.ssh
 
 ADD tests/end_to_end/test_gorgon.pem .
-RUN mv test_gorgon.pem ~/.ssh/id_rsa
+RUN mv test_gorgon.pem ~/.ssh/id_rsa && chmod 400 ~/.ssh/id_rsa
 
 WORKDIR '/opt/gorgon'
 
