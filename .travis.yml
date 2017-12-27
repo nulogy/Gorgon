@@ -6,4 +6,4 @@ before_script:
   - sleep 15
   - ./run_listener.sh &
   - ./run_gorgon.sh || true # ignore error status from gorgon run
-script: "docker-compose exec originator rake"
+script: docker-compose exec originator rake
