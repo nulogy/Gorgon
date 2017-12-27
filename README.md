@@ -62,23 +62,24 @@ Contributing
 ---------------------
 Read overview [architecture](/architecture.md)
 
+### Requirements:
+
+* You only need [Docker](https://docs.docker.com/docker-for-mac/install/)
+
+### Prepare your environment
+
+* Execute `./run_dev_environment.sh`
+* In a new terminal tab, execute `./run_listener.sh`
+
+**NOTE:** If you make changes changes to `listener` code, you must restart `./run_listener.sh` for those changes to take effect
+
 ### Running all tests
 
-* `rake`
+* `./run_test.sh`
 
-### Running only specs
+### Running gorgon using the `tests/end_to_end` dummy project
 
-* `rspec spec`
-
-**NOTE:** The end to end tests will fail if we do not prepare our system to run them.
-
-### Running end to end specs
-
-1. `cd tests/end_to_end`
-1. Run `/usr/local/sbin/rabbitmq-server` in the background
-1. `bundle install`
-1. `gorgon listen`
-1. In a new tab/window, run `rspec spec`
+* `./run_gorgon.sh`
 
 Credits
 ---------------------
