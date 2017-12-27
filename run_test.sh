@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker-compose exec originator /bin/bash -c 'rake'
+docker-compose exec originator rake
