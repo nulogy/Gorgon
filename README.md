@@ -81,6 +81,12 @@ Read overview [architecture](/architecture.md)
 
 * `./run_gorgon.sh`
 
+Releasing to RubyGems
+---------------------
+
+1. Update `version.rb`
+1. Run `rake release`
+
 Credits
 ---------------------
 Gorgon is maintained by:
