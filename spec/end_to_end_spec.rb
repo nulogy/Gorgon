@@ -8,7 +8,7 @@ describe "EndToEnd" do
   HOSTNAME = "listener"
 
   before(:all) do
-    Dir.chdir(File.join(__dir__, "..", "tests", "end_to_end")) do
+    Dir.chdir(File.join(__dir__, "dummy")) do
       pid, stdin, stdout, stderr = Open4::popen4("bundle exec gorgon")
       @outputs = stdout.read.split("*" * 80)
     end
