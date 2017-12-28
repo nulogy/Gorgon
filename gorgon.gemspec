@@ -32,6 +32,6 @@ Gem::Specification.new do |s|
 
   # this dependencies are clashing with one of our apps
   # This problem should be fixed
-  s.add_runtime_dependency "yajl-ruby", '=1.1.0'
+  s.add_runtime_dependency "yajl-ruby", '=1.3.1'
   s.add_runtime_dependency "uuidtools", '=2.1.3'
 end
