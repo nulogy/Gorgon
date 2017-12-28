@@ -73,7 +73,7 @@ DEPENDENCIES
   minitest (= 2.11.0)
   minitest-reporters
   pry-byebug
-  rspec (>= 3.4.0)
+  rspec (>= 3.4.0, < 3.6.0)
   test-unit
 
 BUNDLED WITH
