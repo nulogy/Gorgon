@@ -31,12 +31,10 @@ class RspecRunner
 
     def keep_config_modules
       orig_configuration = ::RSpec.configuration.clone
-      orig_shared_example_groups = ::RSpec.world.instance_variable_get(:@shared_example_group_registry).clone
       yield
     ensure
       ::RSpec.clear_examples
       ::RSpec.instance_variable_set(:@configuration, orig_configuration)
-      ::RSpec.world.instance_variable_set(:@shared_example_group_registry, orig_shared_example_groups)
     end
   end
 end
