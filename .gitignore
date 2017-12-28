@@ -10,6 +10,5 @@ pkg
 .idea
 .rbenv-version
 *.log
-.rspec
 .rake_tasks
 *.gem
