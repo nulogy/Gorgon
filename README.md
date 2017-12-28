@@ -77,7 +77,7 @@ Read overview [architecture](/architecture.md)
 
 * `./run_test.sh`
 
-### Running gorgon using the `tests/end_to_end` dummy project
+### Running gorgon using the `spec/dummy` project
 
 * `./run_gorgon.sh`
 
