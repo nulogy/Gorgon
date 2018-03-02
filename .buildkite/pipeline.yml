@@ -1,3 +1,8 @@
 steps:
   - label: Example Test
-    command: echo "Hello!"
+    command:
+      - ./run_dev_environment.sh -d
+      - sleep 15
+      - ./run_listener.sh &
+      - ./run_gorgon.sh || true # ignore error status from gorgon run
+      - ./run_test.sh
