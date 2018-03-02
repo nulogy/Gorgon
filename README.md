@@ -1,4 +1,4 @@
-# Gorgon [![Build Status](https://travis-ci.org/nulogy/Gorgon.svg?branch=master)](https://travis-ci.org/nulogy/Gorgon) [![Gem Version](https://badge.fury.io/rb/gorgon.svg)](https://rubygems.org/gems/gorgon) [![Code Climate](https://codeclimate.com/github/nulogy/Gorgon/badges/gpa.svg)](https://codeclimate.com/github/nulogy/Gorgon)
+# Gorgon [![Build status](https://badge.buildkite.com/d6dbe3f3d2c6823e588f815a2935e7c0513cbac545e17798b4.svg)](https://buildkite.com/nulogy-corp/gorgon) [![Build Status](https://travis-ci.org/nulogy/Gorgon.svg?branch=master)](https://travis-ci.org/nulogy/Gorgon) [![Gem Version](https://badge.fury.io/rb/gorgon.svg)](https://rubygems.org/gems/gorgon) [![Code Climate](https://codeclimate.com/github/nulogy/Gorgon/badges/gpa.svg)](https://codeclimate.com/github/nulogy/Gorgon)
 
 About
 ---------------------
