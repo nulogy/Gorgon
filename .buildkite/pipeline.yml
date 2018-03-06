@@ -1,0 +1,25 @@
+steps:
+  - label: '🔨:rspec: Tests'
+    command:
+      - ./run_dev_environment.sh -d
+      - sleep 15
+      - ./run_listener.sh &
+      - ./run_gorgon.sh || true # ignore error status from gorgon run
+      - ./run_test.sh
+
+  - label: ':nodesecurity: Security Scan'
+    command: 'echo TODO'
+
+  - wait
+
+  - label: '📦 Build'
+    command: 'docker-compose exec originator rake build'
+    artifact_paths: 'pkg/*'
+
+  - block: ':shipit: Release'
+
+  - label: ':rubygems: Release Rubygem'
+    command: 'echo TODO'
+
+  - label: ':docker: Release Image'
+    command: 'echo TODO'
