@@ -1,7 +1,5 @@
 require 'gorgon/gorgon_rspec_formatter'
 
-BaseFormatter = RSpec::Core::Formatters::GorgonRspecFormatter
-
 describe RSpec::Core::Formatters::GorgonRspecFormatter do
   let(:example) {double("Example", :description => "description",
                       :full_description => "Full_Description",
@@ -18,7 +16,7 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
   let(:output) { double("StringIO", :write => nil, :close => nil) }
 
   before do
-    @formatter = BaseFormatter.new(output)
+    @formatter = RSpec::Core::Formatters::GorgonRspecFormatter.new(output)
   end
 
   it "returns an array of hashes when there are failures" do
