@@ -16,15 +16,24 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
   let(:output) { double("StringIO", :write => nil, :close => nil) }
   let(:formatter) { RSpec::Core::Formatters::GorgonRspecFormatter.new(output) }
 
-  it "returns an array of hashes when there are failures" do
-    allow(formatter).to receive(:examples).and_return([example, fail_example])
+  context "when there are failures" do
+    it "returns an array of hashes" do
+      allow(formatter).to receive(:examples).and_return([example, fail_example])
 
-    expected_result = [{:test_name => "Full_Description: line 2", :description => "description",
-                         :full_description => "Full_Description", :status => "failed",
-                         :file_path => "path/to/file", :line_number => 2}]
-    expect(output).to receive(:write).with(expected_result.to_json)
+      expected_result = [
+        {
+          test_name: "Full_Description: line 2",
+          description: "description",
+          full_description: "Full_Description",
+          status: "failed",
+          file_path: "path/to/file",
+          line_number: 2
+        }
+      ]
+      expect(output).to receive(:write).with(expected_result.to_json)
 
-    run_formatter(formatter)
+      run_formatter(formatter)
+    end
   end
 
   it "returns an empty array when all examples pass" do
