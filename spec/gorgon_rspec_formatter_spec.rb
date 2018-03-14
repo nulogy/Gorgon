@@ -28,16 +28,15 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
                          :full_description => "Full_Description", :status => "failed",
                          :file_path => "path/to/file", :line_number => 2}]
     expect(output).to receive(:write).with(expected_result.to_json)
-    @formatter.stop
-    @formatter.close
+    run_formatter(@formatter)
   end
 
   it "returns an empty array when all examples pass" do
     allow(@formatter).to receive(:examples).and_return([example, example])
 
     expect(output).to receive(:write).with("[]")
-    @formatter.stop
-    @formatter.close
+
+    run_formatter(@formatter)
   end
 
   it "returns an empty array when all examples are pending" do
@@ -45,8 +44,8 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
     allow(@formatter).to receive(:examples).and_return([example, example])
 
     expect(output).to receive(:write).with("[]")
-    @formatter.stop
-    @formatter.close
+
+    run_formatter(@formatter)
   end
 
   it "returns exception details if there is an exception" do
@@ -57,8 +56,8 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
                          :file_path => "path/to/file", :line_number => 2, :class => Object.name,
                          :message => "some msg", :location => "backtrace"}]
     expect(output).to receive(:write).with(expected_result.to_json)
-    @formatter.stop
-    @formatter.close
+
+    run_formatter(@formatter)
   end
 
   it "uses RSpec 3 API when available" do
@@ -69,7 +68,12 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
         :full_description => "Full_Description", :status => "failed",
         :file_path => "path/to/file", :line_number => 2}]
     expect(output).to receive(:write).with(expected_result.to_json)
-    @formatter.stop(notification)
-    @formatter.close
+
+    run_formatter(@formatter, stop_notification: notification)
+  end
+
+  def run_formatter(formatter, stop_notification: nil)
+    formatter.stop(stop_notification)
+    formatter.close
   end
 end
