@@ -19,7 +19,7 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
   context "when there are failures" do
     it "returns an array of hashes" do
       allow(formatter).to receive(:examples).and_return([example, fail_example])
-      seed_notification = double("SeedNotification", seed_used?: true, seed: "_seed_value_")
+      seed_notification = double("SeedNotification", seed: "_seed_value_")
 
       expected_result = [
         {

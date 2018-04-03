@@ -25,8 +25,6 @@ module RSpec
         end
 
         def seed(seed_notification)
-          return unless seed_notification.seed_used?
-
           @seed = seed_notification.seed
         end
 
