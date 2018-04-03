@@ -97,8 +97,15 @@ module Gorgon
     def print_failed_tests
       @job_state.each_failed_test do |test|
         puts "\n" + ('*' * 80).magenta #light_red
-        puts("File '#{test[:filename].colorize(Colors::FILENAME)}' failed/crashed at " \
-             + "'#{test[:hostname].colorize(Colors::HOST)}:#{test[:worker_id]}'\n")
+
+        message_parts = [
+          "File '#{test[:filename].colorize(Colors::FILENAME)}'",
+          " failed/crashed at ",
+          "'#{test[:hostname].colorize(Colors::HOST)}:#{test[:worker_id]}'",
+          "\n"
+        ]
+        puts message_parts.join("")
+
         msg = build_fail_message test[:failures]
         puts "#{msg}\n"
       end
