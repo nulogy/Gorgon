@@ -100,6 +100,7 @@ module Gorgon
 
         message_parts = [
           "File '#{test[:filename].colorize(Colors::FILENAME)}'",
+          print_seed?(test) ? "(seed: #{test[:seed]})" : "",
           " failed/crashed at ",
           "'#{test[:hostname].colorize(Colors::HOST)}:#{test[:worker_id]}'",
           "\n"
@@ -109,6 +110,10 @@ module Gorgon
         msg = build_fail_message test[:failures]
         puts "#{msg}\n"
       end
+    end
+
+    def print_seed?(test_payload)
+      test_payload.key?(:seed) && !test_payload[:seed].empty?
     end
 
     def build_fail_message failures

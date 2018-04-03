@@ -80,6 +80,26 @@ describe Gorgon::ProgressBarView do
       @progress_bar_view.update
     end
 
+    context "when seed is present" do
+      let(:payload_with_seed) do
+        {
+          filename: "path/file.rb",
+          hostname: "host",
+          failures: ["Failure messages"],
+          seed: "1234"
+        }
+      end
+
+      it "prints the seed" do
+        allow(@job_state).to receive(:each_failed_test).and_yield(payload_with_seed)
+        allow(@job_state).to receive(:is_job_complete?).and_return :true
+
+        expect($stdout).to receive(:write).with(%r(seed: 1234))
+
+        @progress_bar_view.update
+      end
+    end
+
     context "when job is cancelled" do
       before do
         @progress_bar_view.update
