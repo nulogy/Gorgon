@@ -19,6 +19,7 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
   context "when there are failures" do
     it "returns an array of hashes" do
       allow(formatter).to receive(:examples).and_return([example, fail_example])
+      seed_notification = double("SeedNotification", seed_used?: true, seed: "_seed_value_")
 
       expected_result = [
         {
@@ -27,12 +28,13 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
           full_description: "Full_Description",
           status: "failed",
           file_path: "path/to/file",
-          line_number: 2
+          line_number: 2,
+          seed: "_seed_value_"
         }
       ]
       expect(output).to receive(:write).with(expected_result.to_json)
 
-      run_formatter(formatter)
+      run_formatter(formatter, seed_notification: seed_notification)
     end
   end
 
@@ -77,8 +79,14 @@ describe RSpec::Core::Formatters::GorgonRspecFormatter do
     run_formatter(formatter, stop_notification: notification)
   end
 
-  def run_formatter(formatter, stop_notification: nil)
+  def run_formatter(formatter, stop_notification: nil, seed_notification: nil)
     formatter.stop(stop_notification)
+
+    # Note: seed notification may actually be sent before or after stop!
+    if seed_notification
+      formatter.seed(seed_notification)
+    end
+
     formatter.close
   end
 end
