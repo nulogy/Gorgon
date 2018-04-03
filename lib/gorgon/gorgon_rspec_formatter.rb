@@ -13,7 +13,6 @@ module RSpec
 
         def initialize(output)
           super
-          @execution_results = []
           @failures = []
           @seed = nil
         end
@@ -22,7 +21,7 @@ module RSpec
         end
 
         def stop(notification=nil)
-          @execution_results += failures(notification)
+          @failures += failures(notification)
         end
 
         def seed(seed_notification)
@@ -32,9 +31,7 @@ module RSpec
         end
 
         def close(_notification=nil)
-          @failures += transform_execution_results
-
-          output.write @failures.to_json
+          output.write serialize_failures(@failures).to_json
           output.close if IO === output && output != $stdout
         end
 
@@ -48,8 +45,8 @@ module RSpec
           end
         end
 
-        def transform_execution_results
-          @execution_results.map do |failure|
+        def serialize_failures(failures)
+          failures.map do |failure|
             {
               test_name: "#{failure.full_description}: line #{failure.metadata[:line_number]}",
               description: failure.description,
