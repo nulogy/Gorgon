@@ -6,7 +6,7 @@ module RSpec
     module Formatters
       class GorgonRspecFormatter < BaseFormatter
         if Formatters.respond_to? :register
-          Formatters.register self, :message, :stop, :close
+          Formatters.register self, :message, :stop, :close, :seed
         end
 
         attr_reader :output
@@ -14,30 +14,26 @@ module RSpec
         def initialize(output)
           super
           @failures = []
+          @seed = nil
         end
 
         def message(_notification)
         end
 
         def stop(notification=nil)
-          @failures += failures(notification).map do |failure|
-            {
-              test_name: "#{failure.full_description}: line #{failure.metadata[:line_number]}",
-              description: failure.description,
-              full_description: failure.full_description,
-              status: :failed,
-              file_path: failure.metadata[:file_path],
-              line_number: failure.metadata[:line_number],
-            }.tap do |hash|
-              exception = failure.exception
-              unless exception.nil?
-                hash[:class] = exception.class.name
-                hash[:message] = exception.message
-                hash[:location] = exception.backtrace
-              end
-            end
-          end
+          @failures += failures(notification)
         end
+
+        def seed(seed_notification)
+          @seed = seed_notification.seed
+        end
+
+        def close(_notification=nil)
+          output.write serialize_failures(@failures).to_json
+          output.close if IO === output && output != $stdout
+        end
+
+        private
 
         def failures(notification)
           if !notification.nil?
@@ -47,9 +43,26 @@ module RSpec
           end
         end
 
-        def close(_notification=nil)
-          output.write @failures.to_json
-          output.close if IO === output && output != $stdout
+        def serialize_failures(failures)
+          failures.map do |failure|
+            {
+              test_name: "#{failure.full_description}: line #{failure.metadata[:line_number]}",
+              description: failure.description,
+              full_description: failure.full_description,
+              status: :failed,
+              file_path: failure.metadata[:file_path],
+              line_number: failure.metadata[:line_number]
+            }.tap do |hash|
+              exception = failure.exception
+              unless exception.nil?
+                hash[:class] = exception.class.name
+                hash[:message] = exception.message
+                hash[:location] = exception.backtrace
+              end
+
+              hash[:seed] = @seed if @seed
+            end
+          end
         end
       end
     end
